@@ -27,23 +27,31 @@ DB_PASSWORD=...
 DB_NAME=almacen_db
 ENV=dev
 
-## Entorno
+## Remover directorio .venv si hay uno
+```
+rm -rf .venv
+```
+## Crear nuevo entorno virtual
+```
 python -m venv .venv
-
-source .venv/Scripts/activate  
+```
+## Activar entorno virtual
+```
+source .venv/Scripts/activate
+```
+## Actualizar pip
+```
 python -m pip install --upgrade pip
+```
+## Instalar dependencias
+```
 pip install -r requirements.txt
+```
 
-## Ejecutar
-python -m uvicorn app.main:app --reload  
- (si reload falla en Git Bash: python -m uvicorn app.main:app)
-
-## Endpoints
-GET  /api/v1/health/db
-POST /api/v1/accesos/login  { "email": "...", "password": "..." }
-POST /api/v1/usuarios/      crear empleado
-GET  /api/v1/usuarios/
-GET  /api/v1/usuarios/{email}
+## Encender el servidor
+```
+uvicorn app.main:app --reload
+```
 
 ## Notas
 - No se crean tablas desde la app.
