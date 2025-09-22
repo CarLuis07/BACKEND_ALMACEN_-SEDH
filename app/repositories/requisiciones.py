@@ -8,7 +8,7 @@ from sqlalchemy.types import Integer as SAInteger, Numeric as SANumeric
 from app.schemas.requisiciones.schemas import CrearRequisicionIn, CrearRequisicionOut, RequisicionPendienteOut
 from app.schemas.requisiciones.schemas import ResponderRequisicionIn, ResponderRequisicionOut
 from app.schemas.requisiciones.schemas import RequisicionPendienteGerenteOut
-from app.schemas.requisiciones.schemas import ResponderRequisicionGerenteIn, ResponderRequisicionOut
+from app.schemas.requisiciones.schemas import ResponderRequisicionGerenteIn
 import json
 
 SQL_CREAR_REQUISICION = """
@@ -69,6 +69,15 @@ SELECT requisiciones.responder_requisicion_jefe_materiales(
 SQL_REQUISICIONES_PENDIENTES_ALMACEN = """
 SELECT *
 FROM requisiciones.requisiciones_pendientes_almacen(:p_email)
+"""
+
+SQL_RESPONDER_REQUISICION_ALMACEN = """
+SELECT requisiciones.responder_requisicion_almacen(
+    :p_id_requisicion,
+    :p_email_almacen,
+    :p_email_recibido,
+    :p_detalle
+) AS mensaje
 """
 
 def _json_num(v: Decimal | int | float | None) -> float | None:
@@ -480,3 +489,45 @@ def requisiciones_pendientes_almacen(db: Session, email: str) -> List[Requisicio
         resultados.append(RequisicionPendienteGerenteOut(**mapeado))
 
     return resultados
+
+
+
+def responder_requisicion_almacen(
+    db: Session,
+    payload: ResponderRequisicionGerenteIn,
+    email_almacen: str
+) -> ResponderRequisicionOut:
+    if not email_almacen:
+        raise ValueError("Email no proporcionado")
+
+    # El procedimiento espera un formato diferente: cantidad_entregada en lugar de nueva_cantidad
+    productos_json: List[Dict[str, Any]] = [
+        {
+            "id_producto": str(p.idProducto),
+            "cantidad_entregada": int(_json_num(p.nuevaCantidad) or 0),
+        }
+        for p in payload.productos
+    ]
+
+    params = {
+        "p_id_requisicion": payload.idRequisicion,
+        "p_email_almacen": email_almacen,
+        "p_email_recibido": email_almacen,  # Por ahora el mismo almacenista entrega y recibe
+        "p_detalle": productos_json,        
+    }
+
+    stmt = text(SQL_RESPONDER_REQUISICION_ALMACEN).bindparams(
+        bindparam("p_id_requisicion", type_=PGUUID),
+        bindparam("p_email_almacen"),
+        bindparam("p_email_recibido"),
+        bindparam("p_detalle", type_=PGJSON),
+    )
+
+    try:
+        row = db.execute(stmt, params).mappings().one()
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return ResponderRequisicionOut(mensaje=row["mensaje"])

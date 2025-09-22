@@ -10,10 +10,11 @@ from app.repositories.requisiciones import responder_requisicion_gerente
 from app.repositories.requisiciones import requisiciones_pendientes_jefe_materiales
 from app.repositories.requisiciones import responder_requisicion_jefe_materiales
 from app.repositories.requisiciones import requisiciones_pendientes_almacen
+from app.repositories.requisiciones import responder_requisicion_almacen
 from app.schemas.requisiciones.schemas import CrearRequisicionIn, CrearRequisicionOut, ResponderRequisicionIn, ResponderRequisicionOut
 from app.schemas.requisiciones.schemas import RequisicionPendienteOut
 from app.schemas.requisiciones.schemas import RequisicionPendienteGerenteOut
-from app.schemas.requisiciones.schemas import ResponderRequisicionGerenteIn, ResponderRequisicionOut
+from app.schemas.requisiciones.schemas import ResponderRequisicionGerenteIn
 
 #EMPLEADOS 
 router = APIRouter()
@@ -216,6 +217,36 @@ async def api_requisiciones_pendientes_almacen(
         if "Usuario no autorizado" in msg or "no es Empleado de Almacén" in msg:
             raise HTTPException(status_code=401, detail="Usuario no autorizado: no es Empleado de Almacén")
         raise HTTPException(status_code=500, detail="Error al consultar requisiciones pendientes (almacén)")
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500, detail="Error de base de datos")
+    except Exception:
+        raise HTTPException(status_code=500, detail="Error inesperado")
+
+
+# RESPONDER REQUISICION ALMACEN
+@router.post(
+    "/responder/almacen",
+    summary="Empleado de Almacén responde (aprobar/rechazar) una requisición",
+    response_model=ResponderRequisicionOut,
+)
+async def api_responder_requisicion_almacen(
+    body: ResponderRequisicionGerenteIn,  # reutiliza el esquema del gerente
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    email = (str(current_user.get("email") or current_user.get("sub") or "")).strip()
+    if not email:
+        raise HTTPException(status_code=401, detail="No se encontró email del usuario autenticado")
+
+    try:
+        return responder_requisicion_almacen(db, body, email)
+    except ProgrammingError as e:
+        msg = str(getattr(e, "orig", e))
+        if "Usuario no autorizado" in msg or "no es Empleado de Almacén" in msg:
+            raise HTTPException(status_code=401, detail="Usuario no autorizado: no es Empleado de Almacén")
+        if "Estado inválido" in msg or "Comentario es obligatorio" in msg or "no puede aumentar la cantidad" in msg:
+            raise HTTPException(status_code=400, detail=msg)
+        raise HTTPException(status_code=500, detail="Error al responder la requisición (almacén)")
     except SQLAlchemyError:
         raise HTTPException(status_code=500, detail="Error de base de datos")
     except Exception:
