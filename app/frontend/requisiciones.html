@@ -1754,10 +1754,16 @@
             btnConfirmar.disabled = true;
             btnConfirmar.innerHTML = '<span class="spinner"></span> Procesando...';
 
+            console.log('🔄 Iniciando confirmación de aprobación...');
+            console.log('Requisición:', requisicionActualModal);
+            console.log('Decisión:', decisionActual);
+
             try {
                 // Elegir endpoint según rol del usuario
                 const decoded = parseJwt(token);
                 const roles = normalizarRoles(decoded);
+
+                console.log('Roles del usuario:', roles);
 
                 let endpointResponder = null;
                 let payload = {
@@ -1774,6 +1780,7 @@
                         cantidadSolicitada: p.cantidad ?? p.cantidad_solicitada ?? 0,  // Original
                         nuevaCantidad: (p.nuevaCantidad ?? p.cantidad ?? p.cantidad_solicitada ?? 0)  // Nueva o sin cambios
                     }));
+                    console.log('📦 Productos a enviar:', payload.productos);
                 } else if (tieneRol(roles, ['jefe inmediato', 'jefeinmediato', 'jefinmediato'])) {
                     endpointResponder = '/requisiciones/responder/jefe';
                     // Jefe inmediato no envía productos
@@ -1790,6 +1797,9 @@
                     return;
                 }
 
+                console.log('🌐 Endpoint:', `${API_BASE_URL}${endpointResponder}`);
+                console.log('📤 Payload:', payload);
+
                 const resp = await fetch(`${API_BASE_URL}${endpointResponder}`, {
                     method: 'POST',
                     headers: {
@@ -1801,13 +1811,17 @@
 
                 if (!resp.ok) {
                     const error = await resp.json();
+                    console.error('❌ Error del servidor:', error);
                     throw new Error(error.detail || `Error ${resp.status}`);
                 }
 
                 const result = await resp.json();
+                console.log('✅ Respuesta exitosa:', result);
+                
                 alert(`✅ Requisición ${decisionActual.toLowerCase()} exitosamente!\n\n${result.mensaje || ''}`);
                 
                 cerrarModalAprobacion();
+                console.log('🔄 Recargando lista de requisiciones pendientes...');
                 cargarRequisicionesPendientes();
 
             } catch (err) {
