@@ -1,7 +1,7 @@
-from sqlalchemy import String, Date, Numeric, Integer, Text, func
+from sqlalchemy import String, Date, Numeric, Integer, Text, func, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from app.core.database import Base
 
@@ -28,3 +28,13 @@ class Requisicion(Base):
     CreadoPor: Mapped[str | None] = mapped_column(String(50))
     ActualizadoEn: Mapped[date | None] = mapped_column(Date)
     ActualizadoPor: Mapped[str | None] = mapped_column(String(50))
+    # Nuevos campos de timestamp para auditoría
+    FechaHoraCreacion: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    FechaHoraEnvio: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    FechaHoraAprobacionJefe: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    FechaHoraAprobacionAlmacen: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    FechaHoraRechazo: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    FechaHoraEntrega: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    IdEmpleadoCreador: Mapped[str | None] = mapped_column(UUID(as_uuid=True))
+    IdJefeAprobador: Mapped[str | None] = mapped_column(UUID(as_uuid=True))
+    IdAlmacenAprobador: Mapped[str | None] = mapped_column(UUID(as_uuid=True))

@@ -18,6 +18,12 @@ def get_db():
     db = SessionLocal()
     try:
         yield db
+        # Si llegamos aquí sin excepciones, la transacción ya debería estar commiteada
+        # No hacemos rollback automático
+    except Exception:
+        # Solo hacer rollback si hubo error
+        db.rollback()
+        raise
     finally:
         db.close()
 

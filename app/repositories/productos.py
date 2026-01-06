@@ -25,7 +25,12 @@ SELECT
     c.nomcategoria,
     p.descproducto,
     p.canstock,
-    p.gasunitario
+    p.gasunitario,
+    COALESCE(p.codobjetounico, '') as "CodObjetoUnico",
+    COALESCE(p.codobjetounico, '') as codobjetunico,
+    p.Facturas AS facturas,
+    p.OrdenesCompra AS ordenescompra,
+    p.fecvencimiento
 FROM productos.productos p
 JOIN productos.categorias c ON p.idcategoria = c.idcategoria
 ORDER BY c.nomcategoria, p.nomproducto
@@ -56,7 +61,9 @@ SELECT productos.CrearProducto(
     :p_idunidadmedida,
     :p_gasunitario,
     :p_gastotal,
-    :p_creadopor
+    :p_creadopor,
+    :p_facturas,
+    :p_ordenescompra
     ) AS idproducto
 """
 
@@ -110,31 +117,35 @@ def buscar_productos(db: Session, nomproducto: Optional[str], codobjeto: Optiona
     return [ProductoOut(**dict(r)) for r in res]
 
 def listar_categorias_y_unidades(db: Session) -> CatalogosProductoOut:
-    raw = db.execute(text(SQL_LISTAR_CATEGORIAS_Y_UNIDADES)).scalar()
-    if raw is None:
+    """
+    Obtiene categorías y unidades de medida directamente desde las tablas
+    Sin depender de stored procedures que podrían no existir
+    """
+    try:
+        # Obtener categorías directamente
+        categorias_query = db.execute(text("""
+            SELECT "IdCategoria" as idcategoria, "CodObjeto" as codobjeto, "NomCategoria" as nomcategoria
+            FROM productos."Categorias"
+            ORDER BY "CodObjeto"
+        """)).mappings().all()
+        
+        # Obtener unidades de medida directamente
+        unidades_query = db.execute(text("""
+            SELECT "IdUnidadMedida" as idunidadmedida, "NomUnidad" as nomunidad
+            FROM productos."Unidades_Medida"
+            ORDER BY "NomUnidad"
+        """)).mappings().all()
+        
+        categorias = [CategoriaRefOut(**dict(c)) for c in categorias_query]
+        unidades = [UnidadMedidaOut(**dict(u)) for u in unidades_query]
+        
+        return CatalogosProductoOut(categorias=categorias, unidades=unidades)
+        
+    except Exception as e:
+        print(f"❌ Error en listar_categorias_y_unidades: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return CatalogosProductoOut(categorias=[], unidades=[])
-
-    if isinstance(raw, str):
-        data = json.loads(raw)
-    elif isinstance(raw, Mapping):
-        data = dict(raw)
-    else:
-        # Fallback en caso de tipo no esperado
-        data = json.loads(str(raw))
-
-    categorias = [
-        {"idcategoria": c.get("IdCategoria"), "codobjeto": c.get("CodObjeto")}
-        for c in data.get("categorias", [])
-    ]
-    unidades = [
-        {"idunidadmedida": u.get("IdUnidadMedida"), "nomunidad": u.get("NomUnidad")}
-        for u in data.get("unidades", [])
-    ]
-
-    return CatalogosProductoOut(
-        categorias=[CategoriaRefOut(**c) for c in categorias],
-        unidades=[UnidadMedidaOut(**u) for u in unidades],
-    )
 
 ##USUARIOS EMPLEADOS ALMACEN
 def crear_producto(db: Session, payload: ProductoCreateIn, creado_por: str) -> Optional[UUID]:
@@ -151,13 +162,11 @@ def crear_producto(db: Session, payload: ProductoCreateIn, creado_por: str) -> O
         "p_gasunitario": payload.gasunitario,
         "p_gastotal": payload.gastotal,
         "p_creadopor": creado_por,
+        "p_facturas": payload.facturas,
+        "p_ordenescompra": payload.ordenescompra,
     }
-    try:
-        res = db.execute(text(SQL_CREAR_PRODUCTO), params).scalar()
-        db.commit()  
-    except Exception:
-        db.rollback()
-        raise
+    res = db.execute(text(SQL_CREAR_PRODUCTO), params).scalar()
+    db.flush()  # Asegurar que la transacción está pending
     try:
         return UUID(str(res)) if res is not None else None
     except Exception:
@@ -171,12 +180,8 @@ def crear_categoria(db: Session, payload: CategoriaCreateIn, creado_por: str) ->
         "p_creadopor": creado_por,
         "p_imagen": payload.imagen,  # None o bytes
     }
-    try:
-        res = db.execute(text(SQL_CREAR_CATEGORIA), params).scalar()
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
+    res = db.execute(text(SQL_CREAR_CATEGORIA), params).scalar()
+    db.flush()  # Asegurar que la transacción está pending
     try:
         return UUID(str(res)) if res is not None else None
     except Exception:
@@ -191,12 +196,8 @@ def editar_categoria(db: Session, idcategoria: UUID, payload, actualizado_por: s
         "p_descategoria": payload.descategoria,
         "p_imagen": payload.imagen,
     }
-    try:
-        res = db.execute(text(SQL_EDITAR_CATEGORIA), params).scalar()
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
+    res = db.execute(text(SQL_EDITAR_CATEGORIA), params).scalar()
+    db.flush()  # Asegurar que la transacción está pending
     return bool(res) if res is not None else True
 
 def buscar_categoria(db: Session, codobjeto: int) -> List[CategoriaOut]:

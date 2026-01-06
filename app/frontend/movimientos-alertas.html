@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas Inteligentes - SEDH</title>
+    <style>
+        :root {
+            --sedh-primary: #0f766e;
+            --sedh-secondary: #14b8a6;
+            --sedh-accent: #2dd4bf;
+            --sedh-success: #10b981;
+            --sedh-warning: #f59e0b;
+            --sedh-danger: #ef4444;
+            --sedh-dark: #1f2937;
+            --sedh-light: #f8fafc;
+            --sedh-border: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b3f3b 0%, #0f5e59 45%, #0f766e 100%);
+            min-height: 100vh;
+            color: var(--sedh-dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: var(--sedh-primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: var(--sedh-primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: var(--sedh-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(15, 118, 110, 0.3);
+        }
+
+        /* Resumen de Alertas */
+        .resumen-alertas {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .resumen-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+        }
+
+        .resumen-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .resumen-card.criticas {
+            border-left-color: var(--sedh-danger);
+        }
+
+        .resumen-card.advertencias {
+            border-left-color: var(--sedh-warning);
+        }
+
+        .resumen-card.informativas {
+            border-left-color: var(--sedh-primary);
+        }
+
+        .resumen-card.recomendaciones {
+            border-left-color: var(--sedh-success);
+        }
+
+        .resumen-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .resumen-numero {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .resumen-label {
+            font-size: 1rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        /* Filtros */
+        .filtros-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .filtros-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--sedh-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filtros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--sedh-dark);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            padding: 12px 16px;
+            border: 2px solid var(--sedh-border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--sedh-primary);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--sedh-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--sedh-secondary);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--sedh-success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--sedh-warning);
+            color: white;
+        }
+
+        /* Alertas Cards */
+        .alertas-section {
+            display: grid;
+            gap: 20px;
+        }
+
+        .alerta-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+        }
+
+        .alerta-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .alerta-card.critica {
+            border-left-color: var(--sedh-danger);
+        }
+
+        .alerta-card.advertencia {
+            border-left-color: var(--sedh-warning);
+        }
+
+        .alerta-card.informativa {
+            border-left-color: var(--sedh-primary);
+        }
+
+        .alerta-card.recomendacion {
+            border-left-color: var(--sedh-success);
+        }
+
+        .alerta-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .alerta-info {
+            flex: 1;
+        }
+
+        .alerta-tipo {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .alerta-tipo.critica {
+            background: #fee2e2;
+            color: var(--sedh-danger);
+        }
+
+        .alerta-tipo.advertencia {
+            background: #fef3c7;
+            color: var(--sedh-warning);
+        }
+
+        .alerta-tipo.informativa {
+            background: #dbeafe;
+            color: var(--sedh-primary);
+        }
+
+        .alerta-tipo.recomendacion {
+            background: #d1fae5;
+            color: var(--sedh-success);
+        }
+
+        .alerta-titulo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--sedh-dark);
+            margin-bottom: 8px;
+        }
+
+        .alerta-descripcion {
+            color: #64748b;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .alerta-detalles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            background: var(--sedh-light);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .detalle-item {
+            text-align: center;
+        }
+
+        .detalle-valor {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--sedh-primary);
+        }
+
+        .detalle-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .alerta-acciones {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .alerta-fecha {
+            font-size: 0.9rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Configuración de Alertas */
+        .config-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .config-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--sedh-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .config-item {
+            border: 2px solid var(--sedh-border);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .config-item:hover {
+            border-color: var(--sedh-primary);
+        }
+
+        .config-item h4 {
+            color: var(--sedh-primary);
+            margin-bottom: 10px;
+        }
+
+        .config-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--sedh-primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 1.1rem;
+            color: #64748b;
+        }
+
+        .loading::before {
+            content: "🔄";
+            margin-right: 10px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .resumen-alertas {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .filtros-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .alerta-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .alerta-acciones {
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .resumen-alertas {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Notificaciones Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+        .toast.success {
+            border-left-color: var(--sedh-success);
+        }
+
+        .toast.warning {
+            border-left-color: var(--sedh-warning);
+        }
+
+        .toast.danger {
+            border-left-color: var(--sedh-danger);
+        }
+
+        /* Tarjetas de Productos Alertas */
+        .producto-alerta-card {
+            background: white;
+            border: 2px solid var(--sedh-border);
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+
+        .producto-alerta-card:hover {
+            border-color: var(--sedh-primary);
+            box-shadow: 0 4px 20px rgba(15, 118, 110, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .producto-alerta-card.alerta-critica {
+            border-left: 4px solid var(--sedh-danger);
+        }
+
+        .producto-alerta-card.alerta-advertencia {
+            border-left: 4px solid var(--sedh-warning);
+        }
+
+        .producto-alerta-card.alerta-normal {
+            border-left: 4px solid var(--sedh-success);
+        }
+
+        .producto-alerta-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .producto-alerta-icon {
+            font-size: 1.8rem;
+            width: 45px;
+            height: 45px;
+            background: var(--sedh-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--sedh-border);
+        }
+
+        .producto-alerta-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .producto-alerta-nombre {
+            font-weight: 700;
+            color: var(--sedh-primary);
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .producto-alerta-codigo {
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .producto-alerta-badges {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .badge-alerta {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-stock-bajo {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-vencimiento {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-ok {
+            background: #d1fae5;
+            color: #065f46;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚨 Alertas Inteligentes</h1>
+            <p class="subtitle">Sistema avanzado de notificaciones y recomendaciones</p>
+            <div class="nav-buttons">
+                <a href="/dashboard" class="nav-btn">🏠 Inicio</a>
+                <a href="/movimientos-dashboard" class="nav-btn">📊  Movimientos</a>
+                <a href="/control-almacen" class="nav-btn">📦 Control Almacén</a>
+                <a href="/productos" class="nav-btn">🏷️ Productos</a>
+            </div>
+        </div>
+
+        <!-- Resumen de Alertas -->
+        <div class="resumen-alertas" id="resumenAlertas">
+            <!-- Se llenan dinámicamente -->
+        </div>
+
+        <!-- Lista de Productos Disponibles -->
+        <div class="filtros-section" id="productosAlertasSection">
+            <div class="filtros-title">
+                📦 Productos Monitoreados
+            </div>
+            <p style="color: #64748b; margin-bottom: 20px; text-align: center;">
+                Seleccione un producto para ver sus alertas específicas
+            </p>
+            <div id="productosAlertasDisponibles" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+                <!-- Productos se cargarán aquí -->
+            </div>
+        </div>
+
+        <!-- Configuración de Alertas -->
+        <div class="config-section">
+            <div class="config-title">
+                ⚙️ Configuración de Alertas
+            </div>
+            <div class="config-grid">
+                <div class="config-item">
+                    <h4>🔻 Stock Bajo</h4>
+                    <p>Alertas cuando el stock esté por debajo del mínimo establecido</p>
+                    <div class="config-controls">
+                        <label class="switch">
+                            <input type="checkbox" id="alertaStockBajo" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span>Activar alertas</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <label class="form-label">Porcentaje crítico:</label>
+                        <input type="range" min="10" max="50" value="25" id="porcentajeStockBajo" class="form-control">
+                        <span id="valorStockBajo">25%</span>
+                    </div>
+                </div>
+
+                <div class="config-item">
+                    <h4>📅 Productos por Vencer</h4>
+                    <p>Notificaciones sobre productos próximos a vencer</p>
+                    <div class="config-controls">
+                        <label class="switch">
+                            <input type="checkbox" id="alertaVencimiento" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span>Activar alertas</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <label class="form-label">Días de anticipación:</label>
+                        <input type="number" min="1" max="90" value="30" id="diasVencimiento" class="form-control">
+                    </div>
+                </div>
+
+                <div class="config-item">
+                    <h4>📈 Demanda Alta</h4>
+                    <p>Alertas sobre productos con alta demanda</p>
+                    <div class="config-controls">
+                        <label class="switch">
+                            <input type="checkbox" id="alertaDemanda" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span>Activar alertas</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <label class="form-label">Umbral de movimientos/mes:</label>
+                        <input type="number" min="5" max="100" value="20" id="umbralDemanda" class="form-control">
+                    </div>
+                </div>
+
+                <div class="config-item">
+                    <h4>⏰ Reposición Sugerida</h4>
+                    <p>Sugerencias automáticas de reposición basadas en patrones</p>
+                    <div class="config-controls">
+                        <label class="switch">
+                            <input type="checkbox" id="alertaReposicion" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <span>Activar sugerencias</span>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn btn-primary" onclick="guardarConfiguracion()">
+                    💾 Guardar Configuración
+                </button>
+            </div>
+        </div>
+
+        <!-- Filtros -->
+        <div class="filtros-section">
+            <div class="filtros-title">
+                🔧 Filtros de Alertas
+            </div>
+            <div class="filtros-grid">
+                <div class="form-group">
+                    <label class="form-label">🏷️ Tipo de Alerta</label>
+                    <select id="tipoAlerta" class="form-control">
+                        <option value="">Todas las alertas</option>
+                        <option value="critica">🚨 Críticas</option>
+                        <option value="advertencia">⚠️ Advertencias</option>
+                        <option value="informativa">ℹ️ Informativas</option>
+                        <option value="recomendacion">💡 Recomendaciones</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">📦 Categoría</label>
+                    <select id="categoriaFiltro" class="form-control">
+                        <option value="">Todas las categorías</option>
+                        <!-- Se llena dinámicamente -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">📊 Estado</label>
+                    <select id="estadoFiltro" class="form-control">
+                        <option value="">Todos los estados</option>
+                        <option value="activa">🔴 Activa</option>
+                        <option value="resuelta">✅ Resuelta</option>
+                        <option value="ignorada">⏸️ Ignorada</option>
+                    </select>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <button class="btn btn-primary" onclick="aplicarFiltros()">
+                    🔍 Aplicar Filtros
+                </button>
+                <button class="btn btn-success" onclick="actualizarAlertas()">
+                    🔄 Actualizar Alertas
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loadingAlertas">
+            Cargando alertas inteligentes...
+        </div>
+
+        <!-- Alertas -->
+        <div class="alertas-section" id="alertasContainer" style="display: none;">
+            <!-- Se llenan dinámicamente -->
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer">
+        <!-- Notificaciones dinámicas -->
+    </div>
+
+    <script>
+        const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api/v1`;
+        let authToken = '';
+        let alertasActuales = [];
+        let configuracionAlertas = {
+            stockBajo: { activo: true, porcentaje: 25 },
+            vencimiento: { activo: true, dias: 30 },
+            demanda: { activo: true, umbral: 20 },
+            reposicion: { activo: true }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            authToken = localStorage.getItem('token');
+            if (!authToken) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Cargar configuración guardada
+            cargarConfiguracion();
+            
+            // Inicializar controles
+            inicializarControles();
+            
+            // Cargar productos disponibles
+            await cargarProductosAlertas();
+            
+            // Cargar alertas
+            await cargarAlertas();
+            
+            // Configurar actualización automática cada 5 minutos
+            setInterval(actualizarAlertas, 5 * 60 * 1000);
+        });
+
+        async function cargarProductosAlertas() {
+            try {
+                const productos = await obtenerProductosSimulados();
+                mostrarProductosAlertas(productos);
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+            }
+        }
+
+        function mostrarProductosAlertas(productos) {
+            const container = document.getElementById('productosAlertasDisponibles');
+            
+            if (productos.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #64748b; grid-column: 1 / -1;">
+                        <div style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;">📭</div>
+                        <p>No hay productos disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const iconos = {
+                'Papel y Cartón': '📄',
+                'Útiles y Materiales de Oficina': '✏️',
+                'Equipo y Mobiliario de Oficina': '🖨️',
+                'default': '📦'
+            };
+
+            container.innerHTML = productos.map(producto => {
+                const icono = iconos[producto.categoria] || iconos.default;
+                
+                // Determinar estado de alerta
+                let estadoClase = 'alerta-normal';
+                let badges = [];
+                
+                const porcentajeStock = (producto.stockActual / producto.stockMinimo) * 100;
+                
+                if (porcentajeStock <= 100) {
+                    estadoClase = 'alerta-critica';
+                    badges.push('<span class="badge-alerta badge-stock-bajo">🔻 Stock Bajo</span>');
+                } else if (porcentajeStock <= 150) {
+                    estadoClase = 'alerta-advertencia';
+                    badges.push('<span class="badge-alerta badge-vencimiento">⚠️ Por Reponer</span>');
+                }
+
+                if (producto.fechaVencimiento) {
+                    const diasVencimiento = Math.ceil((new Date(producto.fechaVencimiento) - new Date()) / (1000 * 60 * 60 * 24));
+                    if (diasVencimiento <= 30 && diasVencimiento > 0) {
+                        badges.push(`<span class="badge-alerta badge-vencimiento">📅 Vence en ${diasVencimiento}d</span>`);
+                        if (estadoClase === 'alerta-normal') estadoClase = 'alerta-advertencia';
+                    }
+                }
+
+                if (badges.length === 0) {
+                    badges.push('<span class="badge-alerta badge-ok">✅ Sin Alertas</span>');
+                }
+
+                return `
+                    <div class="producto-alerta-card ${estadoClase}" onclick="verAlertasProducto('${producto.id}')">
+                        <div class="producto-alerta-header">
+                            <div class="producto-alerta-icon">${icono}</div>
+                            <div class="producto-alerta-info">
+                                <div class="producto-alerta-nombre" title="${producto.nombre}">${producto.nombre}</div>
+                                <div class="producto-alerta-codigo">${producto.codigo}</div>
+                            </div>
+                        </div>
+                        <div class="producto-alerta-badges">
+                            ${badges.join('')}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">
+                            Stock: ${producto.stockActual} / ${producto.stockMinimo}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function verAlertasProducto(productoId) {
+            // Scroll a la sección de alertas
+            document.getElementById('alertasContainer').scrollIntoView({ behavior: 'smooth' });
+            
+            // Mostrar notificación
+            mostrarToast('Mostrando alertas para el producto seleccionado', 'success');
+        }
+
+        function inicializarControles() {
+            // Slider de stock bajo
+            const sliderStock = document.getElementById('porcentajeStockBajo');
+            const valorStock = document.getElementById('valorStockBajo');
+            
+            sliderStock.addEventListener('input', function() {
+                valorStock.textContent = this.value + '%';
+                configuracionAlertas.stockBajo.porcentaje = parseInt(this.value);
+            });
+
+            // Otros controles
+            document.getElementById('diasVencimiento').addEventListener('change', function() {
+                configuracionAlertas.vencimiento.dias = parseInt(this.value);
+            });
+
+            document.getElementById('umbralDemanda').addEventListener('change', function() {
+                configuracionAlertas.demanda.umbral = parseInt(this.value);
+            });
+        }
+
+        async function cargarAlertas() {
+            try {
+                document.getElementById('loadingAlertas').style.display = 'block';
+                document.getElementById('alertasContainer').style.display = 'none';
+
+                // Generar alertas inteligentes
+                const alertas = await generarAlertasInteligentes();
+                alertasActuales = alertas;
+
+                // Mostrar resumen
+                mostrarResumenAlertas(alertas);
+                
+                // Mostrar alertas
+                mostrarAlertas(alertas);
+
+                document.getElementById('loadingAlertas').style.display = 'none';
+                document.getElementById('alertasContainer').style.display = 'grid';
+
+            } catch (error) {
+                console.error('Error cargando alertas:', error);
+                mostrarToast('Error al cargar alertas', 'danger');
+            }
+        }
+
+        async function generarAlertasInteligentes() {
+            const alertas = [];
+
+            // Simular datos de productos y movimientos
+            const productos = await obtenerProductosSimulados();
+            const movimientos = await obtenerMovimientosSimulados();
+
+            // 1. Alertas de Stock Bajo
+            if (configuracionAlertas.stockBajo.activo) {
+                const alertasStock = generarAlertasStockBajo(productos);
+                alertas.push(...alertasStock);
+            }
+
+            // 2. Alertas de Vencimiento
+            if (configuracionAlertas.vencimiento.activo) {
+                const alertasVencimiento = generarAlertasVencimiento(productos);
+                alertas.push(...alertasVencimiento);
+            }
+
+            // 3. Alertas de Alta Demanda
+            if (configuracionAlertas.demanda.activo) {
+                const alertasDemanda = generarAlertasDemanda(productos, movimientos);
+                alertas.push(...alertasDemanda);
+            }
+
+            // 4. Recomendaciones de Reposición
+            if (configuracionAlertas.reposicion.activo) {
+                const recomendaciones = generarRecomendacionesReposicion(productos, movimientos);
+                alertas.push(...recomendaciones);
+            }
+
+            // 5. Alertas de Rendimiento del Sistema
+            const alertasRendimiento = generarAlertasRendimiento(movimientos);
+            alertas.push(...alertasRendimiento);
+
+            return alertas.sort((a, b) => {
+                const prioridades = { 'critica': 4, 'advertencia': 3, 'informativa': 2, 'recomendacion': 1 };
+                return prioridades[b.tipo] - prioridades[a.tipo];
+            });
+        }
+
+        async function obtenerProductosSimulados() {
+            return [
+                {
+                    id: 'P001',
+                    nombre: 'PAPEL BON',
+                    codigo: '33100-002',
+                    categoria: 'Papel y Cartón',
+                    stockActual: 15,
+                    stockMinimo: 50,
+                    fechaVencimiento: '2025-12-15',
+                    ultimoMovimiento: '2025-11-28'
+                },
+                {
+                    id: 'P002',
+                    nombre: 'TONER PARA IMPRESORA HP',
+                    codigo: '33500-015',
+                    categoria: 'Equipo y Mobiliario de Oficina',
+                    stockActual: 3,
+                    stockMinimo: 5,
+                    fechaVencimiento: '2026-03-10',
+                    ultimoMovimiento: '2025-11-20'
+                },
+                {
+                    id: 'P003',
+                    nombre: 'LAPICEROS',
+                    codigo: '33100-001',
+                    categoria: 'Útiles y Materiales de Oficina',
+                    stockActual: 80,
+                    stockMinimo: 100,
+                    fechaVencimiento: null,
+                    ultimoMovimiento: '2025-11-25'
+                },
+                {
+                    id: 'P004',
+                    nombre: 'MARCADORES PERMANENTES',
+                    codigo: '33100-003',
+                    categoria: 'Útiles y Materiales de Oficina',
+                    stockActual: 45,
+                    stockMinimo: 20,
+                    fechaVencimiento: null,
+                    ultimoMovimiento: '2025-11-22'
+                },
+                {
+                    id: 'P005',
+                    nombre: 'FOLDERS MANILA',
+                    codigo: '33100-010',
+                    categoria: 'Papel y Cartón',
+                    stockActual: 200,
+                    stockMinimo: 100,
+                    fechaVencimiento: null,
+                    ultimoMovimiento: '2025-11-27'
+                },
+                {
+                    id: 'P006',
+                    nombre: 'CLIPS METÁLICOS',
+                    codigo: '33100-005',
+                    categoria: 'Útiles y Materiales de Oficina',
+                    stockActual: 25,
+                    stockMinimo: 30,
+                    fechaVencimiento: null,
+                    ultimoMovimiento: '2025-11-26'
+                }
+            ];
+        }
+
+        async function obtenerMovimientosSimulados() {
+            return [
+                { producto: 'P001', fecha: '2024-11-20', cantidad: 10, tipo: 'salida' },
+                { producto: 'P001', fecha: '2024-11-18', cantidad: 15, tipo: 'salida' },
+                { producto: 'P002', fecha: '2024-11-19', cantidad: 2, tipo: 'salida' },
+                { producto: 'P003', fecha: '2024-11-20', cantidad: 25, tipo: 'salida' }
+            ];
+        }
+
+        function generarAlertasStockBajo(productos) {
+            const alertas = [];
+            const umbralCritico = configuracionAlertas.stockBajo.porcentaje / 100;
+
+            productos.forEach(producto => {
+                const porcentajeStock = producto.stockActual / producto.stockMinimo;
+                
+                if (porcentajeStock <= umbralCritico) {
+                    alertas.push({
+                        id: `stock-${producto.id}`,
+                        tipo: porcentajeStock <= 0.1 ? 'critica' : 'advertencia',
+                        titulo: `Stock crítico: ${producto.nombre}`,
+                        descripcion: `El producto está por debajo del nivel mínimo establecido. Stock actual: ${producto.stockActual}, mínimo: ${producto.stockMinimo}`,
+                        detalles: {
+                            'Stock Actual': producto.stockActual,
+                            'Stock Mínimo': producto.stockMinimo,
+                            'Déficit': producto.stockMinimo - producto.stockActual,
+                            'Porcentaje': Math.round(porcentajeStock * 100) + '%'
+                        },
+                        categoria: producto.categoria,
+                        fecha: new Date().toISOString(),
+                        acciones: ['Solicitar Reposición', 'Ver Historial', 'Contactar Proveedor'],
+                        estado: 'activa'
+                    });
+                }
+            });
+
+            return alertas;
+        }
+
+        function generarAlertasVencimiento(productos) {
+            const alertas = [];
+            const diasAnticipacion = configuracionAlertas.vencimiento.dias;
+            const fechaLimite = new Date();
+            fechaLimite.setDate(fechaLimite.getDate() + diasAnticipacion);
+
+            productos.forEach(producto => {
+                if (producto.fechaVencimiento) {
+                    const fechaVencimiento = new Date(producto.fechaVencimiento);
+                    
+                    if (fechaVencimiento <= fechaLimite) {
+                        const diasRestantes = Math.ceil((fechaVencimiento - new Date()) / (1000 * 60 * 60 * 24));
+                        
+                        alertas.push({
+                            id: `venc-${producto.id}`,
+                            tipo: diasRestantes <= 7 ? 'critica' : 'advertencia',
+                            titulo: `Producto próximo a vencer: ${producto.nombre}`,
+                            descripcion: `Este producto vencerá en ${diasRestantes} días. Considere su uso prioritario o gestión especial.`,
+                            detalles: {
+                                'Días Restantes': diasRestantes,
+                                'Fecha Vencimiento': fechaVencimiento.toLocaleDateString('es-ES'),
+                                'Stock Actual': producto.stockActual,
+                                'Valor Estimado': 'HNL ' + (producto.stockActual * 15).toFixed(2)
+                            },
+                            categoria: producto.categoria,
+                            fecha: new Date().toISOString(),
+                            acciones: ['Uso Prioritario', 'Donación', 'Contactar Usuario'],
+                            estado: 'activa'
+                        });
+                    }
+                }
+            });
+
+            return alertas;
+        }
+
+        function generarAlertasDemanda(productos, movimientos) {
+            const alertas = [];
+            const umbralMovimientos = configuracionAlertas.demanda.umbral;
+
+            // Calcular movimientos por producto en los últimos 30 días
+            const hace30Dias = new Date();
+            hace30Dias.setDate(hace30Dias.getDate() - 30);
+
+            productos.forEach(producto => {
+                const movimientosProducto = movimientos.filter(m => 
+                    m.producto === producto.id && 
+                    new Date(m.fecha) >= hace30Dias &&
+                    m.tipo === 'salida'
+                );
+
+                const totalMovimientos = movimientosProducto.reduce((sum, m) => sum + m.cantidad, 0);
+
+                if (totalMovimientos >= umbralMovimientos) {
+                    alertas.push({
+                        id: `demanda-${producto.id}`,
+                        tipo: 'informativa',
+                        titulo: `Alta demanda detectada: ${producto.nombre}`,
+                        descripcion: `Este producto ha tenido una demanda superior al promedio en los últimos 30 días.`,
+                        detalles: {
+                            'Movimientos': movimientosProducto.length,
+                            'Cantidad Total': totalMovimientos,
+                            'Promedio Diario': Math.round(totalMovimientos / 30),
+                            'Stock Actual': producto.stockActual
+                        },
+                        categoria: producto.categoria,
+                        fecha: new Date().toISOString(),
+                        acciones: ['Incrementar Stock', 'Análisis Tendencia', 'Revisar Proveedores'],
+                        estado: 'activa'
+                    });
+                }
+            });
+
+            return alertas;
+        }
+
+        function generarRecomendacionesReposicion(productos, movimientos) {
+            const alertas = [];
+
+            productos.forEach(producto => {
+                // Calcular promedio de consumo
+                const movimientosProducto = movimientos.filter(m => 
+                    m.producto === producto.id && m.tipo === 'salida'
+                );
+
+                if (movimientosProducto.length > 0) {
+                    const consumoPromedio = movimientosProducto.reduce((sum, m) => sum + m.cantidad, 0) / movimientosProducto.length;
+                    const diasStock = Math.floor(producto.stockActual / (consumoPromedio || 1));
+
+                    if (diasStock <= 14 && producto.stockActual > 0) {
+                        const cantidadSugerida = Math.ceil(consumoPromedio * 30) - producto.stockActual;
+
+                        alertas.push({
+                            id: `repo-${producto.id}`,
+                            tipo: 'recomendacion',
+                            titulo: `Reposición sugerida: ${producto.nombre}`,
+                            descripcion: `Basado en el patrón de consumo, se recomienda reponer este producto para mantener un stock óptimo.`,
+                            detalles: {
+                                'Días de Stock': diasStock,
+                                'Consumo Promedio': Math.round(consumoPromedio),
+                                'Cantidad Sugerida': cantidadSugerida,
+                                'Costo Estimado': 'HNL ' + (cantidadSugerida * 12).toFixed(2)
+                            },
+                            categoria: producto.categoria,
+                            fecha: new Date().toISOString(),
+                            acciones: ['Generar Orden', 'Ver Proveedores', 'Programar Compra'],
+                            estado: 'activa'
+                        });
+                    }
+                }
+            });
+
+            return alertas;
+        }
+
+        function generarAlertasRendimiento(movimientos) {
+            const alertas = [];
+            const hoy = new Date();
+            const ayer = new Date(hoy.getTime() - 24 * 60 * 60 * 1000);
+
+            const movimientosHoy = movimientos.filter(m => 
+                new Date(m.fecha).toDateString() === hoy.toDateString()
+            );
+
+            if (movimientosHoy.length > 50) {
+                alertas.push({
+                    id: 'rend-alta-actividad',
+                    tipo: 'informativa',
+                    titulo: 'Alta actividad del sistema',
+                    descripcion: `Se ha detectado una actividad superior al promedio en el sistema de movimientos.`,
+                    detalles: {
+                        'Movimientos Hoy': movimientosHoy.length,
+                        'Promedio Histórico': 25,
+                        'Incremento': '+' + Math.round(((movimientosHoy.length - 25) / 25) * 100) + '%',
+                        'Estado Sistema': 'Óptimo'
+                    },
+                    categoria: 'Sistema',
+                    fecha: new Date().toISOString(),
+                    acciones: ['Ver Dashboard', 'Generar Reporte'],
+                    estado: 'activa'
+                });
+            }
+
+            return alertas;
+        }
+
+        function mostrarResumenAlertas(alertas) {
+            const resumen = {
+                criticas: alertas.filter(a => a.tipo === 'critica').length,
+                advertencias: alertas.filter(a => a.tipo === 'advertencia').length,
+                informativas: alertas.filter(a => a.tipo === 'informativa').length,
+                recomendaciones: alertas.filter(a => a.tipo === 'recomendacion').length
+            };
+
+            document.getElementById('resumenAlertas').innerHTML = `
+                <div class="resumen-card criticas">
+                    <div class="resumen-icon">🚨</div>
+                    <div class="resumen-numero" style="color: var(--sedh-danger);">${resumen.criticas}</div>
+                    <div class="resumen-label">Críticas</div>
+                </div>
+                <div class="resumen-card advertencias">
+                    <div class="resumen-icon">⚠️</div>
+                    <div class="resumen-numero" style="color: var(--sedh-warning);">${resumen.advertencias}</div>
+                    <div class="resumen-label">Advertencias</div>
+                </div>
+                <div class="resumen-card informativas">
+                    <div class="resumen-icon">ℹ️</div>
+                    <div class="resumen-numero" style="color: var(--sedh-primary);">${resumen.informativas}</div>
+                    <div class="resumen-label">Informativas</div>
+                </div>
+                <div class="resumen-card recomendaciones">
+                    <div class="resumen-icon">💡</div>
+                    <div class="resumen-numero" style="color: var(--sedh-success);">${resumen.recomendaciones}</div>
+                    <div class="resumen-label">Recomendaciones</div>
+                </div>
+            `;
+        }
+
+        function mostrarAlertas(alertas) {
+            const container = document.getElementById('alertasContainer');
+
+            if (alertas.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #64748b;">
+                        <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+                        <h3>¡Excelente!</h3>
+                        <p>No hay alertas pendientes en este momento.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = alertas.map(alerta => `
+                <div class="alerta-card ${alerta.tipo}">
+                    <div class="alerta-header">
+                        <div class="alerta-info">
+                            <div class="alerta-tipo ${alerta.tipo}">
+                                ${getTipoIcon(alerta.tipo)} ${alerta.tipo.toUpperCase()}
+                            </div>
+                            <div class="alerta-titulo">${alerta.titulo}</div>
+                            <div class="alerta-descripcion">${alerta.descripcion}</div>
+                        </div>
+                        <div class="alerta-fecha">
+                            📅 ${formatearFecha(alerta.fecha)}
+                        </div>
+                    </div>
+                    
+                    <div class="alerta-detalles">
+                        ${Object.entries(alerta.detalles).map(([key, value]) => `
+                            <div class="detalle-item">
+                                <div class="detalle-valor">${value}</div>
+                                <div class="detalle-label">${key}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="alerta-acciones">
+                        ${alerta.acciones.map(accion => `
+                            <button class="btn btn-primary" onclick="ejecutarAccion('${alerta.id}', '${accion}')">
+                                ${accion}
+                            </button>
+                        `).join('')}
+                        <button class="btn btn-secondary" onclick="marcarComoResuelta('${alerta.id}')">
+                            ✅ Marcar Resuelta
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getTipoIcon(tipo) {
+            const iconos = {
+                'critica': '🚨',
+                'advertencia': '⚠️',
+                'informativa': 'ℹ️',
+                'recomendacion': '💡'
+            };
+            return iconos[tipo] || '📋';
+        }
+
+        function ejecutarAccion(alertaId, accion) {
+            mostrarToast(`Ejecutando: ${accion}`, 'success');
+            console.log('Ejecutar acción:', accion, 'para alerta:', alertaId);
+            
+            // Aquí se implementarían las acciones específicas
+            switch(accion) {
+                case 'Solicitar Reposición':
+                    // Redirigir a formulario de solicitud
+                    break;
+                case 'Ver Historial':
+                    // Abrir historial del producto
+                    break;
+                case 'Generar Orden':
+                    // Crear orden de compra
+                    break;
+                // ... más acciones
+            }
+        }
+
+        function marcarComoResuelta(alertaId) {
+            // Encontrar y actualizar la alerta
+            const alertaIndex = alertasActuales.findIndex(a => a.id === alertaId);
+            if (alertaIndex !== -1) {
+                alertasActuales[alertaIndex].estado = 'resuelta';
+                mostrarToast('Alerta marcada como resuelta', 'success');
+                
+                // Recargar vista
+                setTimeout(() => {
+                    cargarAlertas();
+                }, 1000);
+            }
+        }
+
+        function aplicarFiltros() {
+            const tipoFiltro = document.getElementById('tipoAlerta').value;
+            const categoriaFiltro = document.getElementById('categoriaFiltro').value;
+            const estadoFiltro = document.getElementById('estadoFiltro').value;
+
+            let alertasFiltradas = alertasActuales;
+
+            if (tipoFiltro) {
+                alertasFiltradas = alertasFiltradas.filter(a => a.tipo === tipoFiltro);
+            }
+
+            if (categoriaFiltro) {
+                alertasFiltradas = alertasFiltradas.filter(a => a.categoria === categoriaFiltro);
+            }
+
+            if (estadoFiltro) {
+                alertasFiltradas = alertasFiltradas.filter(a => a.estado === estadoFiltro);
+            }
+
+            mostrarAlertas(alertasFiltradas);
+            mostrarResumenAlertas(alertasFiltradas);
+        }
+
+        function actualizarAlertas() {
+            cargarAlertas();
+            mostrarToast('Alertas actualizadas', 'success');
+        }
+
+        function guardarConfiguracion() {
+            // Obtener valores de los controles
+            configuracionAlertas.stockBajo.activo = document.getElementById('alertaStockBajo').checked;
+            configuracionAlertas.vencimiento.activo = document.getElementById('alertaVencimiento').checked;
+            configuracionAlertas.demanda.activo = document.getElementById('alertaDemanda').checked;
+            configuracionAlertas.reposicion.activo = document.getElementById('alertaReposicion').checked;
+
+            // Guardar en localStorage
+            localStorage.setItem('configuracionAlertas', JSON.stringify(configuracionAlertas));
+            
+            mostrarToast('Configuración guardada exitosamente', 'success');
+            
+            // Recargar alertas con nueva configuración
+            setTimeout(() => {
+                cargarAlertas();
+            }, 1000);
+        }
+
+        function cargarConfiguracion() {
+            const configGuardada = localStorage.getItem('configuracionAlertas');
+            if (configGuardada) {
+                configuracionAlertas = JSON.parse(configGuardada);
+                
+                // Aplicar configuración a los controles
+                document.getElementById('alertaStockBajo').checked = configuracionAlertas.stockBajo.activo;
+                document.getElementById('alertaVencimiento').checked = configuracionAlertas.vencimiento.activo;
+                document.getElementById('alertaDemanda').checked = configuracionAlertas.demanda.activo;
+                document.getElementById('alertaReposicion').checked = configuracionAlertas.reposicion.activo;
+                
+                document.getElementById('porcentajeStockBajo').value = configuracionAlertas.stockBajo.porcentaje;
+                document.getElementById('valorStockBajo').textContent = configuracionAlertas.stockBajo.porcentaje + '%';
+                document.getElementById('diasVencimiento').value = configuracionAlertas.vencimiento.dias;
+                document.getElementById('umbralDemanda').value = configuracionAlertas.demanda.umbral;
+            }
+        }
+
+        function mostrarToast(mensaje, tipo = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${tipo}`;
+            toast.innerHTML = `
+                <div>${getTipoIcon(tipo)} ${mensaje}</div>
+            `;
+
+            document.getElementById('toastContainer').appendChild(toast);
+
+            // Mostrar toast
+            setTimeout(() => toast.classList.add('show'), 100);
+
+            // Ocultar y remover después de 3 segundos
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function formatearFecha(fecha) {
+            return new Date(fecha).toLocaleDateString('es-ES', {
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>

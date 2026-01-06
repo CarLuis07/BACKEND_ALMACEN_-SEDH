@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - SEDH</title>
+    <style>
+        :root {
+            --sedh-primary: #0f766e;
+            --sedh-secondary: #0f5e59;
+            --sedh-light: #14b8a6;
+            --sedh-accent: #2dd4bf;
+            --sedh-bg: #f8f9fa;
+            --sedh-white: #ffffff;
+            --sedh-gray: #6c757d;
+            --sedh-light-gray: #e9ecef;
+            --sedh-success: #28a745;
+            --sedh-warning: #ffc107;
+            --sedh-danger: #dc3545;
+            --sedh-info: #17a2b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b3f3b 0%, #0f5e59 50%, #0f766e 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-secondary) 100%);
+            color: var(--sedh-white);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-info .user-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .user-info .user-email {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: var(--sedh-white);
+            color: var(--sedh-primary);
+            border: 2px solid var(--sedh-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: var(--sedh-primary);
+            color: var(--sedh-white);
+        }
+
+        .nav-btn.active {
+            background: var(--sedh-primary);
+            color: var(--sedh-white);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--sedh-white);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--sedh-gray);
+            font-size: 0.9rem;
+        }
+
+        .stat-card.empleados .stat-number { color: var(--sedh-primary); }
+        .stat-card.roles .stat-number { color: var(--sedh-info); }
+        .stat-card.requisiciones .stat-number { color: var(--sedh-warning); }
+        .stat-card.productos .stat-number { color: var(--sedh-success); }
+
+        .admin-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+        }
+
+        .admin-section {
+            background: var(--sedh-white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--sedh-accent) 0%, var(--sedh-light) 100%);
+            color: var(--sedh-white);
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .section-content {
+            padding: 20px;
+        }
+
+        .action-btn {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            background: var(--sedh-light-gray);
+            border: 2px solid var(--sedh-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--sedh-primary);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: flex-start;
+        }
+
+        .action-btn:hover {
+            background: var(--sedh-primary);
+            color: var(--sedh-white);
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+            font-size: 1.1rem;
+            color: var(--sedh-gray);
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #c3e6cb;
+        }
+
+        .no-access {
+            text-align: center;
+            padding: 50px;
+            color: var(--sedh-danger);
+        }
+
+        .no-access h2 {
+            margin-bottom: 15px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: var(--sedh-white);
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 10px;
+            width: 98%;
+            max-width: 1400px;
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-secondary) 100%);
+            color: var(--sedh-white);
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .close {
+            color: var(--sedh-white);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--sedh-primary);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--sedh-light-gray);
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--sedh-accent);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--sedh-accent) 0%, var(--sedh-light) 100%);
+            color: var(--sedh-white);
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(20, 184, 166, 0.35);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 15px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--sedh-light-gray);
+            font-size: 0.9rem;
+            vertical-align: top;
+        }
+
+        .data-table th {
+            background: var(--sedh-light-gray);
+            font-weight: 600;
+            color: var(--sedh-primary);
+        }
+
+        .data-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Mejorar la visualización de columnas específicas */
+        .data-table td:first-child {
+            font-weight: 500;
+            min-width: 200px;
+        }
+        
+        .data-table td:nth-child(2) {
+            font-weight: 600;
+            min-width: 180px;
+        }
+        
+        .data-table td:nth-child(7) {
+            min-width: 120px;
+            text-align: center;
+        }
+        
+        .data-table td:nth-child(9) {
+            min-width: 200px;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge.activo {
+            background: var(--sedh-success);
+            color: white;
+        }
+
+        .badge.inactivo {
+            background: var(--sedh-danger);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .admin-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-buttons {
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>⚙️ Panel de Administración</h1>
+                <div class="subtitle">Gestión completa del sistema SEDH</div>
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Cargando...</div>
+                <div class="user-email" id="user-email">Cargando...</div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/dashboard" class="nav-btn">🏠 Inicio</a>
+            <button class="nav-btn active" onclick="cargarEstadisticas()">📊 Estadísticas</button>
+            <button class="nav-btn" onclick="mostrarGestionEmpleados()">👥 Empleados</button>
+            <button class="nav-btn" onclick="mostrarGestionRoles()">🔐 Roles</button>
+            <button class="nav-btn" onclick="mostrarGestionDependencias()">🏢 Dependencias</button>
+            <a href="/productos" class="nav-btn">📦 Productos</a>
+            <a href="/categorias" class="nav-btn">📋 Categorías</a>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div>🔄 Cargando información administrativa...</div>
+        </div>
+
+        <div id="error-message" class="error-message" style="display: none;"></div>
+        <div id="success-message" class="success-message" style="display: none;"></div>
+
+        <div id="no-access" class="no-access" style="display: none;">
+            <h2>❌ Acceso Restringido</h2>
+            <p>No tienes permisos para acceder al panel de administración.</p>
+            <p>Se requieren permisos de <strong>Administrador</strong> para usar esta sección.</p>
+            <a href="/dashboard" class="nav-btn" style="margin-top: 20px;">🏠 Volver al Dashboard</a>
+        </div>
+
+        <!-- Estadísticas del Sistema -->
+        <div class="stats-grid" id="stats-grid" style="display: none;">
+            <div class="stat-card empleados">
+                <div class="stat-number" id="total-empleados">0</div>
+                <div class="stat-label">Total Empleados</div>
+            </div>
+            <div class="stat-card empleados">
+                <div class="stat-number" id="empleados-activos">0</div>
+                <div class="stat-label">Empleados Activos</div>
+            </div>
+            <div class="stat-card roles">
+                <div class="stat-number" id="total-roles">0</div>
+                <div class="stat-label">Roles Disponibles</div>
+            </div>
+            <div class="stat-card roles">
+                <div class="stat-number" id="total-dependencias">0</div>
+                <div class="stat-label">Dependencias</div>
+            </div>
+            <div class="stat-card requisiciones">
+                <div class="stat-number" id="total-requisiciones">0</div>
+                <div class="stat-label">Total Requisiciones</div>
+            </div>
+            <div class="stat-card requisiciones">
+                <div class="stat-number" id="requisiciones-pendientes">0</div>
+                <div class="stat-label">Requisiciones Pendientes</div>
+            </div>
+            <div class="stat-card productos">
+                <div class="stat-number" id="total-productos">0</div>
+                <div class="stat-label">Total Productos</div>
+            </div>
+            <div class="stat-card productos">
+                <div class="stat-number" id="productos-activos">0</div>
+                <div class="stat-label">Productos Activos</div>
+            </div>
+        </div>
+
+        <!-- Secciones de Administración -->
+        <div class="admin-sections" id="admin-sections" style="display: none;">
+            <div class="admin-section">
+                <div class="section-header">
+                    👥 Gestión de Empleados
+                </div>
+                <div class="section-content">
+                    <button class="action-btn" onclick="window.location.href='/admin/usuarios'" style="background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-light) 100%); color: white;">
+                        👥 Módulo de Gestión de Usuarios
+                    </button>
+                    <button class="action-btn" onclick="mostrarEmpleados()">
+                        👁️ Ver Todos los Empleados
+                    </button>
+                    <button class="action-btn" onclick="mostrarFormularioEmpleado()">
+                        ➕ Crear Nuevo Empleado
+                    </button>
+                    <button class="action-btn" onclick="mostrarAsignarRoles()">
+                        🔄 Asignar Roles
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <div class="section-header">
+                    🔐 Gestión de Roles
+                </div>
+                <div class="section-content">
+                    <button class="action-btn" onclick="mostrarRoles()">
+                        👁️ Ver Todos los Roles
+                    </button>
+                    <button class="action-btn" onclick="mostrarFormularioRol()">
+                        ➕ Crear Nuevo Rol
+                    </button>
+                    <button class="action-btn" onclick="mostrarPermisosRoles()">
+                        🛡️ Ver Permisos por Rol
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <div class="section-header">
+                    🏢 Gestión de Dependencias
+                </div>
+                <div class="section-content">
+                    <button class="action-btn" onclick="mostrarDependencias()">
+                        👁️ Ver Todas las Dependencias
+                    </button>
+                    <button class="action-btn" onclick="mostrarFormularioDependencia()">
+                        ➕ Crear Nueva Dependencia
+                    </button>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <div class="section-header">
+                    📦 Acceso Rápido a Módulos
+                </div>
+                <div class="section-content">
+                    <a href="/productos" class="action-btn">
+                        📦 Gestión de Productos
+                    </a>
+                    <a href="/categorias" class="action-btn">
+                        📋 Gestión de Categorías
+                    </a>
+                    <a href="/requisiciones" class="action-btn">
+                        📝 Ver Requisiciones
+                    </a>
+                    <button class="action-btn" onclick="mostrarMovimientos()">
+                        📊 Ver Movimientos
+                    </button>
+                    <a href="/email-log" class="action-btn">
+                        ✉️ Logs de Correo
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-section">
+                <div class="section-header">
+                    ✉️ Gestión de Emails
+                </div>
+                <div class="section-content">
+                    <a href="/email-log" class="action-btn" style="background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-light) 100%); color: white;">
+                        🔎 Abrir Logs de Correo
+                    </a>
+                    <button class="action-btn" onclick="enviarPendientes()">
+                        🚀 Enviar Notificaciones Pendientes
+                    </button>
+                    <div class="small" style="font-size: 0.85rem; color: #6c757d; margin-top: 8px;">
+                        Usa este módulo para auditar envíos y disparar correos pendientes.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para formularios -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Formulario</h2>
+                <span class="close" onclick="cerrarModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- El contenido se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let empleados = [];
+        let roles = [];
+        let dependencias = [];
+
+        // Verificar autenticación y permisos al cargar la página
+        document.addEventListener("DOMContentLoaded", function() {
+            verificarAuth();
+        });
+
+        function verificarAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/';
+                return;
+            }
+            cargarUserInfo();
+        }
+
+        async function cargarUserInfo() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/v1/accesos/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    document.getElementById('user-name').textContent = currentUser.nombre || currentUser.role || 'Usuario';
+                    document.getElementById('user-email').textContent = currentUser.email || '';
+                    
+                    // Verificar permisos de administrador
+                    await verificarPermisosAdmin();
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+                window.location.href = '/';
+            }
+        }
+
+        async function verificarPermisosAdmin() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/v1/admin-legacy/verificar-admin', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.es_administrador) {
+                        mostrarPanelAdmin();
+                        cargarEstadisticas();
+                    } else {
+                        mostrarSinAcceso();
+                    }
+                } else {
+                    mostrarSinAcceso();
+                }
+            } catch (error) {
+                console.error('Error verificando permisos:', error);
+                mostrarSinAcceso();
+            }
+        }
+
+        function mostrarPanelAdmin() {
+            document.getElementById('stats-grid').style.display = 'grid';
+            document.getElementById('admin-sections').style.display = 'grid';
+            document.getElementById('no-access').style.display = 'none';
+        }
+
+        function mostrarSinAcceso() {
+            document.getElementById('no-access').style.display = 'block';
+            document.getElementById('stats-grid').style.display = 'none';
+            document.getElementById('admin-sections').style.display = 'none';
+        }
+
+        async function cargarEstadisticas() {
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+            
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/v1/admin-legacy/estadisticas', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    
+                    document.getElementById('total-empleados').textContent = stats.total_empleados;
+                    document.getElementById('empleados-activos').textContent = stats.empleados_activos;
+                    document.getElementById('total-roles').textContent = stats.total_roles;
+                    document.getElementById('total-dependencias').textContent = stats.total_dependencias;
+                    document.getElementById('total-requisiciones').textContent = stats.total_requisiciones;
+                    document.getElementById('requisiciones-pendientes').textContent = stats.requisiciones_pendientes;
+                    document.getElementById('total-productos').textContent = stats.total_productos;
+                    document.getElementById('productos-activos').textContent = stats.productos_activos;
+                } else {
+                    mostrarError('Error al cargar estadísticas del sistema');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión al cargar estadísticas');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        async function mostrarEmpleados() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/v1/admin-legacy/empleados-permisos', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    empleados = await response.json();
+                    mostrarTablaEmpleadosCompleta();
+                } else {
+                    mostrarError('Error al cargar lista de empleados');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión al cargar empleados');
+            }
+        }
+
+        function mostrarTablaEmpleadosCompleta() {
+            const modalBody = `
+                <h3>Lista Completa de Empleados</h3>
+                <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+                    <button onclick="mostrarMatrizPermisos()" class="btn-primary" style="font-size: 0.9rem;">
+                        🔐 Ver Matriz de Permisos
+                    </button>
+                    <button onclick="mostrarFormularioEmpleado()" class="btn-primary" style="font-size: 0.9rem;">
+                        ➕ Crear Empleado
+                    </button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>📧 Email Institucional</th>
+                                <th>👤 Nombre Completo</th>
+                                <th>🆔 DNI</th>
+                                <th>🏷️ Rol Actual</th>
+                                <th>🏢 Dependencia</th>
+                                <th>📊 Estado</th>
+                                <th>🔧 Módulos y Permisos</th>
+                                <th>🕐 Último Acceso</th>
+                                <th>⚙️ Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${empleados.map(emp => `
+                                <tr>
+                                    <td style="font-size: 0.8rem;">${emp.emailinstitucional}</td>
+                                    <td><strong>${emp.nombres || 'Sin nombre'}</strong></td>
+                                    <td>${emp.dni || 'Sin DNI'}</td>
+                                    <td>
+                                        <span class="badge" style="background: #17a2b8; color: white;">
+                                            ${emp.nomrol || 'Sin rol'}
+                                        </span>
+                                    </td>
+                                    <td style="font-size: 0.8rem; max-width: 150px; word-wrap: break-word;">
+                                        ${emp.nomdependencia || 'Sin dependencia'}
+                                    </td>
+                                    <td>
+                                        <span class="badge ${emp.actlaboralmente ? 'activo' : 'inactivo'}">
+                                            ${emp.actlaboralmente ? 'Activo' : 'Inactivo'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                                            <span class="badge" style="background: ${emp.tipo_permisos === 'PERSONALIZADOS' ? '#dc3545' : '#28a745'}; color: white; font-size: 0.75rem; min-width: 100px; text-align: center;">
+                                                ${emp.tipo_permisos === 'PERSONALIZADOS' ? '🔧 PERSONALIZADO' : '📋 POR ROL'}
+                                            </span>
+                                            <span class="badge" style="background: #17a2b8; color: white; font-size: 0.75rem; min-width: 80px; text-align: center;">
+                                                ${emp.total_modulos_efectivos || 0} módulos
+                                            </span>
+                                            <button onclick="verModulosEmpleado('${emp.emailinstitucional}', '${emp.nomrol || 'Empleado'}')" 
+                                                    style="font-size: 0.7rem; padding: 4px 8px; background: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                                👁️ Ver Detalle
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td style="font-size: 0.8rem;">
+                                        ${emp.ultimologin ? new Date(emp.ultimologin).toLocaleDateString('es-HN') : 'Nunca'}
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                                            <button onclick="editarEmpleado('${emp.emailinstitucional}')" 
+                                                    class="btn-primary" style="font-size: 0.75rem; padding: 6px 12px; min-width: 80px;">
+                                                ✏️ Editar
+                                            </button>
+                                            <button onclick="asignarRolEmpleado('${emp.emailinstitucional}', '${emp.nomrol || ''}')" 
+                                                    class="btn-primary" style="font-size: 0.75rem; padding: 6px 12px; background: #ffc107; min-width: 70px;">
+                                                🔄 Rol
+                                            </button>
+                                            <button onclick="asignarModulosPersonalizados('${emp.emailinstitucional}', '${emp.nomrol || 'Empleado'}')" 
+                                                    class="btn-primary" style="font-size: 0.75rem; padding: 6px 12px; background: #dc3545; min-width: 90px;">
+                                                ⚙️ Módulos
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px; font-size: 0.9rem;">
+                    <strong>Resumen:</strong> ${empleados.length} empleados total, 
+                    ${empleados.filter(e => e.actlaboralmente).length} activos, 
+                    ${empleados.filter(e => e.nomrol).length} con roles asignados
+                </div>
+            `;
+            
+            abrirModal('Gestión Completa de Empleados', modalBody);
+        }
+
+        function mostrarFormularioEmpleado(email = null) {
+            // Cargar roles y dependencias primero
+            cargarRolesYDependencias().then(() => {
+                const empleado = email ? empleados.find(e => e.emailinstitucional === email) : null;
+                const esEdicion = !!empleado;
+                
+                const modalBody = `
+                    <form id="form-empleado">
+                        <div class="form-group">
+                            <label for="email">Email Institucional *</label>
+                            <input type="email" id="email" name="emailinstitucional" required 
+                                   value="${empleado?.emailinstitucional || ''}" ${esEdicion ? 'readonly' : ''}>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nombres">Nombres *</label>
+                            <input type="text" id="nombres" name="nombres" required 
+                                   value="${empleado?.nombres || ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="apellidos">Apellidos *</label>
+                            <input type="text" id="apellidos" name="apellidos" required 
+                                   value="${empleado?.apellidos || ''}">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="dni">DNI</label>
+                            <input type="text" id="dni" name="dni" 
+                                   value="${empleado?.dni || ''}">
+                        </div>
+                        
+                        ${!esEdicion ? `
+                        <div class="form-group">
+                            <label for="contrasena">Contraseña *</label>
+                            <input type="password" id="contrasena" name="contrasena" required>
+                        </div>
+                        ` : `
+                        <div class="form-group">
+                            <label for="contrasena">Nueva Contraseña (dejar vacío para no cambiar)</label>
+                            <input type="password" id="contrasena" name="contrasena">
+                        </div>
+                        `}
+                        
+                        <div class="form-group">
+                            <label for="rol">Rol *</label>
+                            <select id="rol" name="idrol" required>
+                                <option value="">Seleccionar rol...</option>
+                                ${roles.map(rol => `
+                                    <option value="${rol.idrol}" ${empleado?.idrol === rol.idrol ? 'selected' : ''}>
+                                        ${rol.nomrol}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="dependencia">Dependencia</label>
+                            <select id="dependencia" name="iddependencia">
+                                <option value="">Seleccionar dependencia...</option>
+                                ${dependencias.map(dep => `
+                                    <option value="${dep.iddependencia}" ${empleado?.iddependencia === dep.iddependencia ? 'selected' : ''}>
+                                        ${dep.nomdependencia}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="activo">Estado</label>
+                            <select id="activo" name="actlaboralmente">
+                                <option value="true" ${empleado?.actlaboralmente !== false ? 'selected' : ''}>Activo</option>
+                                <option value="false" ${empleado?.actlaboralmente === false ? 'selected' : ''}>Inactivo</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary">
+                            ${esEdicion ? 'Actualizar' : 'Crear'} Empleado
+                        </button>
+                    </form>
+                `;
+                
+                abrirModal(esEdicion ? 'Editar Empleado' : 'Crear Nuevo Empleado', modalBody);
+                
+                // Agregar evento al formulario
+                document.getElementById('form-empleado').onsubmit = function(e) {
+                    e.preventDefault();
+                    if (esEdicion) {
+                        actualizarEmpleado(email);
+                    } else {
+                        crearEmpleado();
+                    }
+                };
+            });
+        }
+
+        async function cargarRolesYDependencias() {
+            const token = localStorage.getItem('token');
+            try {
+                const [rolesResponse, depResponse] = await Promise.all([
+                    fetch('/api/v1/admin-legacy/roles', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }),
+                    fetch('/api/v1/admin-legacy/dependencias', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    })
+                ]);
+
+                if (rolesResponse.ok && depResponse.ok) {
+                    roles = await rolesResponse.json();
+                    dependencias = await depResponse.json();
+                }
+            } catch (error) {
+                console.error('Error cargando roles y dependencias:', error);
+            }
+        }
+
+        async function crearEmpleado() {
+            const formData = new FormData(document.getElementById('form-empleado'));
+            const data = Object.fromEntries(formData.entries());
+            
+            // Convertir valores
+            data.actlaboralmente = data.actlaboralmente === 'true';
+            
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/v1/admin-legacy/empleados', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    mostrarExito(result.mensaje);
+                    cerrarModal();
+                    cargarEstadisticas();
+                } else {
+                    const error = await response.json();
+                    mostrarError(error.detail || 'Error al crear empleado');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión al crear empleado');
+            }
+        }
+
+        function abrirModal(titulo, contenido) {
+            document.getElementById('modal-title').textContent = titulo;
+            document.getElementById('modal-body').innerHTML = contenido;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function mostrarError(mensaje) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = mensaje;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function mostrarExito(mensaje) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = mensaje;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        async function verModulosEmpleado(email, rol) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`/api/v1/admin-legacy/permisos-rol/${encodeURIComponent(rol)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    mostrarModulosEmpleadoModal(email, rol, data);
+                } else {
+                    mostrarError('Error al cargar módulos del empleado');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión');
+            }
+        }
+
+        function mostrarModulosEmpleadoModal(email, rol, data) {
+            const modalBody = `
+                <h3>Módulos Disponibles para ${email}</h3>
+                <div style="margin-bottom: 15px;">
+                    <strong>Rol:</strong> ${rol}<br>
+                    <strong>Nivel de Acceso:</strong> ${data.informacion.nivel_acceso}<br>
+                    <strong>Descripción:</strong> ${data.informacion.descripcion}<br>
+                    <strong>Total Módulos:</strong> ${data.modulos_disponibles.length}
+                </div>
+                
+                <div class="modules-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    ${data.modulos_disponibles.map(modulo => `
+                        <div class="module-card" style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 2rem; margin-bottom: 10px;">${modulo.icono}</div>
+                            <div style="font-weight: bold; margin-bottom: 5px;">${modulo.nombre}</div>
+                            <div style="font-size: 0.8rem; color: #6c757d;">${modulo.descripcion}</div>
+                            ${modulo.url !== '#' ? `<div style="margin-top: 8px;"><code>${modulo.url}</code></div>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            abrirModal(`Módulos de ${email}`, modalBody);
+        }
+
+        async function mostrarMatrizPermisos() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/v1/admin-legacy/matriz-permisos', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    mostrarMatrizPermisosModal(data);
+                } else {
+                    mostrarError('Error al cargar matriz de permisos');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión');
+            }
+        }
+
+        function mostrarMatrizPermisosModal(data) {
+            // Agrupar por rol
+            const rolesByModulo = {};
+            data.matriz_permisos.forEach(item => {
+                if (!rolesByModulo[item.modulo]) {
+                    rolesByModulo[item.modulo] = [];
+                }
+                rolesByModulo[item.modulo].push(item);
+            });
+
+            const modalBody = `
+                <h3>Matriz de Permisos del Sistema</h3>
+                <div style="margin-bottom: 15px;">
+                    <strong>Total Roles:</strong> ${data.total_roles} | 
+                    <strong>Total Módulos:</strong> ${data.total_modulos}
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Módulo</th>
+                                <th>Administrador</th>
+                                <th>EmpAlmacen</th>
+                                <th>JefSerMat</th>
+                                <th>GerAdmon</th>
+                                <th>JefInmediato</th>
+                                <th>Empleado</th>
+                                <th>Auditor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Object.keys(rolesByModulo).map(modulo => {
+                                const roles = rolesByModulo[modulo];
+                                const rolesMap = {};
+                                roles.forEach(r => rolesMap[r.rol] = r.tiene_acceso);
+                                
+                                return `
+                                    <tr>
+                                        <td><strong>${roles[0].modulo_nombre}</strong></td>
+                                        <td>${rolesMap['Administrador'] ? '✅' : '❌'}</td>
+                                        <td>${rolesMap['EmpAlmacen'] ? '✅' : '❌'}</td>
+                                        <td>${rolesMap['JefSerMat'] ? '✅' : '❌'}</td>
+                                        <td>${rolesMap['GerAdmon'] ? '✅' : '❌'}</td>
+                                        <td>${rolesMap['JefInmediato'] ? '✅' : '❌'}</td>
+                                        <td>${rolesMap['Empleado'] ? '✅' : '❌'}</td>
+                                        <td>${rolesMap['Auditor'] ? '✅' : '❌'}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="margin-top: 15px; padding: 10px; background: #e7f3ff; border-radius: 5px;">
+                    <strong>Leyenda:</strong><br>
+                    ✅ = Tiene acceso al módulo<br>
+                    ❌ = No tiene acceso al módulo<br><br>
+                    <strong>Nota:</strong> Los administradores tienen acceso completo a todos los módulos del sistema.
+                </div>
+            `;
+            
+            abrirModal('Matriz de Permisos - Todos los Roles', modalBody);
+        }
+
+        async function asignarRolEmpleado(email, rolActual) {
+            // Cargar roles disponibles
+            await cargarRolesYDependencias();
+            
+            const modalBody = `
+                <h3>Cambiar Rol de Empleado</h3>
+                <div style="margin-bottom: 15px;">
+                    <strong>Empleado:</strong> ${email}<br>
+                    <strong>Rol Actual:</strong> ${rolActual || 'Sin rol'}
+                </div>
+                
+                <form id="form-asignar-rol">
+                    <div class="form-group">
+                        <label for="nuevo-rol">Nuevo Rol *</label>
+                        <select id="nuevo-rol" name="idrol" required>
+                            <option value="">Seleccionar nuevo rol...</option>
+                            ${roles.map(rol => `
+                                <option value="${rol.idrol}" ${rol.nomrol === rolActual ? 'selected' : ''}>
+                                    ${rol.nomrol}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">
+                        Asignar Nuevo Rol
+                    </button>
+                </form>
+            `;
+            
+            abrirModal('Asignar Rol a Empleado', modalBody);
+            
+            document.getElementById('form-asignar-rol').onsubmit = function(e) {
+                e.preventDefault();
+                cambiarRolEmpleado(email);
+            };
+        }
+
+        async function cambiarRolEmpleado(email) {
+            const formData = new FormData(document.getElementById('form-asignar-rol'));
+            const data = {
+                emailinstitucional: email,
+                idrol: formData.get('idrol')
+            };
+            
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/v1/admin-legacy/empleados/asignar-rol', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    mostrarExito(result.mensaje);
+                    cerrarModal();
+                    cargarEstadisticas();
+                    // Recargar lista de empleados si está abierta
+                    if (empleados.length > 0) {
+                        mostrarEmpleados();
+                    }
+                } else {
+                    const error = await response.json();
+                    mostrarError(error.detail || 'Error al asignar rol');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión al asignar rol');
+            }
+        }
+
+        // Funciones placeholder para otras funcionalidades
+        function mostrarGestionEmpleados() {
+            mostrarEmpleados();
+        }
+
+        function mostrarGestionRoles() {
+            // Implementar listado de roles
+            mostrarExito('Funcionalidad de gestión de roles próximamente');
+        }
+
+        function mostrarGestionDependencias() {
+            // Implementar listado de dependencias
+            mostrarExito('Funcionalidad de gestión de dependencias próximamente');
+        }
+
+        async function enviarPendientes() {
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch('/api/v1/notificaciones/enviar-pendientes', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (res.ok) {
+                    const data = await res.json().catch(() => ({ mensaje: 'Pendientes enviados' }));
+                    const mensaje = data.mensaje || `Se enviaron ${data.enviados || 0} de ${data.total || 0} notificaciones`;
+                    alert('✅ Éxito: ' + mensaje);
+                    mostrarExito(mensaje);
+                } else {
+                    const err = await res.json().catch(() => ({ detail: res.statusText }));
+                    const errorMsg = err.detail || 'Error al enviar pendientes';
+                    alert('❌ Error: ' + errorMsg);
+                    mostrarError(errorMsg);
+                }
+            } catch (e) {
+                const errorMsg = 'Error de conexión al enviar pendientes: ' + e.message;
+                alert('❌ ' + errorMsg);
+                mostrarError(errorMsg);
+            }
+        }
+
+        async function asignarModulosPersonalizados(email, rol) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`/api/v1/admin-legacy/empleados/${encodeURIComponent(email)}/modulos-disponibles`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    mostrarFormularioModulosPersonalizados(email, rol, data);
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMsg = errorData.detail || `Error ${response.status}: ${response.statusText}`;
+                    mostrarError(`Error al cargar módulos disponibles: ${errorMsg}`);
+                    console.error('Error details:', errorData);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión');
+            }
+        }
+
+        function mostrarFormularioModulosPersonalizados(email, rol, data) {
+            const todosLosModulos = data.todos_los_modulos;
+            const modulosPersonalizados = data.modulos_personalizados || [];
+            const tienePersonalizados = data.tiene_permisos_personalizados;
+            
+            const modalBody = `
+                <h3>Gestión de Módulos para ${email}</h3>
+                <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    <strong>Empleado:</strong> ${email}<br>
+                    <strong>Rol Actual:</strong> ${rol}<br>
+                    <strong>Estado:</strong> ${tienePersonalizados ? 
+                        '<span style="color: #dc3545;">🔴 Permisos Personalizados Activos</span>' : 
+                        '<span style="color: #28a745;">🟢 Usando Permisos de Rol</span>'
+                    }
+                </div>
+                
+                ${tienePersonalizados ? `
+                    <div style="margin-bottom: 15px; padding: 10px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;">
+                        <strong>⚠️ Advertencia:</strong> Este empleado tiene permisos personalizados que sobrescriben los permisos de su rol.
+                        <button onclick="eliminarPermisosPersonalizados('${email}')" 
+                                style="margin-left: 10px; padding: 5px 10px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                            🗑️ Volver a Permisos de Rol
+                        </button>
+                    </div>
+                ` : ''}
+                
+                <form id="form-modulos-personalizados">
+                    <div class="form-group">
+                        <label><strong>Seleccionar Módulos Personalizados:</strong></label>
+                        <div style="max-height: 300px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; border-radius: 5px;">
+                            ${Object.entries(todosLosModulos).map(([moduloId, moduloInfo]) => `
+                                <div style="margin-bottom: 10px; padding: 8px; border: 1px solid #e9ecef; border-radius: 5px;">
+                                    <label style="display: flex; align-items: center; cursor: pointer;">
+                                        <input type="checkbox" 
+                                               name="modulos" 
+                                               value="${moduloId}" 
+                                               ${modulosPersonalizados.includes(moduloId) ? 'checked' : ''}
+                                               style="margin-right: 10px;">
+                                        <div>
+                                            <div style="font-weight: bold; display: flex; align-items: center; gap: 8px;">
+                                                <span style="font-size: 1.2rem;">${moduloInfo.icono}</span>
+                                                ${moduloInfo.nombre}
+                                            </div>
+                                            <div style="font-size: 0.8rem; color: #6c757d; margin-top: 2px;">
+                                                ${moduloInfo.descripcion}
+                                            </div>
+                                            ${moduloInfo.url !== '#' ? `<div style="font-size: 0.7rem; color: #007bff; margin-top: 2px;"><code>${moduloInfo.url}</code></div>` : ''}
+                                        </div>
+                                    </label>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button type="submit" class="btn-primary">
+                            💾 Guardar Módulos Personalizados
+                        </button>
+                        <button type="button" onclick="previewModulosSeleccionados()" 
+                                style="padding: 12px 24px; background: #17a2b8; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            👁️ Vista Previa
+                        </button>
+                    </div>
+                </form>
+                
+                <div id="preview-modulos" style="display: none; margin-top: 15px; padding: 10px; background: #e7f3ff; border-radius: 5px;">
+                    <strong>Vista Previa de Módulos Seleccionados:</strong>
+                    <div id="lista-preview"></div>
+                </div>
+            `;
+            
+            abrirModal('Asignar Módulos Personalizados', modalBody);
+            
+            document.getElementById('form-modulos-personalizados').onsubmit = function(e) {
+                e.preventDefault();
+                guardarModulosPersonalizados(email);
+            };
+        }
+
+        function previewModulosSeleccionados() {
+            const checkboxes = document.querySelectorAll('input[name="modulos"]:checked');
+            const previewDiv = document.getElementById('preview-modulos');
+            const listaDiv = document.getElementById('lista-preview');
+            
+            if (checkboxes.length === 0) {
+                listaDiv.innerHTML = '<em>Ningún módulo seleccionado</em>';
+            } else {
+                listaDiv.innerHTML = Array.from(checkboxes).map(cb => {
+                    const moduloId = cb.value;
+                    const labelText = cb.closest('label').textContent;
+                    return `<span style="display: inline-block; margin: 2px; padding: 4px 8px; background: #28a745; color: white; border-radius: 12px; font-size: 0.8rem;">${moduloId}</span>`;
+                }).join('');
+            }
+            
+            previewDiv.style.display = 'block';
+        }
+
+        async function guardarModulosPersonalizados(email) {
+            const checkboxes = document.querySelectorAll('input[name="modulos"]:checked');
+            const modulosSeleccionados = Array.from(checkboxes).map(cb => cb.value);
+            
+            if (modulosSeleccionados.length === 0) {
+                mostrarError('Debe seleccionar al menos un módulo');
+                return;
+            }
+            
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`/api/v1/admin-legacy/empleados/${encodeURIComponent(email)}/asignar-modulos`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(modulosSeleccionados)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    mostrarExito(result.mensaje);
+                    cerrarModal();
+                    cargarEstadisticas();
+                    // Recargar lista de empleados
+                    mostrarEmpleados();
+                } else {
+                    const error = await response.json();
+                    mostrarError(error.detail || 'Error al asignar módulos');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión al asignar módulos');
+            }
+        }
+
+        async function eliminarPermisosPersonalizados(email) {
+            if (!confirm(`¿Está seguro de eliminar los permisos personalizados de ${email}?\\n\\nEl empleado volverá a usar los permisos de su rol.`)) {
+                return;
+            }
+            
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`/api/v1/admin-legacy/empleados/${encodeURIComponent(email)}/permisos-personalizados`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    mostrarExito(result.mensaje);
+                    cerrarModal();
+                    cargarEstadisticas();
+                    mostrarEmpleados();
+                } else {
+                    const error = await response.json();
+                    mostrarError(error.detail || 'Error al eliminar permisos');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión');
+            }
+        }
+
+        async function verModulosEmpleado(email, rol) {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`/api/v1/admin-legacy/empleados/${encodeURIComponent(email)}/modulos-disponibles`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    mostrarDetalleModulosEmpleado(email, rol, data);
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    const errorMsg = errorData.detail || `Error ${response.status}: ${response.statusText}`;
+                    mostrarError(`Error al cargar módulos del empleado: ${errorMsg}`);
+                    console.error('Error details:', errorData);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                mostrarError('Error de conexión');
+            }
+        }
+
+        function mostrarDetalleModulosEmpleado(email, rol, data) {
+            const todosLosModulos = data.todos_los_modulos;
+            const modulosActivos = data.modulos_activos;
+            const modulosPersonalizados = data.modulos_personalizados || [];
+            const tienePersonalizados = data.tiene_permisos_personalizados;
+            
+            const modalBody = `
+                <h3>Módulos Asignados: ${email}</h3>
+                <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                    <strong>Empleado:</strong> ${email}<br>
+                    <strong>Rol:</strong> ${rol}<br>
+                    <strong>Estado:</strong> ${tienePersonalizados ? 
+                        '<span style="color: #dc3545;">🔴 Permisos Personalizados Activos</span>' : 
+                        '<span style="color: #28a745;">🟢 Usando Permisos de Rol</span>'
+                    }
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
+                    ${Object.entries(todosLosModulos).map(([moduloId, moduloInfo]) => {
+                        const tieneAcceso = modulosActivos.includes(moduloId);
+                        const esPersonalizado = modulosPersonalizados.includes(moduloId);
+                        
+                        return `
+                            <div style="border: 2px solid ${tieneAcceso ? '#28a745' : '#dc3545'}; 
+                                        border-radius: 8px; padding: 12px; 
+                                        background: ${tieneAcceso ? '#f8fff8' : '#fff8f8'};">
+                                <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 1.5rem; margin-right: 8px;">${moduloInfo.icono}</span>
+                                    <div>
+                                        <div style="font-weight: bold; color: ${tieneAcceso ? '#28a745' : '#dc3545'};">
+                                            ${tieneAcceso ? '✅' : '❌'} ${moduloInfo.nombre}
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: #6c757d;">
+                                            ${moduloInfo.descripcion}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div style="font-size: 0.75rem; color: #495057;">
+                                    <strong>Estado:</strong> 
+                                    ${tieneAcceso ? 
+                                        (esPersonalizado ? 
+                                            '<span style="color: #ff6b35;">🔧 Personalizado</span>' : 
+                                            '<span style="color: #28a745;">📋 Por Rol</span>'
+                                        ) : 
+                                        '<span style="color: #6c757d;">🚫 Sin Acceso</span>'
+                                    }
+                                </div>
+                                
+                                ${moduloInfo.url !== '#' ? `
+                                    <div style="font-size: 0.7rem; color: #007bff; margin-top: 4px;">
+                                        <code>${moduloInfo.url}</code>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button onclick="asignarModulosPersonalizados('${email}', '${rol}')" 
+                            class="btn-primary" style="margin-right: 10px;">
+                        🔧 Modificar Permisos
+                    </button>
+                    ${tienePersonalizados ? `
+                        <button onclick="eliminarPermisosPersonalizados('${email}')" 
+                                style="padding: 12px 24px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer;">
+                            🗑️ Restablecer a Rol
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+            
+            abrirModal('Detalle de Módulos', modalBody);
+        }
+
+        function editarEmpleado(email) {
+            mostrarFormularioEmpleado(email);
+        }
+
+        // Cerrar modal al hacer clic fuera de él
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                cerrarModal();
+            }
+        };
+
+        // Función para cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        // ============================================
+        // GESTIÓN DE DEPENDENCIAS
+        // ============================================
+        
+        async function mostrarDependencias() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/v1/admin/dependencias', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Error al cargar dependencias');
+                
+                const dependencias = await response.json();
+                
+                let html = `
+                    <div style="margin-bottom: 20px;">
+                        <button onclick="mostrarFormularioDependencia()" class="btn-primary">
+                            ➕ Crear Nueva Dependencia
+                        </button>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: var(--sedh-primary); color: white;">
+                                <th style="padding: 12px; text-align: left;">ID</th>
+                                <th style="padding: 12px; text-align: left;">Nombre</th>
+                                <th style="padding: 12px; text-align: left;">Sigla</th>
+                                <th style="padding: 12px; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                dependencias.forEach(dep => {
+                    html += `
+                        <tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px;">${dep.iddependencia}</td>
+                            <td style="padding: 12px;">${dep.nombredependencia}</td>
+                            <td style="padding: 12px;">${dep.sigla || '-'}</td>
+                            <td style="padding: 12px; text-align: center;">
+                                <button onclick="editarDependencia(${dep.iddependencia}, '${dep.nombredependencia.replace(/'/g, "\\'")}', '${dep.sigla || ''}')" 
+                                        style="padding: 6px 12px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px;">
+                                    ✏️ Editar
+                                </button>
+                                <button onclick="eliminarDependencia(${dep.iddependencia}, '${dep.nombredependencia.replace(/'/g, "\\'")}')" 
+                                        style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    🗑️ Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+                
+                abrirModal('Gestión de Dependencias', html);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function mostrarFormularioDependencia(id = null, nombre = '', sigla = '') {
+            const esEdicion = id !== null;
+            const html = `
+                <form onsubmit="guardarDependencia(event, ${id})" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nombre de la Dependencia:</label>
+                        <input type="text" id="nombreDependencia" value="${nombre}" required 
+                               style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Sigla:</label>
+                        <input type="text" id="siglaDependencia" value="${sigla}" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" onclick="cerrarModal()" 
+                                style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            ${esEdicion ? '💾 Actualizar' : '➕ Crear'}
+                        </button>
+                    </div>
+                </form>
+            `;
+            abrirModal(esEdicion ? 'Editar Dependencia' : 'Nueva Dependencia', html);
+        }
+
+        async function guardarDependencia(event, id = null) {
+            event.preventDefault();
+            
+            const nombre = document.getElementById('nombreDependencia').value.trim();
+            const sigla = document.getElementById('siglaDependencia').value.trim();
+            
+            if (!nombre) {
+                alert('El nombre es obligatorio');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const url = id ? `/api/v1/admin/dependencias/${id}` : '/api/v1/admin/dependencias';
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nombre_dependencia: nombre,
+                        sigla: sigla || null
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Error al guardar la dependencia');
+                
+                alert(id ? 'Dependencia actualizada correctamente' : 'Dependencia creada correctamente');
+                cerrarModal();
+                mostrarDependencias();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function editarDependencia(id, nombre, sigla) {
+            mostrarFormularioDependencia(id, nombre, sigla);
+        }
+
+        async function eliminarDependencia(id, nombre) {
+            if (!confirm(`¿Está seguro de eliminar la dependencia "${nombre}"?`)) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/v1/admin/dependencias/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Error al eliminar la dependencia');
+                
+                alert('Dependencia eliminada correctamente');
+                mostrarDependencias();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // ============================================
+        // GESTIÓN DE ROLES
+        // ============================================
+        
+        async function mostrarRoles() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/v1/admin/roles', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Error al cargar roles');
+                
+                const roles = await response.json();
+                
+                let html = `
+                    <div style="margin-bottom: 20px;">
+                        <button onclick="mostrarFormularioRol()" class="btn-primary">
+                            ➕ Crear Nuevo Rol
+                        </button>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: var(--sedh-primary); color: white;">
+                                <th style="padding: 12px; text-align: left;">ID</th>
+                                <th style="padding: 12px; text-align: left;">Nombre del Rol</th>
+                                <th style="padding: 12px; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                roles.forEach(rol => {
+                    html += `
+                        <tr style="border-bottom: 1px solid #dee2e6;">
+                            <td style="padding: 12px;">${rol.idrol}</td>
+                            <td style="padding: 12px;">${rol.nombrerol}</td>
+                            <td style="padding: 12px; text-align: center;">
+                                <button onclick="editarRol(${rol.idrol}, '${rol.nombrerol.replace(/'/g, "\\'")}', '${rol.descripcion || ''}')" 
+                                        style="padding: 6px 12px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; margin-right: 5px;">
+                                    ✏️ Editar
+                                </button>
+                                <button onclick="eliminarRol(${rol.idrol}, '${rol.nombrerol.replace(/'/g, "\\'")}')" 
+                                        style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                    🗑️ Eliminar
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += `
+                        </tbody>
+                    </table>
+                `;
+                
+                abrirModal('Gestión de Roles', html);
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function mostrarFormularioRol(id = null, nombre = '', descripcion = '') {
+            const esEdicion = id !== null;
+            const html = `
+                <form onsubmit="guardarRol(event, ${id})" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nombre del Rol:</label>
+                        <input type="text" id="nombreRol" value="${nombre}" required 
+                               style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Descripción:</label>
+                        <textarea id="descripcionRol" rows="3" 
+                                  style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px;">${descripcion}</textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                        <button type="button" onclick="cerrarModal()" 
+                                style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            ${esEdicion ? '💾 Actualizar' : '➕ Crear'}
+                        </button>
+                    </div>
+                </form>
+            `;
+            abrirModal(esEdicion ? 'Editar Rol' : 'Nuevo Rol', html);
+        }
+
+        async function guardarRol(event, id = null) {
+            event.preventDefault();
+            
+            const nombre = document.getElementById('nombreRol').value.trim();
+            const descripcion = document.getElementById('descripcionRol').value.trim();
+            
+            if (!nombre) {
+                alert('El nombre es obligatorio');
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const url = id ? `/api/v1/admin/roles/${id}` : '/api/v1/admin/roles';
+                const method = id ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        nombre_rol: nombre,
+                        descripcion: descripcion || null
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Error al guardar el rol');
+                
+                alert(id ? 'Rol actualizado correctamente' : 'Rol creado correctamente');
+                cerrarModal();
+                mostrarRoles();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function editarRol(id, nombre, descripcion) {
+            mostrarFormularioRol(id, nombre, descripcion);
+        }
+
+        async function eliminarRol(id, nombre) {
+            if (!confirm(`¿Está seguro de eliminar el rol "${nombre}"?`)) {
+                return;
+            }
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/v1/admin/roles/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('Error al eliminar el rol');
+                
+                alert('Rol eliminado correctamente');
+                mostrarRoles();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function mostrarPermisosRoles() {
+            alert('Función de permisos en desarrollo');
+        }
+
+        // ============================================
+        // GESTIÓN DE EMPLEADOS
+        // Nota: Usar la versión legacy ya definida arriba
+        //       que incluye botón ⚙️ Módulos y asignación de roles.
+        // ============================================
+
+        function mostrarAsignarRoles() {
+            const msg = `Para asignar roles:
+1) Haga clic en "👁️ Ver Todos los Empleados".
+2) Use el botón "🔄 Rol" en la fila del empleado.
+
+Para permisos por módulos:
+1) En la misma tabla, pulse "⚙️ Módulos".`;
+            abrirModal('Asignación de Roles', `<pre style="white-space: pre-wrap; font-size: 0.95rem;">${msg}</pre>`);
+        }
+    </script>
+</body>
+</html>

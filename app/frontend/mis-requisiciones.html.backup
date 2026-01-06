@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Requisiciones - SEDH</title>
+    <style>
+        :root {
+            --sedh-primary: #1a5f1a;
+            --sedh-secondary: #2d5016;
+            --sedh-light: #4a7c2a;
+            --sedh-accent: #7ab142;
+            --sedh-bg: #f8f9fa;
+            --sedh-white: #ffffff;
+            --sedh-gray: #6c757d;
+            --sedh-light-gray: #e9ecef;
+            --sedh-success: #28a745;
+            --sedh-warning: #ffc107;
+            --sedh-danger: #dc3545;
+            --sedh-info: #17a2b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--sedh-bg) 0%, #e8f4e8 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-secondary) 100%);
+            color: var(--sedh-white);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(26, 95, 26, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-info .user-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .user-info .user-email {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: var(--sedh-white);
+            color: var(--sedh-primary);
+            border: 2px solid var(--sedh-primary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: var(--sedh-primary);
+            color: var(--sedh-white);
+        }
+
+        .nav-btn.active {
+            background: var(--sedh-primary);
+            color: var(--sedh-white);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: var(--sedh-white);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--sedh-gray);
+            font-size: 0.9rem;
+        }
+
+        .stat-card.pendiente .stat-number { color: var(--sedh-warning); }
+        .stat-card.aprobado .stat-number { color: var(--sedh-success); }
+        .stat-card.rechazado .stat-number { color: var(--sedh-danger); }
+        .stat-card.total .stat-number { color: var(--sedh-primary); }
+
+        .requisiciones-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .requisicion-card {
+            background: var(--sedh-white);
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .requisicion-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .requisicion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--sedh-light-gray);
+        }
+
+        .requisicion-codigo {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--sedh-primary);
+        }
+
+        .requisicion-fecha {
+            color: var(--sedh-gray);
+            font-size: 0.9rem;
+        }
+
+        .estado-general {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .estado-general.pendiente {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .estado-general.aprobado {
+            background: #d1edff;
+            color: #0c5460;
+        }
+
+        .estado-general.rechazado {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .flujo-aprobacion {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .paso-aprobacion {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            background: var(--sedh-light-gray);
+            position: relative;
+        }
+
+        .paso-aprobacion::after {
+            content: '→';
+            position: absolute;
+            right: -22px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            color: var(--sedh-gray);
+        }
+
+        .paso-aprobacion:last-child::after {
+            display: none;
+        }
+
+        .paso-titulo {
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--sedh-primary);
+        }
+
+        .paso-estado {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .paso-estado.aprobado {
+            background: var(--sedh-success);
+            color: white;
+        }
+
+        .paso-estado.rechazado {
+            background: var(--sedh-danger);
+            color: white;
+        }
+
+        .paso-estado.pendiente {
+            background: var(--sedh-warning);
+            color: white;
+        }
+
+        .requisicion-details {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .details-left {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .detail-item {
+            display: flex;
+            gap: 10px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--sedh-gray);
+            min-width: 120px;
+        }
+
+        .detail-value {
+            color: #333;
+        }
+
+        .gasto-total {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .gasto-label {
+            font-size: 0.9rem;
+            color: var(--sedh-gray);
+            margin-bottom: 5px;
+        }
+
+        .gasto-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--sedh-primary);
+        }
+
+        .ultimo-comentario {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid var(--sedh-accent);
+        }
+
+        .comentario-label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--sedh-gray);
+            margin-bottom: 5px;
+        }
+
+        .comentario-text {
+            font-style: italic;
+            color: #333;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 50px;
+            font-size: 1.1rem;
+            color: var(--sedh-gray);
+        }
+
+        .no-requisiciones {
+            text-align: center;
+            padding: 50px;
+            color: var(--sedh-gray);
+        }
+
+        .no-requisiciones h3 {
+            margin-bottom: 15px;
+            color: var(--sedh-primary);
+        }
+
+        .crear-requisicion-btn {
+            background: linear-gradient(135deg, var(--sedh-accent) 0%, var(--sedh-light) 100%);
+            color: var(--sedh-white);
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .crear-requisicion-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(122, 177, 66, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .flujo-aprobacion {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .paso-aprobacion::after {
+                content: '↓';
+                right: 50%;
+                top: 100%;
+                transform: translateX(50%);
+            }
+
+            .requisicion-details {
+                grid-template-columns: 1fr;
+            }
+
+            .gasto-total {
+                text-align: left;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📋 Mis Requisiciones</h1>
+                <div class="subtitle">Seguimiento de mis solicitudes de materiales</div>
+            </div>
+            <div class="user-info">
+                <div class="user-name" id="user-name">Cargando...</div>
+                <div class="user-email" id="user-email">Cargando...</div>
+            </div>
+        </div>
+
+        <div class="nav-buttons">
+            <a href="/dashboard" class="nav-btn"> Inicio</a>
+            <a href="/requisiciones" class="nav-btn">📝 Nueva Requisición</a>
+            <button class="nav-btn active" onclick="cargarMisRequisiciones()">🔄 Actualizar</button>
+        </div>
+
+        <div class="stats-grid" id="stats-grid">
+            <div class="stat-card total">
+                <div class="stat-number" id="total-requisiciones">0</div>
+                <div class="stat-label">Total Requisiciones</div>
+            </div>
+            <div class="stat-card pendiente">
+                <div class="stat-number" id="pendientes-count">0</div>
+                <div class="stat-label">En Proceso</div>
+            </div>
+            <div class="stat-card aprobado">
+                <div class="stat-number" id="aprobadas-count">0</div>
+                <div class="stat-label">Aprobadas</div>
+            </div>
+            <div class="stat-card rechazado">
+                <div class="stat-number" id="rechazadas-count">0</div>
+                <div class="stat-label">Rechazadas</div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <div>🔄 Cargando mis requisiciones...</div>
+        </div>
+
+        <div id="no-requisiciones" class="no-requisiciones" style="display: none;">
+            <h3>No tienes requisiciones registradas</h3>
+            <p>Aún no has creado ninguna requisición. ¡Comienza creando tu primera solicitud!</p>
+            <a href="/requisiciones" class="crear-requisicion-btn">
+                ➕ Crear Mi Primera Requisición
+            </a>
+        </div>
+
+        <div class="requisiciones-grid" id="requisiciones-grid">
+            <!-- Las requisiciones se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+
+        // Verificar autenticación al cargar la página
+        document.addEventListener("DOMContentLoaded", function() {
+            verificarAuth();
+        });
+
+        function verificarAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+            cargarUserInfo();
+            cargarMisRequisiciones();
+        }
+
+        async function cargarUserInfo() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch('/api/v1/accesos/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    // Ahora el endpoint devuelve información completa del empleado
+                    document.getElementById('user-name').textContent = currentUser.nombre || currentUser.role || 'Usuario';
+                    document.getElementById('user-email').textContent = currentUser.email || '';
+                }
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+            }
+        }
+
+        async function cargarMisRequisiciones() {
+            const loading = document.getElementById('loading');
+            const noRequisiciones = document.getElementById('no-requisiciones');
+            const requisicionesGrid = document.getElementById('requisiciones-grid');
+            
+            loading.style.display = 'block';
+            noRequisiciones.style.display = 'none';
+            requisicionesGrid.innerHTML = '';
+
+            const token = localStorage.getItem('token');
+            
+            try {
+                const response = await fetch('/api/v1/requisiciones/mis-requisiciones', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const requisiciones = await response.json();
+                loading.style.display = 'none';
+
+                if (requisiciones.length === 0) {
+                    noRequisiciones.style.display = 'block';
+                    actualizarEstadisticas([]);
+                    return;
+                }
+
+                actualizarEstadisticas(requisiciones);
+                mostrarRequisiciones(requisiciones);
+
+            } catch (error) {
+                loading.style.display = 'none';
+                console.error('Error al cargar requisiciones:', error);
+                requisicionesGrid.innerHTML = `
+                    <div style="text-align: center; padding: 50px; color: var(--sedh-danger);">
+                        <h3>❌ Error al cargar requisiciones</h3>
+                        <p>${error.message}</p>
+                        <button onclick="cargarMisRequisiciones()" class="nav-btn" style="margin-top: 15px;">
+                            🔄 Reintentar
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function actualizarEstadisticas(requisiciones) {
+            const total = requisiciones.length;
+            let pendientes = 0;
+            let aprobadas = 0;
+            let rechazadas = 0;
+
+            requisiciones.forEach(req => {
+                const estado = req.EstGeneral?.toLowerCase();
+                if (estado === 'aprobado' || estado === 'entregado') {
+                    aprobadas++;
+                } else if (estado === 'rechazado') {
+                    rechazadas++;
+                } else {
+                    pendientes++;
+                }
+            });
+
+            document.getElementById('total-requisiciones').textContent = total;
+            document.getElementById('pendientes-count').textContent = pendientes;
+            document.getElementById('aprobadas-count').textContent = aprobadas;
+            document.getElementById('rechazadas-count').textContent = rechazadas;
+        }
+
+        function mostrarRequisiciones(requisiciones) {
+            const grid = document.getElementById('requisiciones-grid');
+            
+            grid.innerHTML = requisiciones.map(req => `
+                <div class="requisicion-card">
+                    <div class="requisicion-header">
+                        <div>
+                            <div class="requisicion-codigo">${req.CodRequisicion || 'Sin código'}</div>
+                            <div class="requisicion-fecha">
+                                Solicitado: ${formatearFecha(req.FecSolicitud)}
+                            </div>
+                        </div>
+                        <div class="estado-general ${getEstadoClass(req.EstGeneral)}">
+                            ${req.EstGeneral || 'Pendiente'}
+                        </div>
+                    </div>
+
+                    <div class="flujo-aprobacion">
+                        <div class="paso-aprobacion">
+                            <div class="paso-titulo">Jefe Inmediato</div>
+                            <div class="paso-estado ${getEstadoClass(req.EstadoJefeInmediato)}">
+                                ${req.EstadoJefeInmediato}
+                            </div>
+                        </div>
+                        <div class="paso-aprobacion">
+                            <div class="paso-titulo">Ger. Administrativo</div>
+                            <div class="paso-estado ${getEstadoClass(req.EstadoGerAdmon)}">
+                                ${req.EstadoGerAdmon}
+                            </div>
+                        </div>
+                        <div class="paso-aprobacion">
+                            <div class="paso-titulo">Jef. Servicios Mat.</div>
+                            <div class="paso-estado ${getEstadoClass(req.EstadoJefSerMat)}">
+                                ${req.EstadoJefSerMat}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="requisicion-details">
+                        <div class="details-left">
+                            ${req.ObsEmpleado ? `
+                                <div class="detail-item">
+                                    <div class="detail-label">Observaciones:</div>
+                                    <div class="detail-value">${req.ObsEmpleado}</div>
+                                </div>
+                            ` : ''}
+                            <div class="detail-item">
+                                <div class="detail-label">Creado:</div>
+                                <div class="detail-value">${formatearFecha(req.CreadoEn)}</div>
+                            </div>
+                        </div>
+                        <div class="gasto-total">
+                            <div class="gasto-label">Gasto Total</div>
+                            <div class="gasto-amount">L. ${formatearMoneda(req.GasTotalDelPedido)}</div>
+                        </div>
+                    </div>
+
+                    ${req.UltimoComentario ? `
+                        <div class="ultimo-comentario">
+                            <div class="comentario-label">Último comentario:</div>
+                            <div class="comentario-text">${req.UltimoComentario}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function getEstadoClass(estado) {
+            if (!estado) return 'pendiente';
+            const estadoLower = estado.toLowerCase();
+            if (estadoLower === 'aprobado' || estadoLower === 'entregado') {
+                return 'aprobado';
+            } else if (estadoLower === 'rechazado') {
+                return 'rechazado';
+            }
+            return 'pendiente';
+        }
+
+        function formatearFecha(fecha) {
+            if (!fecha) return 'No especificada';
+            return new Date(fecha).toLocaleDateString('es-HN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function formatearMoneda(cantidad) {
+            if (!cantidad) return '0.00';
+            return Number(cantidad).toLocaleString('es-HN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        // Función para cerrar sesión
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>

@@ -1,3 +1,8 @@
+import sys
+import os
+# Configurar PYTHONPATH automáticamente
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -86,8 +91,10 @@ async def api_crear_producto(
     )
     try:
         new_id = crear_producto(db, payload, creadopor)
+        db.commit()  # Commit explícito en el endpoint
         return ProductoCreateOut(idproducto=new_id, message="Producto creado correctamente")
     except Exception as ex:
+        db.rollback()
         raise HTTPException(status_code=400, detail=f"No se pudo crear el producto: {ex}")
 
 @router.post(
@@ -110,8 +117,10 @@ async def api_crear_categoria(
     )
     try:
         new_id = crear_categoria(db, payload, creadopor)
+        db.commit()  # Commit explícito en el endpoint
         return CategoriaCreateOut(idcategoria=new_id, message="Categoría creada correctamente")
     except Exception as ex:
+        db.rollback()
         raise HTTPException(status_code=400, detail=f"No se pudo crear la categoría: {ex}")
 
 @router.put(
@@ -153,3 +162,14 @@ async def api_buscar_categoria(
     _: dict = Depends(get_current_user),
 ):
     return buscar_categoria(db, codobjeto)
+
+# ENDPOINT DE DEBUG - TEMPORAL
+@router.get("/debug/productos-sin-auth", summary="Debug: Productos sin autenticación")
+async def debug_productos(db: Session = Depends(get_db)):
+    """Endpoint de debug para verificar códigos de productos (SIN AUTENTICACIÓN)"""
+    prods = listar_productos(db)
+    # Retornar solo nombre y codobjetunico para debug
+    return [
+        {"nomproducto": p.nomproducto, "codobjetunico": p.codobjetunico, "idproducto": str(p.idproducto)}
+        for p in prods
+    ]

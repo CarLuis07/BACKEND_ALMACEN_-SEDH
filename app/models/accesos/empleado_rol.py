@@ -10,7 +10,7 @@ class EmpleadoRol(Base):
 
     IdEmpleadoRol: Mapped[str] = mapped_column(UUID(as_uuid=True), primary_key=True, server_default=func.uuid_generate_v4())
     EmailInstitucional: Mapped[str | None] = mapped_column(String(50), index=True)
-    IdRol: Mapped[str | None] = mapped_column(UUID(as_uuid=True), ForeignKey("acceso.Roles.\"IdRol\""))
+    IdRol: Mapped[str | None] = mapped_column(UUID(as_uuid=True), ForeignKey("acceso.Roles.IdRol"))
     Contrasena: Mapped[str | None] = mapped_column(String(100))
     ActLaboralmente: Mapped[bool | None] = mapped_column(Boolean)
     UltimoLogin: Mapped[datetime | None] = mapped_column(TIMESTAMP)

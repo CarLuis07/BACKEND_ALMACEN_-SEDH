@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Historial de Requisición</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .historial-container { max-width: 1100px; margin: 30px auto; padding: 24px; background: var(--panel-bg, #0d1b1a); border-radius: 16px; box-shadow: var(--shadow-teal, 0 10px 25px rgba(15,118,110,0.35)); }
+    .header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .title { font-size:22px; color:#fff; }
+    .subtitle { color:#cdecec; font-size:13px; }
+    .badge { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; color:#043b38; background:#2dd4bf; font-weight:600; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; color:#2dd4bf; }
+
+    .tabs { display:flex; gap:8px; margin:12px 0 18px; flex-wrap:wrap; }
+    .tab { padding:8px 12px; border-radius:10px; border:1px solid rgba(45, 212, 191, 0.35); color:#d6f3f0; cursor:pointer; background: linear-gradient(135deg, rgba(11,63,59,0.6), rgba(15,118,110,0.6)); }
+    .tab.active { background: linear-gradient(135deg, #0b3f3b, #0f766e); color:#fff; border-color:#2dd4bf; }
+
+    .section { display:none; }
+    .section.active { display:block; }
+
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    .card { background: rgba(255,255,255,0.06); border:1px solid rgba(45,212,191,0.25); border-radius:12px; padding:14px; color:#eaf9f7; }
+
+    .timeline { position:relative; padding-left:24px; }
+    .timeline::before { content:""; position:absolute; left:8px; top:0; bottom:0; width:2px; background:rgba(45,212,191,0.6); }
+    .event { position:relative; margin-bottom:14px; }
+    .event::before { content:""; position:absolute; left:-18px; top:4px; width:10px; height:10px; border-radius:50%; background:#2dd4bf; border:2px solid #0f5e59; }
+    .event .meta { font-size:12px; color:#9fdcd6; }
+    .event .msg { font-size:14px; color:#eaf9f7; }
+
+    .table { width:100%; border-collapse: collapse; }
+    .table th, .table td { border-bottom:1px dashed rgba(45,212,191,0.25); padding:8px; }
+    .table th { background: rgba(13, 31, 30, 0.55); color:#bff2ec; }
+  </style>
+</head>
+<body class="teal-theme">
+  <div class="historial-container">
+    <div class="header">
+      <div>
+        <div class="title">Historial de Requisición <span id="histCod" class="code"></span></div>
+        <div class="subtitle">Detalles, aprobaciones y línea de tiempo</div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span id="estadoBadge" class="badge">Cargando…</span>
+        <button id="btnVolver" class="tab" style="border-color:#2dd4bf;" title="Volver" onclick="volver()">⟵ Volver</button>
+        <button id="btnExport" class="tab" style="border-color:#2dd4bf;" title="Exportar PDF" onclick="exportarPDF()">⤓ Exportar PDF</button>
+        <button id="btnVerPDF" class="tab" style="border-color:#2dd4bf;" title="Ver PDF" onclick="verPDF()">📄 Ver PDF</button>
+        <button id="btnCopy" class="tab" style="border-color:#2dd4bf;" title="Copiar enlace" onclick="copiarEnlace()">🔗 Copiar enlace</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab" data-tab="detalles">Detalles</button>
+      <button class="tab" data-tab="aprobaciones">Aprobaciones</button>
+      <button class="tab" data-tab="timeline">Timeline</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+        <strong>Filtrar timeline por fecha:</strong>
+        <label>Desde <input type="date" id="fltFrom"/></label>
+        <label>Hasta <input type="date" id="fltTo"/></label>
+        <button class="tab" onclick="aplicarFiltroFechas()">Aplicar</button>
+        <button class="tab" onclick="limpiarFiltroFechas()">Limpiar</button>
+      </div>
+    </div>
+
+    <div id="detalles" class="section">
+      <div class="grid">
+        <div class="card">
+          <h4>Información General</h4>
+          <div id="infoGeneral">Cargando…</div>
+        </div>
+        <div class="card">
+          <h4>Solicitante</h4>
+          <div id="infoSolicitante">Cargando…</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px;">
+        <h4>Productos</h4>
+        <table class="table" id="tablaProductos">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Estado</th>
+              <th>P. Unitario</th>
+              <th>P. Total</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4" style="text-align:right; font-weight:700;">Total calculado:</td>
+              <td id="totalCalculado">0.00</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div id="aprobaciones" class="section">
+      <div class="card">
+        <h4>Flujo de Aprobaciones</h4>
+        <div id="listaAprobaciones">Cargando…</div>
+      </div>
+    </div>
+
+    <div id="timeline" class="section">
+      <div class="card">
+        <h4>Eventos</h4>
+        <div id="lineaTiempo" class="timeline">Cargando…</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE_URL = '/api/v1';
+
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    function setActiveTab(tab) {
+      document.querySelectorAll('.tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tab);
+      });
+      document.querySelectorAll('.section').forEach(sec => {
+        sec.classList.toggle('active', sec.id === tab);
+      });
+    }
+
+    async function cargarDatos(cod) {
+      // Estas rutas deben existir en el backend. Se usan nombres razonables.
+      const token = localStorage.getItem('token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+
+      try {
+        // Detalles generales de la requisición
+        const detRes = await fetch(`${API_BASE_URL}/requisiciones/${encodeURIComponent(cod)}/detalle`, { headers });
+        let detalles = detRes.ok ? await detRes.json() : null;
+        // Fallback: intentar obtener desde /todas y filtrar por código si no hay detalle directo
+        if (!detalles || !detalles.codigo) {
+          const allRes = await fetch(`${API_BASE_URL}/requisiciones/todas?busqueda=${encodeURIComponent(cod)}`, { headers });
+          if (allRes.ok) {
+            const lista = await allRes.json();
+            const match = (lista || []).find(r => (r.CodRequisicion || '').toLowerCase() === String(cod).toLowerCase());
+            if (match) {
+              detalles = {
+                codigo: match.CodRequisicion,
+                fecha: match.FecSolicitud,
+                estado: match.EstGeneral,
+                solicitante: { nombre: match.NomEmpleado, dependencia: match.NomDependencia, sigla: match.SiglasDependencia },
+                productos: (match.Productos || []).map(p => ({ nombre: p.NomProducto, cantidad: p.CantSolicitada, estado: '' }))
+              };
+            }
+          }
+        }
+
+        // Aprobaciones
+        const aprRes = await fetch(`${API_BASE_URL}/requisiciones/${encodeURIComponent(cod)}/aprobaciones`, { headers });
+        const aprobaciones = aprRes.ok ? await aprRes.json() : [];
+
+        // Timeline / historial de eventos con filtros
+        const from = document.getElementById('fltFrom')?.value || '';
+        const to = document.getElementById('fltTo')?.value || '';
+        const qs = new URLSearchParams();
+        if (from) qs.set('from', from);
+        if (to) qs.set('to', to);
+        const tlUrl = `${API_BASE_URL}/requisiciones/${encodeURIComponent(cod)}/historial${qs.toString() ? ('?' + qs.toString()) : ''}`;
+        const tlRes = await fetch(tlUrl, { headers });
+        const timeline = tlRes.ok ? await tlRes.json() : [];
+
+        // Render
+        renderDetalles(detalles);
+        renderAprobaciones(aprobaciones);
+        renderTimeline(timeline);
+
+        document.getElementById('estadoBadge').textContent = (detalles?.estado || 'Desconocido');
+      } catch (e) {
+        console.error('Error cargando historial:', e);
+        document.getElementById('infoGeneral').textContent = 'Error cargando detalles';
+        document.getElementById('listaAprobaciones').textContent = 'Error cargando aprobaciones';
+        document.getElementById('lineaTiempo').textContent = 'Error cargando timeline';
+      }
+    }
+
+    function renderDetalles(d) {
+      document.getElementById('infoGeneral').innerHTML = d && (d.codigo || d.CodRequisicion) ? `
+        <div><strong>Código:</strong> ${d.codigo || ''}</div>
+        <div><strong>Fecha:</strong> ${d.fecha || ''}</div>
+        <div><strong>Estado:</strong> ${d.estado || ''}</div>
+        ${d.total ? `<div><strong>Total del pedido:</strong> ${Number(d.total).toFixed(2)}</div>` : ''}
+        ${d.observaciones ? `<div><strong>Observaciones:</strong> ${d.observaciones}</div>` : ''}
+      ` : 'Sin datos';
+
+      document.getElementById('infoSolicitante').innerHTML = d && d.solicitante ? `
+        <div><strong>Nombre:</strong> ${d.solicitante?.nombre || ''}</div>
+        <div><strong>Dependencia:</strong> ${d.solicitante?.dependencia || ''}</div>
+        <div><strong>Correo:</strong> ${d.solicitante?.email || ''}</div>
+      ` : 'Sin datos';
+
+      const tbody = document.querySelector('#tablaProductos tbody');
+      tbody.innerHTML = '';
+      let suma = 0;
+      (d?.productos || []).forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.nombre}</td>
+          <td>${p.cantidad}</td>
+          <td>${p.estado || ''}</td>
+          <td>${p.precio_unitario != null ? Number(p.precio_unitario).toFixed(2) : ''}</td>
+          <td>${p.precio_total != null ? Number(p.precio_total).toFixed(2) : ''}</td>
+        `;
+        tbody.appendChild(tr);
+        const pt = p.precio_total != null ? Number(p.precio_total) : 0;
+        suma += isNaN(pt) ? 0 : pt;
+      });
+      const totalEl = document.getElementById('totalCalculado');
+      if (totalEl) totalEl.textContent = suma.toFixed(2);
+    }
+
+    function renderAprobaciones(list) {
+      const cont = document.getElementById('listaAprobaciones');
+      if (!list || list.length === 0) { cont.textContent = 'Sin aprobaciones'; return; }
+      cont.innerHTML = list.map(a => `
+        <div class="event">
+          <div class="meta">${a.fecha || ''} — ${a.rol || a.rol_aprobador || ''}</div>
+          <div class="msg">${a.aprobador || a.nombre_aprobador || ''} — ${a.estado || ''}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderTimeline(list) {
+      const cont = document.getElementById('lineaTiempo');
+      if (!list || list.length === 0) { cont.textContent = 'Sin eventos'; return; }
+      cont.innerHTML = list.map(e => `
+        <div class="event">
+          <div class="meta">${e.fecha || ''} — ${e.usuario || ''}</div>
+          <div class="msg">${e.mensaje || e.evento || ''}</div>
+        </div>
+      `).join('');
+    }
+
+    function aplicarFiltroFechas() {
+      const cod = getParam('cod');
+      cargarDatos(cod);
+    }
+
+    function limpiarFiltroFechas() {
+      document.getElementById('fltFrom').value = '';
+      document.getElementById('fltTo').value = '';
+      const cod = getParam('cod');
+      cargarDatos(cod);
+    }
+
+    // Inicialización
+    (function init() {
+      const cod = getParam('cod');
+      const tabParam = getParam('tab') || 'aprobaciones';
+      document.getElementById('histCod').textContent = cod || '';
+      setActiveTab(tabParam);
+      cargarDatos(cod);
+
+      document.querySelectorAll('.tab').forEach(btn => {
+        btn.addEventListener('click', () => setActiveTab(btn.dataset.tab));
+      });
+    })();
+
+    function volver() {
+      // Priorizar volver a la página de donde viene: requisiciones o dashboard
+      const ref = document.referrer || '';
+      if (ref) { window.history.back(); return; }
+      // Fallback razonable
+      window.location.href = '/requisiciones';
+    }
+
+    async function exportarPDF() {
+      const cod = getParam('cod');
+      if (!cod) return;
+      const token = localStorage.getItem('token');
+      const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+      try {
+        // Endpoint de exportación PDF (ajustar si difiere)
+        const from = document.getElementById('fltFrom')?.value || '';
+        const to = document.getElementById('fltTo')?.value || '';
+        const qs = new URLSearchParams();
+        if (from) qs.set('from', from);
+        if (to) qs.set('to', to);
+        const url = `${API_BASE_URL}/requisiciones/${encodeURIComponent(cod)}/pdf${qs.toString() ? ('?' + qs.toString()) : ''}`;
+        const res = await fetch(url, { headers });
+        if (!res.ok) throw new Error('No se pudo generar PDF');
+        const blob = await res.blob();
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `historial-${cod}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (e) {
+        console.error('Error exportando PDF:', e);
+        alert('No se pudo exportar el historial en PDF');
+      }
+    }
+
+    async function verPDF() {
+      const cod = getParam('cod');
+      if (!cod) return;
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('No hay sesión activa. Por favor, inicie sesión.');
+        window.location.href = '/login';
+        return;
+      }
+      
+      const from = document.getElementById('fltFrom')?.value || '';
+      const to = document.getElementById('fltTo')?.value || '';
+      const qs = new URLSearchParams();
+      if (from) qs.set('from', from);
+      if (to) qs.set('to', to);
+      const url = `${API_BASE_URL}/requisiciones/${encodeURIComponent(cod)}/pdf${qs.toString() ? ('?' + qs.toString()) : ''}`;
+      
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        const urlBlob = window.URL.createObjectURL(blob);
+        window.open(urlBlob, '_blank');
+        
+        // Liberar el objeto URL después de un momento
+        setTimeout(() => window.URL.revokeObjectURL(urlBlob), 100);
+      } catch (error) {
+        console.error('Error al ver PDF:', error);
+        alert('No se pudo cargar el PDF. Verifique su sesión.');
+      }
+    }
+
+    async function copiarEnlace() {
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        const btn = document.getElementById('btnCopy');
+        const old = btn.textContent;
+        btn.textContent = '✅ Copiado';
+        setTimeout(()=> btn.textContent = old, 1200);
+      } catch (e) {
+        alert('No se pudo copiar el enlace');
+      }
+    }
+  </script>
+</body>
+</html>

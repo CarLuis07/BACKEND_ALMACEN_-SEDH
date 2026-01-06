@@ -13,16 +13,24 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
     DB_NAME: str
     ENV: str = "dev"
+    
+    # Configuración SMTP
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
-        # nuevo driver psycopg (v3)
-        return (f"postgresql+psycopg://{self.DB_USER}:{self.DB_PASSWORD}"
+        # Usando psycopg2 (más estable y compatible)
+        return (f"postgresql+psycopg2://{self.DB_USER}:{self.DB_PASSWORD}"
                 f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}")
 
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "allow"  # Permitir variables extra en .env
+        extra = "allow"  # Permitir variables extra en .env
 
 @lru_cache
 def get_settings() -> Settings:

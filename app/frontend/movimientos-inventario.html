@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Físico - SEDH</title>
+    <style>
+        :root {
+            --sedh-primary: #1e40af;
+            --sedh-secondary: #3b82f6;
+            --sedh-accent: #60a5fa;
+            --sedh-success: #10b981;
+            --sedh-warning: #f59e0b;
+            --sedh-danger: #ef4444;
+            --sedh-dark: #1f2937;
+            --sedh-light: #f8fafc;
+            --sedh-border: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--sedh-dark);
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: var(--sedh-primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: var(--sedh-primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: var(--sedh-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(30, 64, 175, 0.3);
+        }
+
+        /* Tabs */
+        .tabs-container {
+            background: white;
+            border-radius: 20px;
+            padding: 0;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            background: var(--sedh-light);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: #64748b;
+        }
+
+        .tab-btn.active {
+            background: var(--sedh-primary);
+            color: white;
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: rgba(30, 64, 175, 0.1);
+            color: var(--sedh-primary);
+        }
+
+        .tab-content {
+            padding: 30px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Conteo Cíclico */
+        .conteo-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .conteo-form {
+            background: var(--sedh-light);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .conteo-form h3 {
+            color: var(--sedh-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--sedh-dark);
+            margin-bottom: 8px;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--sedh-border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--sedh-primary);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--sedh-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--sedh-secondary);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--sedh-success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--sedh-warning);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--sedh-danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        /* Lista de Conteo */
+        .conteo-lista {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .conteo-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto auto;
+            gap: 15px;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: var(--sedh-light);
+            border-left: 4px solid var(--sedh-primary);
+        }
+
+        .conteo-item.discrepancia {
+            border-left-color: var(--sedh-warning);
+        }
+
+        .conteo-item.faltante {
+            border-left-color: var(--sedh-danger);
+        }
+
+        .conteo-item.sobrante {
+            border-left-color: var(--sedh-success);
+        }
+
+        .producto-info h4 {
+            color: var(--sedh-primary);
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+
+        .producto-info p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .cantidad-info {
+            text-align: center;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid var(--sedh-border);
+        }
+
+        .cantidad-teorica {
+            font-weight: bold;
+            color: var(--sedh-primary);
+        }
+
+        .cantidad-fisica {
+            font-weight: bold;
+            color: var(--sedh-success);
+        }
+
+        .diferencia {
+            font-weight: bold;
+        }
+
+        .diferencia.positiva {
+            color: var(--sedh-success);
+        }
+
+        .diferencia.negativa {
+            color: var(--sedh-danger);
+        }
+
+        .diferencia.cero {
+            color: var(--sedh-success);
+        }
+
+        /* Conciliación */
+        .conciliacion-section {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+        }
+
+        .discrepancias-lista {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .discrepancia-item {
+            border: 2px solid var(--sedh-border);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .discrepancia-item:hover {
+            border-color: var(--sedh-primary);
+            transform: translateY(-2px);
+        }
+
+        .discrepancia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .discrepancia-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-faltante {
+            background: #fee2e2;
+            color: var(--sedh-danger);
+        }
+
+        .badge-sobrante {
+            background: #d1fae5;
+            color: var(--sedh-success);
+        }
+
+        .badge-diferencia {
+            background: #fef3c7;
+            color: var(--sedh-warning);
+        }
+
+        .discrepancia-detalles {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .detalle-box {
+            text-align: center;
+            padding: 12px;
+            background: var(--sedh-light);
+            border-radius: 8px;
+        }
+
+        .detalle-valor {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--sedh-primary);
+        }
+
+        .detalle-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+
+        .acciones-discrepancia {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Resumen Panel */
+        .resumen-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            height: fit-content;
+        }
+
+        .resumen-stats {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 20px;
+            background: var(--sedh-light);
+            border-radius: 10px;
+            border-left: 4px solid var(--sedh-primary);
+        }
+
+        .stat-numero {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--sedh-primary);
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* Reportes */
+        .reportes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .reporte-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .reporte-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .reporte-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .reporte-titulo {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--sedh-primary);
+            margin-bottom: 10px;
+        }
+
+        .reporte-descripcion {
+            color: #64748b;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Configuración */
+        .config-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .config-item {
+            border: 2px solid var(--sedh-border);
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .config-item h4 {
+            color: var(--sedh-primary);
+            margin-bottom: 10px;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .tabs-header {
+                flex-direction: column;
+            }
+            
+            .conteo-section,
+            .conciliacion-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .conteo-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 1.1rem;
+            color: #64748b;
+        }
+
+        .loading::before {
+            content: "📊";
+            margin-right: 10px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Tarjetas de Productos para Inventario */
+        .producto-inventario-card {
+            background: white;
+            border: 2px solid var(--sedh-border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .producto-inventario-card:hover {
+            border-color: var(--sedh-primary);
+            box-shadow: 0 4px 20px rgba(30, 64, 175, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .producto-inventario-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .producto-inventario-icon {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--sedh-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--sedh-border);
+        }
+
+        .producto-inventario-info {
+            flex: 1;
+        }
+
+        .producto-inventario-nombre {
+            font-weight: 700;
+            color: var(--sedh-primary);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .producto-inventario-codigo {
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .producto-inventario-detalles {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--sedh-border);
+            font-size: 0.85rem;
+        }
+
+        .producto-inventario-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .producto-inventario-stat-label {
+            color: #64748b;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .producto-inventario-stat-value {
+            font-weight: 600;
+            color: var(--sedh-dark);
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 Inventario Físico</h1>
+            <p class="subtitle">Sistema de conteo cíclico y conciliación automática</p>
+            <div class="nav-buttons">
+                <a href="/dashboard" class="nav-btn">🏠 Inicio Principal</a>
+                <a href="/movimientos-dashboard" class="nav-btn">📊  Movimientos</a>
+                <a href="/movimientos-trazabilidad" class="nav-btn">🔍 Trazabilidad</a>
+                <a href="/movimientos-alertas" class="nav-btn">🚨 Alertas</a>
+                <a href="/control-almacen" class="nav-btn">📦 Control Almacén</a>
+            </div>
+        </div>
+
+        <!-- Tabs Container -->
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="cambiarTab('conteo')">
+                    📝 Conteo Cíclico
+                </button>
+                <button class="tab-btn" onclick="cambiarTab('conciliacion')">
+                    ⚖️ Conciliación
+                </button>
+                <button class="tab-btn" onclick="cambiarTab('reportes')">
+                    📋 Reportes
+                </button>
+                <button class="tab-btn" onclick="cambiarTab('configuracion')">
+                    ⚙️ Configuración
+                </button>
+            </div>
+
+            <!-- Tab: Conteo Cíclico -->
+            <div class="tab-content active" id="conteo-tab">
+                <!-- Lista de Productos Disponibles -->
+                <div class="conteo-section" id="listaProductosInventario">
+                    <h3>📦 Productos Disponibles para Conteo</h3>
+                    <p style="color: #64748b; margin-bottom: 20px;">Seleccione un producto para iniciar el conteo físico</p>
+                    <div id="productosInventarioDisponibles" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
+                        <!-- Productos se cargarán aquí -->
+                    </div>
+                </div>
+
+                <div class="conteo-section" id="formularioConteoSection" style="display: none;">
+                    <!-- Formulario de Conteo -->
+                    <div class="conteo-form">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3>📝 Nuevo Conteo</h3>
+                            <button class="btn btn-secondary" onclick="volverAListaInventario()">
+                                ← Volver a lista
+                            </button>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">🔍 Buscar Producto</label>
+                            <input type="text" id="buscarProducto" class="form-control" 
+                                   placeholder="Código o nombre del producto">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">📦 Producto Seleccionado</label>
+                            <div id="productoSeleccionado" style="padding: 15px; background: white; border-radius: 8px; border: 2px solid var(--sedh-border);">
+                                Seleccione un producto para contar
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">📊 Stock Teórico</label>
+                            <input type="number" id="stockTeorico" class="form-control" readonly>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">🔢 Cantidad Física Contada</label>
+                            <input type="number" id="cantidadFisica" class="form-control" 
+                                   placeholder="Ingrese la cantidad contada" min="0">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">📍 Ubicación</label>
+                            <input type="text" id="ubicacion" class="form-control" 
+                                   placeholder="Ej: Estante A-1, Nivel 2">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">📝 Observaciones</label>
+                            <textarea id="observaciones" class="form-control" rows="3"
+                                      placeholder="Comentarios sobre el conteo (opcional)"></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-primary" onclick="registrarConteo()">
+                                ✅ Registrar Conteo
+                            </button>
+                            <button class="btn btn-secondary" onclick="limpiarFormulario()">
+                                🔄 Limpiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Lista de Conteos -->
+                    <div class="conteo-lista">
+                        <h3 style="color: var(--sedh-primary); margin-bottom: 20px;">
+                            📋 Conteos Registrados Hoy
+                        </h3>
+                        <div id="listaConteos">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </div>
+
+            <!-- Tab: Conciliación -->
+            <div class="tab-content" id="conciliacion-tab">
+                <div class="conciliacion-section">
+                    <div class="discrepancias-lista">
+                        <h3 style="color: var(--sedh-primary); margin-bottom: 20px;">
+                            ⚖️ Discrepancias Detectadas
+                        </h3>
+                        <div id="listaDiscrepancias">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                    </div>
+
+                    <div class="resumen-panel">
+                        <h3 style="color: var(--sedh-primary); margin-bottom: 20px;">
+                            📊 Resumen de Conciliación
+                        </h3>
+                        <div class="resumen-stats" id="resumenConciliacion">
+                            <!-- Se llena dinámicamente -->
+                        </div>
+                        
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-success" onclick="procesarConciliacion()">
+                                ✅ Procesar Conciliación
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Reportes -->
+            <div class="tab-content" id="reportes-tab">
+                <div class="reportes-grid">
+                    <div class="reporte-card">
+                        <div class="reporte-icon">📊</div>
+                        <div class="reporte-titulo">Reporte de Inventario</div>
+                        <div class="reporte-descripcion">
+                            Reporte completo del inventario físico con todas las discrepancias
+                        </div>
+                        <button class="btn btn-primary" onclick="generarReporte('inventario')">
+                            📄 Generar Reporte
+                        </button>
+                    </div>
+
+                    <div class="reporte-card">
+                        <div class="reporte-icon">📈</div>
+                        <div class="reporte-titulo">Análisis de Discrepancias</div>
+                        <div class="reporte-descripcion">
+                            Análisis detallado de las causas de las discrepancias encontradas
+                        </div>
+                        <button class="btn btn-warning" onclick="generarReporte('discrepancias')">
+                            📊 Generar Análisis
+                        </button>
+                    </div>
+
+                    <div class="reporte-card">
+                        <div class="reporte-icon">💰</div>
+                        <div class="reporte-titulo">Valorización</div>
+                        <div class="reporte-descripcion">
+                            Valor monetario de las discrepancias y ajustes realizados
+                        </div>
+                        <button class="btn btn-success" onclick="generarReporte('valorizado')">
+                            💵 Generar Valorización
+                        </button>
+                    </div>
+
+                    <div class="reporte-card">
+                        <div class="reporte-icon">📅</div>
+                        <div class="reporte-titulo">Histórico de Conteos</div>
+                        <div class="reporte-descripcion">
+                            Historial completo de todos los conteos realizados
+                        </div>
+                        <button class="btn btn-secondary" onclick="generarReporte('historico')">
+                            📚 Ver Histórico
+                        </button>
+                    </div>
+                </div>
+
+                <div class="config-section">
+                    <h3 style="color: var(--sedh-primary); margin-bottom: 20px;">
+                        🔧 Filtros de Reportes
+                    </h3>
+                    <div class="config-grid">
+                        <div class="form-group">
+                            <label class="form-label">📅 Fecha Inicio</label>
+                            <input type="date" id="fechaInicioReporte" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">📅 Fecha Fin</label>
+                            <input type="date" id="fechaFinReporte" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">🏷️ Categoría</label>
+                            <select id="categoriaReporte" class="form-control">
+                                <option value="">Todas las categorías</option>
+                                <!-- Se llena dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">👤 Usuario</label>
+                            <select id="usuarioReporte" class="form-control">
+                                <option value="">Todos los usuarios</option>
+                                <!-- Se llena dinámicamente -->
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Configuración -->
+            <div class="tab-content" id="configuracion-tab">
+                <div class="config-section">
+                    <h3 style="color: var(--sedh-primary); margin-bottom: 20px;">
+                        ⚙️ Configuración del Sistema
+                    </h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <h4>🔄 Frecuencia de Conteo</h4>
+                            <p>Configurar la frecuencia de conteos cíclicos por categoría</p>
+                            <div class="form-group">
+                                <label class="form-label">Días entre conteos:</label>
+                                <input type="number" id="frecuenciaConteo" class="form-control" value="30" min="7" max="365">
+                            </div>
+                        </div>
+
+                        <div class="config-item">
+                            <h4>⚠️ Tolerancia de Discrepancias</h4>
+                            <p>Umbral de tolerancia para considerar una discrepancia significativa</p>
+                            <div class="form-group">
+                                <label class="form-label">Porcentaje de tolerancia:</label>
+                                <input type="number" id="toleranciaDiscrepancia" class="form-control" value="5" min="0" max="20">
+                            </div>
+                        </div>
+
+                        <div class="config-item">
+                            <h4>📧 Notificaciones</h4>
+                            <p>Configurar alertas automáticas</p>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="notifDiscrepancias" checked>
+                                    Notificar discrepancias importantes
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="notifConteosPendientes" checked>
+                                    Recordar conteos pendientes
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="config-item">
+                            <h4>🏷️ Códigos de Ubicación</h4>
+                            <p>Gestionar códigos de ubicación en el almacén</p>
+                            <div class="form-group">
+                                <button class="btn btn-primary" onclick="gestionarUbicaciones()">
+                                    📍 Gestionar Ubicaciones
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button class="btn btn-success" onclick="guardarConfiguracion()">
+                            💾 Guardar Configuración
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Detalles de Discrepancia -->
+    <div class="modal" id="modalDiscrepancia">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="color: var(--sedh-primary);">📊 Detalles de Discrepancia</h3>
+                <button class="modal-close" onclick="cerrarModal()">&times;</button>
+            </div>
+            <div id="modalContenido">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api/v1`;
+        let authToken = '';
+        let conteosDia = [];
+        let discrepancias = [];
+        let productoSeleccionado = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            authToken = localStorage.getItem('token');
+            if (!authToken) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Inicializar componentes
+            await cargarDatosIniciales();
+            configurarBusquedaProductos();
+            
+            // Cargar lista de productos disponibles
+            await cargarProductosInventarioDisponibles();
+        });
+
+        async function cargarProductosInventarioDisponibles() {
+            try {
+                const productos = await obtenerProductosSimulados();
+                mostrarProductosInventarioDisponibles(productos);
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+            }
+        }
+
+        function mostrarProductosInventarioDisponibles(productos) {
+            const container = document.getElementById('productosInventarioDisponibles');
+            
+            if (productos.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #64748b;">
+                        <div style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;">📭</div>
+                        <p>No hay productos disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const iconos = {
+                'Papelería': '📄',
+                'Papel y Cartón': '📄',
+                'Útiles de Oficina': '✏️',
+                'Útiles y Materiales de Oficina': '✏️',
+                'Consumibles IT': '🖨️',
+                'Equipo y Mobiliario de Oficina': '🖨️',
+                'default': '📦'
+            };
+
+            container.innerHTML = productos.map(producto => {
+                const icono = iconos[producto.categoria] || iconos.default;
+                const ultimoConteo = producto.ultimoConteo ? new Date(producto.ultimoConteo).toLocaleDateString('es-ES') : 'Sin conteo';
+
+                return `
+                    <div class="producto-inventario-card" onclick="seleccionarProductoParaConteo('${producto.id}')">
+                        <div class="producto-inventario-header">
+                            <div class="producto-inventario-icon">${icono}</div>
+                            <div class="producto-inventario-info">
+                                <div class="producto-inventario-nombre">${producto.nombre}</div>
+                                <div class="producto-inventario-codigo">Código: ${producto.codigo}</div>
+                            </div>
+                        </div>
+                        <div class="producto-inventario-detalles">
+                            <div class="producto-inventario-stat">
+                                <span class="producto-inventario-stat-label">Stock Teórico</span>
+                                <span class="producto-inventario-stat-value">${producto.stockTeorico}</span>
+                            </div>
+                            <div class="producto-inventario-stat">
+                                <span class="producto-inventario-stat-label">Ubicación</span>
+                                <span class="producto-inventario-stat-value">${producto.ubicacion}</span>
+                            </div>
+                            <div class="producto-inventario-stat" style="grid-column: 1 / -1;">
+                                <span class="producto-inventario-stat-label">Último Conteo</span>
+                                <span class="producto-inventario-stat-value">${ultimoConteo}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function seleccionarProductoParaConteo(productoId) {
+            const productos = await obtenerProductosSimulados();
+            const producto = productos.find(p => p.id === productoId);
+            
+            if (producto) {
+                // Ocultar lista y mostrar formulario
+                document.getElementById('listaProductosInventario').style.display = 'none';
+                document.getElementById('formularioConteoSection').style.display = 'block';
+                
+                // Seleccionar producto
+                seleccionarProducto(producto);
+            }
+        }
+
+        function volverAListaInventario() {
+            // Mostrar lista y ocultar formulario
+            document.getElementById('listaProductosInventario').style.display = 'block';
+            document.getElementById('formularioConteoSection').style.display = 'none';
+            
+            // Limpiar formulario
+            limpiarFormulario();
+        }
+
+        async function cargarDatosIniciales() {
+            try {
+                // Cargar conteos del día
+                await cargarConteosDia();
+                
+                // Cargar discrepancias
+                await cargarDiscrepancias();
+                
+                // Mostrar resumen de conciliación
+                mostrarResumenConciliacion();
+
+            } catch (error) {
+                console.error('Error cargando datos iniciales:', error);
+            }
+        }
+
+        function cambiarTab(tabName) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Mostrar tab seleccionado
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+
+            // Cargar datos específicos del tab
+            switch(tabName) {
+                case 'conteo':
+                    cargarConteosDia();
+                    break;
+                case 'conciliacion':
+                    cargarDiscrepancias();
+                    break;
+                case 'reportes':
+                    // Configurar fechas por defecto
+                    const hoy = new Date().toISOString().split('T')[0];
+                    document.getElementById('fechaFinReporte').value = hoy;
+                    const hace30Dias = new Date();
+                    hace30Dias.setDate(hace30Dias.getDate() - 30);
+                    document.getElementById('fechaInicioReporte').value = hace30Dias.toISOString().split('T')[0];
+                    break;
+            }
+        }
+
+        function configurarBusquedaProductos() {
+            const inputBuscar = document.getElementById('buscarProducto');
+            
+            inputBuscar.addEventListener('input', function() {
+                const termino = this.value.trim();
+                if (termino.length > 2) {
+                    buscarProductos(termino);
+                }
+            });
+
+            inputBuscar.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const termino = this.value.trim();
+                    if (termino) {
+                        buscarProductos(termino);
+                    }
+                }
+            });
+        }
+
+        async function buscarProductos(termino) {
+            try {
+                // Simular búsqueda de productos
+                const productos = await obtenerProductosSimulados();
+                const resultados = productos.filter(p => 
+                    p.nombre.toLowerCase().includes(termino.toLowerCase()) ||
+                    p.codigo.toLowerCase().includes(termino.toLowerCase())
+                );
+
+                if (resultados.length > 0) {
+                    const producto = resultados[0]; // Tomar el primer resultado
+                    seleccionarProducto(producto);
+                } else {
+                    document.getElementById('productoSeleccionado').innerHTML = `
+                        <div style="color: var(--sedh-danger);">
+                            ❌ No se encontró el producto "${termino}"
+                        </div>
+                    `;
+                    productoSeleccionado = null;
+                }
+
+            } catch (error) {
+                console.error('Error buscando productos:', error);
+            }
+        }
+
+        async function obtenerProductosSimulados() {
+            return [
+                {
+                    id: 'P001',
+                    nombre: 'PAPEL BON',
+                    codigo: '33100-002',
+                    categoria: 'Papel y Cartón',
+                    stockTeorico: 150,
+                    ubicacion: 'Bodega Principal - Estante A-1',
+                    ultimoConteo: '2025-11-28'
+                },
+                {
+                    id: 'P002',
+                    nombre: 'LAPICEROS',
+                    codigo: '33100-001',
+                    categoria: 'Útiles y Materiales de Oficina',
+                    stockTeorico: 85,
+                    ubicacion: 'Bodega Principal - Estante B-3',
+                    ultimoConteo: '2025-11-25'
+                },
+                {
+                    id: 'P003',
+                    nombre: 'TONER PARA IMPRESORA HP',
+                    codigo: '33500-015',
+                    categoria: 'Equipo y Mobiliario de Oficina',
+                    stockTeorico: 8,
+                    ubicacion: 'Almacén Tecnología - Rack IT-05',
+                    ultimoConteo: '2025-11-20'
+                },
+                {
+                    id: 'P004',
+                    nombre: 'MARCADORES PERMANENTES',
+                    codigo: '33100-003',
+                    categoria: 'Útiles y Materiales de Oficina',
+                    stockTeorico: 45,
+                    ubicacion: 'Bodega Principal - Estante B-4',
+                    ultimoConteo: '2025-11-22'
+                },
+                {
+                    id: 'P005',
+                    nombre: 'FOLDERS MANILA',
+                    codigo: '33100-010',
+                    categoria: 'Papel y Cartón',
+                    stockTeorico: 200,
+                    ubicacion: 'Bodega Principal - Estante A-2',
+                    ultimoConteo: '2025-11-27'
+                },
+                {
+                    id: 'P006',
+                    nombre: 'CLIPS METÁLICOS',
+                    codigo: '33100-005',
+                    categoria: 'Útiles y Materiales de Oficina',
+                    stockTeorico: 120,
+                    ubicacion: 'Bodega Principal - Estante C-1',
+                    ultimoConteo: '2025-11-26'
+                }
+            ];
+        }
+
+        function seleccionarProducto(producto) {
+            productoSeleccionado = producto;
+            
+            document.getElementById('productoSeleccionado').innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="font-size: 2rem;">📦</div>
+                    <div>
+                        <div style="font-weight: bold; color: var(--sedh-primary);">${producto.nombre}</div>
+                        <div style="color: #64748b;">Código: ${producto.codigo} • ${producto.categoria}</div>
+                        <div style="color: #64748b; font-size: 0.9rem;">📍 ${producto.ubicacion}</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('stockTeorico').value = producto.stockTeorico;
+            document.getElementById('ubicacion').value = producto.ubicacion;
+            document.getElementById('cantidadFisica').focus();
+        }
+
+        async function registrarConteo() {
+            if (!productoSeleccionado) {
+                alert('Por favor seleccione un producto para contar');
+                return;
+            }
+
+            const cantidadFisica = parseInt(document.getElementById('cantidadFisica').value);
+            const observaciones = document.getElementById('observaciones').value;
+
+            if (isNaN(cantidadFisica) || cantidadFisica < 0) {
+                alert('Por favor ingrese una cantidad física válida');
+                return;
+            }
+
+            const conteo = {
+                id: 'C' + Date.now(),
+                producto: productoSeleccionado,
+                stockTeorico: productoSeleccionado.stockTeorico,
+                cantidadFisica: cantidadFisica,
+                diferencia: cantidadFisica - productoSeleccionado.stockTeorico,
+                ubicacion: document.getElementById('ubicacion').value,
+                observaciones: observaciones,
+                fecha: new Date(),
+                usuario: 'admin@sedh.gob.hn'
+            };
+
+            conteosDia.push(conteo);
+            mostrarConteosDia();
+            
+            // Si hay discrepancia, agregarla a la lista
+            if (conteo.diferencia !== 0) {
+                const discrepancia = {
+                    id: 'D' + Date.now(),
+                    producto: productoSeleccionado.nombre,
+                    codigo: productoSeleccionado.codigo,
+                    categoria: productoSeleccionado.categoria,
+                    stockTeorico: conteo.stockTeorico,
+                    cantidadFisica: conteo.cantidadFisica,
+                    diferencia: conteo.diferencia,
+                    tipo: conteo.diferencia > 0 ? 'sobrante' : 'faltante',
+                    valorUnitario: 15.50, // Simulado
+                    impactoMonetario: Math.abs(conteo.diferencia) * 15.50,
+                    fecha: new Date(),
+                    estado: 'pendiente'
+                };
+                discrepancias.push(discrepancia);
+            }
+
+            limpiarFormulario();
+            mostrarToast('Conteo registrado exitosamente', 'success');
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('buscarProducto').value = '';
+            document.getElementById('productoSeleccionado').innerHTML = 'Seleccione un producto para contar';
+            document.getElementById('stockTeorico').value = '';
+            document.getElementById('cantidadFisica').value = '';
+            document.getElementById('ubicacion').value = '';
+            document.getElementById('observaciones').value = '';
+            productoSeleccionado = null;
+            
+            // Asegurar que el campo de búsqueda esté habilitado
+            document.getElementById('buscarProducto').disabled = false;
+        }
+
+        async function cargarConteosDia() {
+            // Simular conteos existentes
+            if (conteosDia.length === 0) {
+                // Agregar algunos conteos de ejemplo
+                conteosDia = [
+                    {
+                        id: 'C001',
+                        producto: { nombre: 'Carpetas Manila', codigo: 'CM-001' },
+                        stockTeorico: 50,
+                        cantidadFisica: 48,
+                        diferencia: -2,
+                        ubicacion: 'Estante C-1',
+                        observaciones: 'Encontradas 2 carpetas dañadas',
+                        fecha: new Date(),
+                        usuario: 'admin@sedh.gob.hn'
+                    }
+                ];
+            }
+            
+            mostrarConteosDia();
+        }
+
+        function mostrarConteosDia() {
+            const container = document.getElementById('listaConteos');
+            
+            if (conteosDia.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #64748b;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">📝</div>
+                        <p>No hay conteos registrados hoy</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = conteosDia.map(conteo => {
+                const tipoClase = conteo.diferencia === 0 ? '' : 
+                                 conteo.diferencia > 0 ? 'sobrante' : 'faltante';
+                
+                return `
+                    <div class="conteo-item ${tipoClase}">
+                        <div style="font-size: 1.5rem;">📦</div>
+                        <div class="producto-info">
+                            <h4>${conteo.producto.nombre}</h4>
+                            <p>Código: ${conteo.producto.codigo}</p>
+                        </div>
+                        <div class="cantidad-info">
+                            <div class="cantidad-teorica">${conteo.stockTeorico}</div>
+                            <div style="font-size: 0.8rem; color: #64748b;">Teórico</div>
+                        </div>
+                        <div class="cantidad-info">
+                            <div class="cantidad-fisica">${conteo.cantidadFisica}</div>
+                            <div style="font-size: 0.8rem; color: #64748b;">Físico</div>
+                        </div>
+                        <div class="cantidad-info">
+                            <div class="diferencia ${conteo.diferencia > 0 ? 'positiva' : conteo.diferencia < 0 ? 'negativa' : 'cero'}">
+                                ${conteo.diferencia > 0 ? '+' : ''}${conteo.diferencia}
+                            </div>
+                            <div style="font-size: 0.8rem; color: #64748b;">Diferencia</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function cargarDiscrepancias() {
+            // Las discrepancias se generan automáticamente al registrar conteos
+            mostrarDiscrepancias();
+        }
+
+        function mostrarDiscrepancias() {
+            const container = document.getElementById('listaDiscrepancias');
+            
+            if (discrepancias.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #64748b;">
+                        <div style="font-size: 3rem; margin-bottom: 15px;">✅</div>
+                        <p>No hay discrepancias pendientes</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = discrepancias.map(disc => `
+                <div class="discrepancia-item">
+                    <div class="discrepancia-header">
+                        <div>
+                            <h4 style="color: var(--sedh-primary); margin-bottom: 5px;">${disc.producto}</h4>
+                            <p style="color: #64748b;">Código: ${disc.codigo} • ${disc.categoria}</p>
+                        </div>
+                        <div class="discrepancia-badge badge-${disc.tipo}">
+                            ${disc.tipo.toUpperCase()}
+                        </div>
+                    </div>
+                    
+                    <div class="discrepancia-detalles">
+                        <div class="detalle-box">
+                            <div class="detalle-valor">${disc.stockTeorico}</div>
+                            <div class="detalle-label">Stock Teórico</div>
+                        </div>
+                        <div class="detalle-box">
+                            <div class="detalle-valor">${disc.cantidadFisica}</div>
+                            <div class="detalle-label">Cantidad Física</div>
+                        </div>
+                        <div class="detalle-box">
+                            <div class="detalle-valor" style="color: ${disc.diferencia > 0 ? 'var(--sedh-success)' : 'var(--sedh-danger)'};">
+                                ${disc.diferencia > 0 ? '+' : ''}${disc.diferencia}
+                            </div>
+                            <div class="detalle-label">Diferencia</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin: 15px 0; padding: 10px; background: var(--sedh-light); border-radius: 8px;">
+                        <strong>Impacto Monetario:</strong> $${disc.impactoMonetario.toFixed(2)}
+                    </div>
+                    
+                    <div class="acciones-discrepancia">
+                        <button class="btn btn-primary" onclick="verDetalleDiscrepancia('${disc.id}')">
+                            📊 Ver Detalle
+                        </button>
+                        <button class="btn btn-success" onclick="aprobarAjuste('${disc.id}')">
+                            ✅ Aprobar Ajuste
+                        </button>
+                        <button class="btn btn-warning" onclick="investigarDiscrepancia('${disc.id}')">
+                            🔍 Investigar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function mostrarResumenConciliacion() {
+            const totalDiscrepancias = discrepancias.length;
+            const faltantes = discrepancias.filter(d => d.tipo === 'faltante').length;
+            const sobrantes = discrepancias.filter(d => d.tipo === 'sobrante').length;
+            const impactoTotal = discrepancias.reduce((sum, d) => sum + d.impactoMonetario, 0);
+
+            document.getElementById('resumenConciliacion').innerHTML = `
+                <div class="stat-box">
+                    <div class="stat-numero">${totalDiscrepancias}</div>
+                    <div class="stat-label">Total Discrepancias</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-numero" style="color: var(--sedh-danger);">${faltantes}</div>
+                    <div class="stat-label">Faltantes</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-numero" style="color: var(--sedh-success);">${sobrantes}</div>
+                    <div class="stat-label">Sobrantes</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-numero">$${impactoTotal.toFixed(2)}</div>
+                    <div class="stat-label">Impacto Monetario</div>
+                </div>
+            `;
+        }
+
+        function verDetalleDiscrepancia(discrepanciaId) {
+            const discrepancia = discrepancias.find(d => d.id === discrepanciaId);
+            if (!discrepancia) return;
+
+            document.getElementById('modalContenido').innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h4>${discrepancia.producto}</h4>
+                    <p style="color: #64748b;">Código: ${discrepancia.codigo} • ${discrepancia.categoria}</p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <div class="detalle-box">
+                        <div class="detalle-valor">${discrepancia.stockTeorico}</div>
+                        <div class="detalle-label">Stock Teórico</div>
+                    </div>
+                    <div class="detalle-box">
+                        <div class="detalle-valor">${discrepancia.cantidadFisica}</div>
+                        <div class="detalle-label">Cantidad Física</div>
+                    </div>
+                    <div class="detalle-box">
+                        <div class="detalle-valor">$${discrepancia.valorUnitario.toFixed(2)}</div>
+                        <div class="detalle-label">Valor Unitario</div>
+                    </div>
+                    <div class="detalle-box">
+                        <div class="detalle-valor">$${discrepancia.impactoMonetario.toFixed(2)}</div>
+                        <div class="detalle-label">Impacto Total</div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">📝 Observaciones del Ajuste</label>
+                    <textarea id="observacionesAjuste" class="form-control" rows="3" 
+                              placeholder="Ingrese las observaciones para el ajuste..."></textarea>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="confirmarAjuste('${discrepanciaId}')">
+                        ✅ Confirmar Ajuste
+                    </button>
+                    <button class="btn btn-secondary" onclick="cerrarModal()">
+                        Cancelar
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('modalDiscrepancia').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalDiscrepancia').style.display = 'none';
+        }
+
+        function confirmarAjuste(discrepanciaId) {
+            const observaciones = document.getElementById('observacionesAjuste').value;
+            
+            // Actualizar estado de la discrepancia
+            const index = discrepancias.findIndex(d => d.id === discrepanciaId);
+            if (index !== -1) {
+                discrepancias[index].estado = 'ajustado';
+                discrepancias[index].observacionesAjuste = observaciones;
+            }
+
+            cerrarModal();
+            mostrarDiscrepancias();
+            mostrarResumenConciliacion();
+            mostrarToast('Ajuste aplicado exitosamente', 'success');
+        }
+
+        function aprobarAjuste(discrepanciaId) {
+            // Implementar aprobación rápida
+            confirmarAjuste(discrepanciaId);
+        }
+
+        function investigarDiscrepancia(discrepanciaId) {
+            mostrarToast('Marcado para investigación', 'warning');
+        }
+
+        function procesarConciliacion() {
+            if (discrepancias.filter(d => d.estado === 'pendiente').length === 0) {
+                mostrarToast('No hay discrepancias pendientes para procesar', 'warning');
+                return;
+            }
+
+            // Simular procesamiento
+            mostrarToast('Procesando conciliación...', 'success');
+            
+            setTimeout(() => {
+                // Marcar todas como procesadas
+                discrepancias.forEach(d => {
+                    if (d.estado === 'pendiente') {
+                        d.estado = 'procesado';
+                    }
+                });
+                
+                mostrarDiscrepancias();
+                mostrarResumenConciliacion();
+                mostrarToast('Conciliación procesada exitosamente', 'success');
+            }, 2000);
+        }
+
+        function generarReporte(tipoReporte) {
+            const reportes = {
+                'inventario': 'Reporte de Inventario Físico',
+                'discrepancias': 'Análisis de Discrepancias',
+                'valorizado': 'Reporte Valorizado',
+                'historico': 'Histórico de Conteos'
+            };
+
+            mostrarToast(`Generando ${reportes[tipoReporte]}...`, 'success');
+            
+            // Simular generación
+            setTimeout(() => {
+                mostrarToast(`${reportes[tipoReporte]} generado exitosamente`, 'success');
+            }, 2000);
+        }
+
+        function gestionarUbicaciones() {
+            alert('Función de gestión de ubicaciones en desarrollo');
+        }
+
+        function guardarConfiguracion() {
+            const config = {
+                frecuenciaConteo: document.getElementById('frecuenciaConteo').value,
+                toleranciaDiscrepancia: document.getElementById('toleranciaDiscrepancia').value,
+                notifDiscrepancias: document.getElementById('notifDiscrepancias').checked,
+                notifConteosPendientes: document.getElementById('notifConteosPendientes').checked
+            };
+
+            localStorage.setItem('configInventarioFisico', JSON.stringify(config));
+            mostrarToast('Configuración guardada exitosamente', 'success');
+        }
+
+        function mostrarToast(mensaje, tipo = 'success') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: white;
+                border-radius: 10px;
+                padding: 15px 20px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                border-left: 4px solid ${tipo === 'success' ? 'var(--sedh-success)' : tipo === 'warning' ? 'var(--sedh-warning)' : 'var(--sedh-primary)'};
+                z-index: 1000;
+                transform: translateX(400px);
+                transition: all 0.3s ease;
+            `;
+            
+            const iconos = {
+                'success': '✅',
+                'warning': '⚠️',
+                'info': 'ℹ️'
+            };
+
+            toast.innerHTML = `${iconos[tipo] || '📋'} ${mensaje}`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.style.transform = 'translateX(0)', 100);
+            setTimeout(() => {
+                toast.style.transform = 'translateX(400px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modalDiscrepancia').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarModal();
+            }
+        });
+    </script>
+</body>
+</html>

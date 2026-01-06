@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logs de Correos - Almacén SEDH</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-900: #0b3f3b;
+      --primary-800: #0f5e59;
+      --primary-700: #0f766e;
+      --primary-600: #119084;
+      --primary-500: #14b8a6;
+      --surface: #ffffff;
+      --text-strong: #103b37;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-800) 45%, var(--primary-700) 100%);
+      min-height: 100vh;
+      color: #333;
+    }
+
+    .header {
+      background: linear-gradient(90deg, var(--primary-900) 0%, var(--primary-800) 50%, var(--primary-700) 100%);
+      color: white;
+      padding: 20px 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      margin-bottom: 30px;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      font-weight: 300;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header .small {
+      font-size: 14px;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary-900);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--primary-500);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--primary-900);
+    }
+
+    input, select, button {
+      padding: 10px 14px;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary-500);
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+    }
+
+    button {
+      background: var(--primary-700);
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: var(--primary-600);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-success {
+      background: #28a745;
+    }
+
+    .btn-success:hover {
+      background: #218838;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 14px;
+    }
+
+    th {
+      background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-600) 100%);
+      color: white;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    .status-enviado {
+      color: #28a745;
+      font-weight: 600;
+      background: #d4edda;
+      padding: 4px 12px;
+      border-radius: 12px;
+      display: inline-block;
+      font-size: 12px;
+    }
+
+    .status-error {
+      color: #dc3545;
+      font-weight: 600;
+      background: #f8d7da;
+      padding: 4px 12px;
+      border-radius: 12px;
+      display: inline-block;
+      font-size: 12px;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #6c757d;
+    }
+
+    .pagination-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .back-link {
+      display: inline-block;
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 6px;
+      margin-top: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .back-link:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .btn-resend {
+      background: var(--primary-600);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-resend:hover {
+      background: var(--primary-700);
+      transform: translateY(-1px);
+    }
+
+    .btn-resend:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-badge.success {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.warning {
+      background: #fff3cd;
+      color: #856404;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-content">
+      <div>
+        <h1>✉️ Logs de Correos Electrónicos</h1>
+        <div class="small">Historial completo de envíos del sistema · Fuente: <code>requisiciones.email_log</code></div>
+        <a href="/admin" class="back-link">← Volver al Panel de Administración</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- Panel de verificación de correos por requisición -->
+    <div class="card">
+      <div class="card-title">✅ Verificación de Correos por Requisición</div>
+      <div style="margin-bottom: 15px;">
+        <label for="codReqVerif" style="display:block;margin-bottom:6px;">Código de Requisición:</label>
+        <div style="display:flex;gap:10px;">
+          <input type="text" id="codReqVerif" placeholder="UIT-050-2025" style="flex:1;" />
+          <button onclick="verificarCorreosRequisicion()" class="btn-primary">🔍 Verificar</button>
+        </div>
+      </div>
+      <div id="resultadoVerificacion" style="display:none;margin-top:15px;padding:15px;background:#f8f9fa;border-radius:6px;">
+        <div style="font-weight:600;margin-bottom:10px;">Resultado de verificación:</div>
+        <div id="verifContent"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🔍 Filtros de Búsqueda</div>
+      
+      <div class="filters">
+        <div class="filter-group">
+          <label for="destinatario">Destinatario</label>
+          <input type="email" id="destinatario" placeholder="usuario@sedh.gob.hn" />
+        </div>
+        <div class="filter-group">
+          <label for="idreq">ID Requisición</label>
+          <input type="text" id="idreq" placeholder="UUID de requisición" />
+        </div>
+        <div class="filter-group">
+          <label for="estado">Estado</label>
+          <select id="estado">
+            <option value="">Todos</option>
+            <option value="enviado">Enviado</option>
+            <option value="error">Error</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="q">Buscar texto</label>
+          <input type="text" id="q" placeholder="Buscar en asunto o cuerpo..." />
+        </div>
+      </div>
+
+      <div class="filters">
+        <div class="filter-group">
+          <label for="from">Desde (fecha)</label>
+          <input type="date" id="from" />
+        </div>
+        <div class="filter-group">
+          <label for="to">Hasta (fecha)</label>
+          <input type="date" id="to" />
+        </div>
+        <div class="filter-group">
+          <label for="limit">Registros por página</label>
+          <select id="limit">
+            <option value="20">20</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+            <option value="200">200</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button id="buscarBtn">🔎 Buscar</button>
+        <button id="limpiarBtn" class="btn-secondary">🗑️ Limpiar Filtros</button>
+        <button id="exportBtn" class="btn-success">📥 Exportar CSV</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="pagination-info">
+        <div id="pageInfo" class="small">Página 1 de 1 (Total: 0 registros)</div>
+        <div class="button-group">
+          <button id="prevBtn" class="btn-secondary">← Anterior</button>
+          <button id="nextBtn" class="btn-secondary">Siguiente →</button>
+        </div>
+      </div>
+
+      <div style="overflow-x: auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Fecha y Hora</th>
+              <th>Destinatario</th>
+              <th>Asunto</th>
+              <th>Estado</th>
+              <th>Error</th>
+              <th>Código Requisición</th>
+              <th>ID Requisición</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaBody">
+            <tr><td colspan="9" style="text-align: center; padding: 40px;" class="small">📭 Sin datos. Aplica filtros y pulsa "Buscar" para ver los registros.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = { limit: 50, offset: 0, lastCount: 0, total: 0 };
+
+    function updatePageInfo() {
+      const page = Math.floor(state.offset / state.limit) + 1;
+      const totalPages = Math.max(1, Math.ceil((state.total || 0) / state.limit));
+      document.getElementById('pageInfo').textContent = `Página ${page} de ${totalPages} (Total: ${state.total})`;
+      document.getElementById('prevBtn').disabled = state.offset <= 0;
+      // Deshabilitar siguiente si ya no hay más registros
+      document.getElementById('nextBtn').disabled = (state.offset + state.limit) >= state.total;
+    }
+
+    async function loadTotal() {
+      const dest = document.getElementById('destinatario').value.trim();
+      const idreq = document.getElementById('idreq').value.trim();
+      const estado = document.getElementById('estado').value;
+      let url = '/api/v1/requisiciones/email-log/count';
+      const params = new URLSearchParams();
+      if (dest) params.append('destinatario', dest);
+      if (idreq) params.append('idrequisicion', idreq);
+      if (estado) params.append('estado', estado);
+      url += params.toString() ? ('?' + params.toString()) : '';
+      try {
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        state.total = (data && typeof data.total === 'number') ? data.total : 0;
+      } catch (e) {
+        state.total = 0;
+      }
+    }
+
+    async function loadLogs() {
+      const dest = document.getElementById('destinatario').value.trim();
+      const idreq = document.getElementById('idreq').value.trim();
+      const estado = document.getElementById('estado').value;
+      const limitSel = parseInt(document.getElementById('limit').value, 10) || 50;
+      const from = document.getElementById('from').value;
+      const to = document.getElementById('to').value;
+      const q = document.getElementById('q').value.trim();
+      state.limit = limitSel;
+
+      // Construir URL con filtros del endpoint existente
+      let url = '/api/v1/requisiciones/email-log';
+      const params = new URLSearchParams();
+      if (dest) params.append('destinatario', dest);
+      if (idreq) params.append('idrequisicion', idreq);
+      if (estado) params.append('estado', estado);
+      if (from) params.append('from', from);
+      if (to) params.append('to', to);
+      if (q) params.append('q', q);
+      params.append('limit', String(state.limit));
+      params.append('offset', String(state.offset));
+      url += params.toString() ? ('?' + params.toString()) : '';
+
+      try {
+        await loadTotal();
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        const data = await res.json();
+        const rows = Array.isArray(data) ? data : [];
+        state.lastCount = rows.length;
+        renderTable(rows, estado);
+        updatePageInfo();
+      } catch (e) {
+        renderTable([], '');
+        alert('Error al cargar logs: ' + e);
+      }
+    }
+
+    function renderTable(rows, estadoFilter) {
+      const tbody = document.getElementById('tablaBody');
+      tbody.innerHTML = '';
+
+      const filtered = rows.filter(r => {
+        if (!estadoFilter) return true;
+        return (r.estado || '').toLowerCase() === estadoFilter.toLowerCase();
+      });
+
+      if (!filtered.length) {
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.colSpan = 9;
+        td.className = 'small';
+        td.textContent = 'No se encontraron registros';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      filtered.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        const estado = (r.estado || '').toLowerCase();
+        const estadoCls = estado === 'enviado' ? 'status-enviado' : (estado === 'error' ? 'status-error' : '');
+
+        // Botón de reenvío solo si hay error
+        const btnReenvio = estado === 'error' 
+          ? `<button class="btn-resend" onclick="reenviarCorreo('${r.idlog}', '${r.destinatario}', '${r.idrequisicion || ''}')">🔄 Reenviar</button>`
+          : '<span class="small" style="color:#999">—</span>';
+
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>${r.fecha_envio || ''}</td>
+          <td>${r.destinatario || ''}</td>
+          <td>${r.asunto || ''}</td>
+          <td class="${estadoCls}">${r.estado || ''}</td>
+          <td>${r.error || ''}</td>
+          <td>${r.codrequisicion || 'N/A'}</td>
+          <td>${r.idrequisicion || ''}</td>
+          <td>${btnReenvio}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('buscarBtn').addEventListener('click', () => { state.offset = 0; loadLogs(); });
+    document.getElementById('limpiarBtn').addEventListener('click', () => {
+      document.getElementById('destinatario').value = '';
+      document.getElementById('idreq').value = '';
+      document.getElementById('estado').value = '';
+      document.getElementById('q').value = '';
+      state.offset = 0;
+      loadLogs();
+    });
+
+    document.getElementById('limit').addEventListener('change', () => { state.offset = 0; loadLogs(); });
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      state.offset = Math.max(0, state.offset - state.limit);
+      loadLogs();
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      // Avanzar solo si hay más páginas
+      if ((state.offset + state.limit) < state.total) {
+        state.offset = state.offset + state.limit;
+        loadLogs();
+      }
+    });
+
+    // Función para reenviar correo con error
+    async function reenviarCorreo(idlog, destinatario, idrequisicion) {
+      if (!confirm(`¿Reenviar correo a ${destinatario}?`)) return;
+      
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = '🔄 Enviando...';
+      
+      try {
+        const response = await fetch(`/api/v1/requisiciones/email-log/${idlog}/reenviar`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idrequisicion })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.estado === 'enviado') {
+          alert('✅ Correo reenviado exitosamente');
+          loadLogs(); // Recargar tabla
+        } else {
+          alert(`❌ Error al reenviar: ${result.error || 'Desconocido'}`);
+          btn.disabled = false;
+          btn.textContent = '🔄 Reenviar';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert(`❌ Error de conexión: ${error.message}`);
+        btn.disabled = false;
+        btn.textContent = '🔄 Reenviar';
+      }
+    }
+    
+    // Hacer la función global
+    window.reenviarCorreo = reenviarCorreo;
+
+    // Función para verificar correos de una requisición específica
+    async function verificarCorreosRequisicion() {
+      const codigo = document.getElementById('codReqVerif').value.trim();
+      if (!codigo) {
+        alert('Por favor ingresa un código de requisición');
+        return;
+      }
+      
+      const resultDiv = document.getElementById('resultadoVerificacion');
+      const contentDiv = document.getElementById('verifContent');
+      
+      try {
+        // Buscar idrequisicion por código
+        const respReq = await fetch(`/api/v1/requisiciones/buscar-por-codigo?codigo=${encodeURIComponent(codigo)}`);
+        if (!respReq.ok) {
+          contentDiv.innerHTML = `<div style="color:#dc3545;">❌ No se encontró la requisición con código: ${codigo}</div>`;
+          resultDiv.style.display = 'block';
+          return;
+        }
+        const reqData = await respReq.json();
+        const idrequisicion = reqData.idrequisicion;
+        
+        // Obtener logs de correo para esa requisición
+        const respLogs = await fetch(`/api/v1/requisiciones/email-log?idrequisicion=${idrequisicion}&limit=100`);
+        const logs = await respLogs.json();
+        
+        // Analizar logs
+        const empleadoLogs = logs.filter(l => l.asunto && l.asunto.includes('Confirmación de creación'));
+        const jefeLogs = logs.filter(l => l.asunto && l.asunto.includes('pendiente de aprobación'));
+        
+        const empleadoOk = empleadoLogs.some(l => l.estado === 'enviado');
+        const jefeOk = jefeLogs.some(l => l.estado === 'enviado');
+        
+        contentDiv.innerHTML = `
+          <div style="margin-bottom:10px;">
+            <strong>Código:</strong> ${codigo} | <strong>ID:</strong> ${idrequisicion.substring(0,8)}...
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:10px;">
+            <div style="padding:12px;background:${empleadoOk ? '#d4edda' : '#f8d7da'};border-radius:6px;">
+              <div style="font-weight:600;margin-bottom:6px;">📧 Empleado (Solicitante)</div>
+              <div>${empleadoOk ? '✅ Enviado' : '❌ No enviado o con error'}</div>
+              ${empleadoLogs.length > 0 ? `<div class="small" style="margin-top:4px;">Intentos: ${empleadoLogs.length}</div>` : ''}
+              ${empleadoLogs.length > 0 ? `<div class="small">Último: ${empleadoLogs[0].destinatario}</div>` : ''}
+            </div>
+            <div style="padding:12px;background:${jefeOk ? '#d4edda' : '#f8d7da'};border-radius:6px;">
+              <div style="font-weight:600;margin-bottom:6px;">👔 Jefe Inmediato</div>
+              <div>${jefeOk ? '✅ Enviado' : '❌ No enviado o con error'}</div>
+              ${jefeLogs.length > 0 ? `<div class="small" style="margin-top:4px;">Intentos: ${jefeLogs.length}</div>` : ''}
+              ${jefeLogs.length > 0 ? `<div class="small">Último: ${jefeLogs[0].destinatario}</div>` : ''}
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:10px;background:#fff3cd;border-radius:4px;">
+            <strong>Total de correos enviados:</strong> ${logs.length}
+          </div>
+        `;
+        
+        resultDiv.style.display = 'block';
+        
+      } catch (error) {
+        console.error('Error:', error);
+        contentDiv.innerHTML = `<div style="color:#dc3545;">❌ Error al verificar: ${error.message}</div>`;
+        resultDiv.style.display = 'block';
+      }
+    }
+    
+    window.verificarCorreosRequisicion = verificarCorreosRequisicion;
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const dest = document.getElementById('destinatario').value.trim();
+      const idreq = document.getElementById('idreq').value.trim();
+      const estado = document.getElementById('estado').value;
+      const from = document.getElementById('from').value;
+      const to = document.getElementById('to').value;
+      const q = document.getElementById('q').value.trim();
+      const includeBody = document.getElementById('includeBody')?.checked;
+      let url = '/api/v1/requisiciones/email-log/export';
+      const params = new URLSearchParams();
+      if (dest) params.append('destinatario', dest);
+      if (idreq) params.append('idrequisicion', idreq);
+      if (estado) params.append('estado', estado);
+      if (from) params.append('from', from);
+      if (to) params.append('to', to);
+      if (q) params.append('q', q);
+      if (includeBody) params.append('include_cuerpo', 'true');
+      url += params.toString() ? ('?' + params.toString()) : '';
+      window.open(url, '_blank');
+    });
+
+    // Añadir checkbox para incluir cuerpo en CSV
+    (function addIncludeBodyCheckbox(){
+      const filtersBars = document.getElementsByClassName('filters');
+      if (filtersBars.length > 0) {
+        const container = filtersBars[0].lastElementChild;
+        if (container) {
+          const chk = document.createElement('input');
+          chk.type = 'checkbox';
+          chk.id = 'includeBody';
+          chk.style.marginLeft = '8px';
+          const lbl = document.createElement('label');
+          lbl.htmlFor = 'includeBody';
+          lbl.textContent = ' Incluir cuerpo (CSV)';
+          container.appendChild(chk);
+          container.appendChild(lbl);
+        }
+      }
+    })();
+
+    // Carga inicial (sin filtros)
+    loadLogs();
+  </script>
+</body>
+</html>

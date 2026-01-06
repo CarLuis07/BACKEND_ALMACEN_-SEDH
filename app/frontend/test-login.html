@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Login Automático - SEDH</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .token-display { background: #f8f9fa; padding: 10px; border-radius: 5px; margin: 10px 0; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Test Login Automático - Sistema SEDH</h1>
+        
+        <div id="status" class="info">Listo para probar login...</div>
+        
+        <button onclick="testLogin()">🔐 Test Login con Credenciales</button>
+        <button onclick="testProductos()">📦 Test Productos (requiere login)</button>
+        <button onclick="clearToken()">🗑️ Limpiar Token</button>
+        <button onclick="goToProductos()">➡️ Ir a Productos</button>
+        
+        <div id="token-info"></div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = "http://127.0.0.1:8081/api/v1";
+        
+        async function testLogin() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            const tokenDiv = document.getElementById('token-info');
+            
+            statusDiv.innerHTML = '🔄 Haciendo login...';
+            resultDiv.innerHTML = '';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/accesos/login`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: "luis.rosales@sedh.gob.hn",
+                        password: "Derechos25"
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem("token", data.access_token);
+                    
+                    statusDiv.innerHTML = '✅ Login exitoso!';
+                    tokenDiv.innerHTML = `<div class="token-display"><strong>Token guardado:</strong><br>${data.access_token}</div>`;
+                    resultDiv.innerHTML = '<div class="success">Token guardado en localStorage. Ahora puedes ir a productos.</div>';
+                } else {
+                    const errorData = await response.json();
+                    statusDiv.innerHTML = '❌ Error en login';
+                    resultDiv.innerHTML = `<div class="error">Error: ${errorData.detail || 'Login fallido'}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '❌ Error de conexión';
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testProductos() {
+            const statusDiv = document.getElementById('status');
+            const resultDiv = document.getElementById('result');
+            
+            const token = localStorage.getItem("token");
+            if (!token) {
+                resultDiv.innerHTML = '<div class="error">No hay token. Haz login primero.</div>';
+                return;
+            }
+            
+            statusDiv.innerHTML = '🔄 Cargando productos...';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/productos/`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const productos = await response.json();
+                    statusDiv.innerHTML = '✅ Productos cargados!';
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <strong>✅ ${productos.length} productos encontrados:</strong><br>
+                            ${productos.slice(0, 3).map(p => `
+                                • ${p.nomproducto} (ID: ${p.idproducto})<br>
+                                &nbsp;&nbsp;Stock: ${p.canstock}, Precio: $${p.gasunitario}
+                            `).join('<br>')}
+                            ${productos.length > 3 ? '<br>... y más productos' : ''}
+                        </div>
+                    `;
+                } else {
+                    statusDiv.innerHTML = '❌ Error al cargar productos';
+                    resultDiv.innerHTML = `<div class="error">Error ${response.status}: ${response.statusText}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '❌ Error de conexión';
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function clearToken() {
+            localStorage.removeItem("token");
+            document.getElementById('status').innerHTML = '🗑️ Token eliminado';
+            document.getElementById('token-info').innerHTML = '';
+            document.getElementById('result').innerHTML = '<div class="info">Token eliminado del localStorage.</div>';
+        }
+        
+        function goToProductos() {
+            window.location.href = '/productos';
+        }
+        
+        // Mostrar token actual si existe
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem("token");
+            if (token) {
+                document.getElementById('token-info').innerHTML = `<div class="token-display"><strong>Token actual:</strong><br>${token}</div>`;
+                document.getElementById('status').innerHTML = '✅ Token encontrado en localStorage';
+            }
+        });
+    </script>
+</body>
+</html>

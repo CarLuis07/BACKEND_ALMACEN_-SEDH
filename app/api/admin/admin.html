@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración - SEDH</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .nav-buttons {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-btn:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px 25px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            border-bottom: 3px solid #667eea;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #6c757d;
+            font-size: 0.875em;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table thead {
+            background: #f8f9fa;
+        }
+
+        table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .rol-item {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .rol-item .form-group {
+            margin-bottom: 0;
+            flex: 1;
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+            margin-top: 10px;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="nav-buttons">
+                <a href="/admin" class="nav-btn">🏛️ Admin Legacy</a>
+                <a href="/dashboard" class="nav-btn">🏠 Dashboard</a>
+            </div>
+            <h1>🏛️ Administración del Sistema</h1>
+            <p>Gestión de Usuarios, Dependencias y Roles - SEDH</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="cambiarTab('empleados')">👥 Empleados</button>
+            <button class="tab" onclick="cambiarTab('crear')">➕ Crear Usuario</button>
+            <button class="tab" onclick="cambiarTab('dependencias')">🏢 Dependencias</button>
+            <button class="tab" onclick="cambiarTab('roles')">🎭 Roles</button>
+        </div>
+
+        <!-- TAB: EMPLEADOS -->
+        <div id="tab-empleados" class="tab-content active">
+            <h2>Lista de Empleados</h2>
+            <div class="search-box">
+                <input type="text" id="search-empleados" placeholder="🔍 Buscar empleado por nombre, email o DNI...">
+            </div>
+            <div id="lista-empleados" class="loading">Cargando empleados...</div>
+        </div>
+
+        <!-- TAB: CREAR USUARIO -->
+        <div id="tab-crear" class="tab-content">
+            <h2>Crear Nuevo Usuario</h2>
+            <div id="mensaje-crear"></div>
+            <form id="form-crear-empleado">
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="email">Email Institucional *</label>
+                        <input type="email" id="email" required placeholder="ejemplo@sedh.gob.hn">
+                        <small>Debe ser un email con dominio @sedh.gob.hn</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="nombre">Nombre Completo *</label>
+                        <input type="text" id="nombre" required placeholder="JUAN PÉREZ LÓPEZ">
+                        <small>Nombre completo en mayúsculas</small>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="dni">DNI (Identidad) *</label>
+                        <input 
+                            type="text" 
+                            id="dni" 
+                            required 
+                            pattern="[0-9]{13}" 
+                            maxlength="13"
+                            placeholder="0801199012345"
+                            title="Debe ingresar exactamente 13 dígitos numéricos">
+                        <small>13 dígitos sin espacios ni guiones</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="dni-jefe">DNI del Jefe Inmediato (Opcional)</label>
+                        <input 
+                            type="text" 
+                            id="dni-jefe" 
+                            pattern="[0-9]{13}" 
+                            maxlength="13"
+                            placeholder="Dejar vacío si no aplica"
+                            title="Opcional: Solo si requiere un jefe diferente al de la dependencia">
+                        <small style="color: #6c757d;">⚠️ Normalmente NO es necesario. Solo úsalo si el empleado tiene un jefe diferente al de su dependencia.</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="dependencia">Dependencia (Área) *</label>
+                    <select id="dependencia" required>
+                        <option value="">Seleccionar dependencia...</option>
+                    </select>
+                    <small>Área o departamento al que pertenece</small>
+                </div>
+
+                <h3 style="margin: 30px 0 15px 0;">Roles y Contraseñas</h3>
+                <div id="roles-container"></div>
+                <button type="button" class="btn btn-add" onclick="agregarRol()">+ Agregar Rol</button>
+
+                <div style="margin-top: 30px; display: flex; gap: 15px;">
+                    <button type="submit" class="btn btn-primary">✅ Crear Usuario</button>
+                    <button type="button" class="btn btn-secondary" onclick="limpiarFormulario()">🔄 Limpiar</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TAB: DEPENDENCIAS -->
+        <div id="tab-dependencias" class="tab-content">
+            <h2>Dependencias del Sistema</h2>
+            <div id="lista-dependencias" class="loading">Cargando dependencias...</div>
+        </div>
+
+        <!-- TAB: ROLES -->
+        <div id="tab-roles" class="tab-content">
+            <h2>Roles del Sistema</h2>
+            <div id="lista-roles" class="loading">Cargando roles...</div>
+        </div>
+    </div>
+
+    <script>
+        let dependencias = [];
+        let roles = [];
+        let empleados = [];
+
+        // Esperar a que el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM cargado, verificando autenticación...');
+            
+            // Verificar autenticación al inicio - usar 'token' que es como lo guarda el login
+            const token = localStorage.getItem('token');
+            console.log('📦 Token en localStorage:', token ? 'EXISTE ✅' : 'NO EXISTE ❌');
+            
+            if (!token) {
+                console.error('❌ No hay token, redirigiendo...');
+                // Mostrar mensaje en el contenedor en lugar de alert
+                const container = document.querySelector('.container');
+                if (container) {
+                    container.innerHTML = '<div style="text-align:center;padding:100px;"><h1 style="color:#e74c3c;">⚠️ No has iniciado sesión</h1><p style="font-size:1.2em;margin:20px 0;">Redirigiendo al login en 3 segundos...</p></div>';
+                }
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 3000);
+                return;
+            }
+            
+            console.log('🔑 Token encontrado:', token.substring(0, 30) + '...');
+            
+            // Hacer token global para que las funciones puedan usarlo
+            window.authToken = token;
+            
+            // Cargar datos
+            cargarDatos();
+
+            // Event listener para el formulario
+            const formCrear = document.getElementById('form-crear-empleado');
+            if (formCrear) {
+                // Validación en tiempo real para DNI
+                const dniInput = document.getElementById('dni');
+                const dniJefeInput = document.getElementById('dni-jefe');
+                
+                if (dniInput) {
+                    dniInput.addEventListener('input', function(e) {
+                        // Solo permitir números
+                        this.value = this.value.replace(/\D/g, '');
+                        // Limitar a 13 dígitos
+                        if (this.value.length > 13) {
+                            this.value = this.value.substring(0, 13);
+                        }
+                    });
+                }
+                
+                if (dniJefeInput) {
+                    dniJefeInput.addEventListener('input', function(e) {
+                        // Solo permitir números
+                        this.value = this.value.replace(/\D/g, '');
+                        // Limitar a 13 dígitos
+                        if (this.value.length > 13) {
+                            this.value = this.value.substring(0, 13);
+                        }
+                    });
+                }
+                
+                formCrear.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    // Validar DNI manualmente
+                    const dni = document.getElementById('dni').value;
+                    if (dni.length !== 13) {
+                        mostrarMensaje('❌ El DNI debe tener exactamente 13 dígitos', 'error');
+                        return;
+                    }
+                    
+                    // Validar DNI del jefe si está presente
+                    const dniJefe = document.getElementById('dni-jefe').value;
+                    if (dniJefe && dniJefe.length !== 13) {
+                        mostrarMensaje('❌ El DNI del jefe debe tener exactamente 13 dígitos o estar vacío', 'error');
+                        return;
+                    }
+
+                    const rolesItems = document.querySelectorAll('.rol-item');
+                    const rolesArray = [];
+                    
+                    rolesItems.forEach(item => {
+                        const idRol = item.querySelector('.rol-select').value;
+                        const contrasena = item.querySelector('.rol-password').value;
+                        if (idRol && contrasena) {
+                            rolesArray.push({ idRol, contrasena });
+                        }
+                    });
+
+                    if (rolesArray.length === 0) {
+                        mostrarMensaje('Debe asignar al menos un rol', 'error');
+                        return;
+                    }
+
+                    const payload = {
+                        email: document.getElementById('email').value,
+                        nombre: document.getElementById('nombre').value.toUpperCase(),
+                        idDependencia: document.getElementById('dependencia').value,
+                        dni: document.getElementById('dni').value,
+                        dniJefeInmediato: document.getElementById('dni-jefe').value || null,
+                        roles: rolesArray
+                    };
+                    
+                    console.log('📤 Enviando payload:', JSON.stringify(payload, null, 2));
+
+                    try {
+                        const response = await fetch('/api/v1/admin/empleados', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${window.authToken}`
+                            },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const data = await response.json();
+                        console.log('📥 Respuesta del servidor:', data);
+
+                        if (response.ok) {
+                            mostrarMensaje(`✅ ${data.mensaje}`, 'success');
+                            limpiarFormulario();
+                            await cargarEmpleados();
+                        } else {
+                            console.error('❌ Error del servidor:', data);
+                            // Mostrar detalles del error de validación
+                            if (data.detail && Array.isArray(data.detail)) {
+                                const errores = data.detail.map(err => `${err.loc.join('.')}: ${err.msg}`).join('\n');
+                                mostrarMensaje(`❌ Errores de validación:\n${errores}`, 'error');
+                            } else {
+                                mostrarMensaje(`❌ Error: ${data.detail || 'Error desconocido'}`, 'error');
+                            }
+                        }
+                    } catch (error) {
+                        mostrarMensaje(`❌ Error al crear usuario: ${error.message}`, 'error');
+                    }
+                });
+            }
+        });
+
+        // Cambiar de tab
+        function cambiarTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            document.querySelector(`[onclick="cambiarTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+        }
+
+        // Cargar datos iniciales
+        async function cargarDatos() {
+            await Promise.all([
+                cargarDependencias(),
+                cargarRoles(),
+                cargarEmpleados()
+            ]);
+        }
+
+        async function cargarDependencias() {
+            try {
+                const response = await fetch('/api/v1/admin/dependencias', {
+                    headers: { 'Authorization': `Bearer ${window.authToken}` }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('⚠️ Sesión expirada. Por favor inicia sesión nuevamente.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                dependencias = await response.json();
+                
+                // Llenar select
+                const select = document.getElementById('dependencia');
+                select.innerHTML = '<option value="">Seleccionar dependencia...</option>';
+                dependencias.forEach(dep => {
+                    const option = document.createElement('option');
+                    option.value = dep.iddependencia;
+                    option.textContent = `${dep.sigla} - ${dep.nomdependencia}`;
+                    select.appendChild(option);
+                });
+
+                // Mostrar tabla
+                mostrarDependencias();
+            } catch (error) {
+                console.error('Error cargando dependencias:', error);
+                document.getElementById('lista-dependencias').innerHTML = 
+                    `<div class="alert alert-error">❌ Error al cargar dependencias: ${error.message}</div>`;
+            }
+        }
+
+        async function cargarRoles() {
+            try {
+                const response = await fetch('/api/v1/admin/roles', {
+                    headers: { 'Authorization': `Bearer ${window.authToken}` }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('⚠️ Sesión expirada. Por favor inicia sesión nuevamente.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                roles = await response.json();
+                mostrarRoles();
+                agregarRol(); // Agregar primer rol por defecto
+            } catch (error) {
+                console.error('Error cargando roles:', error);
+                document.getElementById('lista-roles').innerHTML = 
+                    `<div class="alert alert-error">❌ Error al cargar roles: ${error.message}</div>`;
+            }
+        }
+
+        async function cargarEmpleados() {
+            try {
+                const response = await fetch('/api/v1/admin/empleados', {
+                    headers: { 'Authorization': `Bearer ${window.authToken}` }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('⚠️ Sesión expirada. Por favor inicia sesión nuevamente.');
+                        window.location.href = '/login';
+                        return;
+                    }
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                empleados = await response.json();
+                mostrarEmpleados();
+            } catch (error) {
+                console.error('Error cargando empleados:', error);
+                document.getElementById('lista-empleados').innerHTML = 
+                    `<div class="alert alert-error">❌ Error al cargar empleados: ${error.message}</div>`;
+            }
+        }
+
+        function mostrarDependencias() {
+            console.log('📊 Dependencias recibidas:', dependencias);
+            const html = `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sigla</th>
+                                <th>Nombre</th>
+                                <th>Programa</th>
+                                <th>Creada</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dependencias.map(dep => `
+                                <tr>
+                                    <td><strong>${dep.sigla || 'N/A'}</strong></td>
+                                    <td>${dep.nomdependencia || 'N/A'}</td>
+                                    <td>${dep.idprograma || 'N/A'}</td>
+                                    <td>${dep.creadoen ? new Date(dep.creadoen).toLocaleDateString('es-HN') : 'N/A'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('lista-dependencias').innerHTML = html;
+        }
+
+        function mostrarRoles() {
+            const html = `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Rol</th>
+                                <th>Descripción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${roles.map(rol => `
+                                <tr>
+                                    <td><strong>${rol.nomrol}</strong></td>
+                                    <td>${rol.desrol || 'Sin descripción'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('lista-roles').innerHTML = html;
+        }
+
+        function mostrarEmpleados() {
+            console.log('👥 Empleados recibidos:', empleados);
+            const html = `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>DNI</th>
+                                <th>Dependencia</th>
+                                <th>Jefe Inmediato</th>
+                                <th>DNI Jefe</th>
+                                <th>Roles</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-empleados-body">
+                            ${empleados.map(emp => `
+                                <tr>
+                                    <td><strong>${emp.nombre || 'N/A'}</strong></td>
+                                    <td>${emp.emailinstitucional || 'N/A'}</td>
+                                    <td>${emp.dni || 'N/A'}</td>
+                                    <td><span class="badge badge-success">${emp.sigladependencia || 'N/A'}</span><br><small>${emp.nomdependencia || 'N/A'}</small></td>
+                                    <td>${emp.nombrejefeinmediato || '<em>Sin jefe</em>'}</td>
+                                    <td><small>${emp.dnijefeinmediato || '<em>N/A</em>'}</small></td>
+                                    <td>${emp.roles || '<em>Sin roles</em>'}</td>
+                                    <td><span class="badge ${emp.activo ? 'badge-success' : 'badge-danger'}">${emp.activo ? '✓ Activo' : '✗ Inactivo'}</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            document.getElementById('lista-empleados').innerHTML = html;
+
+            // Agregar búsqueda
+            const searchInput = document.getElementById('search-empleados');
+            if (searchInput) {
+                searchInput.addEventListener('input', filtrarEmpleados);
+            }
+        }
+
+        function filtrarEmpleados(e) {
+            const busqueda = e.target.value.toLowerCase();
+            const filas = document.querySelectorAll('#tabla-empleados-body tr');
+            
+            filas.forEach(fila => {
+                const texto = fila.textContent.toLowerCase();
+                fila.style.display = texto.includes(busqueda) ? '' : 'none';
+            });
+        }
+
+        let contadorRoles = 0;
+        function agregarRol() {
+            contadorRoles++;
+            const html = `
+                <div class="rol-item" id="rol-${contadorRoles}">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Rol *</label>
+                        <select class="rol-select" required>
+                            <option value="">Seleccionar rol...</option>
+                            ${roles.map(rol => `<option value="${rol.idrol}">${rol.nomrol}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Contraseña *</label>
+                        <input type="password" class="rol-password" required minlength="6" placeholder="Mínimo 6 caracteres">
+                    </div>
+                    ${contadorRoles > 1 ? `<button type="button" class="btn-remove" onclick="eliminarRol(${contadorRoles})">✗ Quitar</button>` : ''}
+                </div>
+            `;
+            document.getElementById('roles-container').insertAdjacentHTML('beforeend', html);
+        }
+
+        function eliminarRol(id) {
+            document.getElementById(`rol-${id}`).remove();
+        }
+
+        function limpiarFormulario() {
+            document.getElementById('form-crear-empleado').reset();
+            document.getElementById('roles-container').innerHTML = '';
+            contadorRoles = 0;
+            agregarRol();
+            document.getElementById('mensaje-crear').innerHTML = '';
+        }
+
+        function mostrarMensaje(texto, tipo) {
+            const mensaje = document.getElementById('mensaje-crear');
+            mensaje.innerHTML = `<div class="alert alert-${tipo}">${texto}</div>`;
+            setTimeout(() => {
+                mensaje.innerHTML = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 from typing import Optional, List
 from uuid import UUID
 from decimal import Decimal
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import date
 
 
@@ -21,17 +21,25 @@ class ProductoPorCategoriaOut(BaseModel):
     gasunitario: Optional[Decimal] = None
 
 class ProductoOut(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    
     idproducto: UUID
     nomproducto: Optional[str] = None
     nomcategoria: Optional[str] = None
     descproducto: Optional[str] = None
     canstock: Optional[Decimal] = None
     gasunitario: Optional[Decimal] = None
+    CodObjetoUnico: Optional[str] = None  # Usar el nombre del modelo ORM (PascalCase)
+    codobjetunico: Optional[str] = None   # Alias para compatibilidad con frontend
+    facturas: Optional[str] = None
+    ordenescompra: Optional[str] = None
+    fecvencimiento: Optional[date] = None
 
 # ver lista categorias previo agregar producto
 class CategoriaRefOut(BaseModel):
     idcategoria: UUID
     codobjeto: Optional[int] = None
+    nomcategoria: Optional[str] = None
 
 # ver lista unidades de medida previo agregar producto
 class UnidadMedidaOut(BaseModel):
@@ -52,13 +60,16 @@ class ProductoCreateIn(BaseModel):
     fecingreso: date
     nomproducto: str
     descproducto: Optional[str] = None
-    canstock: Decimal
+    canstock: Decimal          # Stock inicial (función BD lo duplica como CantStockInicial)
     proveedor: Optional[str] = None
     limstockbajo: Decimal
     fecvencimiento: Optional[date] = None
     idunidadmedida: UUID
     gasunitario: Decimal
-    gastotal: Decimal
+    gastotal: Decimal          # Gasto inicial (función BD lo duplica como GasTotalInicial)
+    # Campos opcionales
+    facturas: Optional[str] = None
+    ordenescompra: Optional[str] = None
 
 class ProductoCreateOut(BaseModel):
     idproducto: Optional[UUID] = None

@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Requisiciones - SEDH</title>
+    <style>
+        :root {
+            --sedh-primary: #0f766e;
+            --sedh-secondary: #0d5c56;
+            --sedh-light: #14b8a6;
+            --sedh-accent: #2dd4bf;
+            --sedh-bg: #f0f9f8;
+            --sedh-white: #ffffff;
+            --sedh-gray: #6c757d;
+            --sedh-light-gray: #e9ecef;
+            --sedh-dark-gray: #2d3436;
+            --sedh-success: #10b981;
+            --sedh-warning: #f59e0b;
+            --sedh-danger: #ef4444;
+            --sedh-info: #06b6d4;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 15px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b3f3b 0%, #0f5e59 50%, #0f766e 100%);
+            color: var(--sedh-dark-gray);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-secondary) 100%);
+            color: var(--sedh-white);
+            padding: 40px 30px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(45, 212, 191, 0.1);
+            border-radius: 50%;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            opacity: 0.95;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        /* ==================== NAVEGACIÓN ==================== */
+        .nav-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            background: var(--sedh-white);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 14px 20px;
+            text-align: center;
+            background: transparent;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--sedh-gray);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .nav-tab:hover {
+            color: var(--sedh-primary);
+            background: var(--sedh-bg);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-light) 100%);
+            color: var(--sedh-white);
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.3);
+            border-color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tab {
+                min-width: 120px;
+                padding: 12px 15px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* ==================== TAB CONTENT ==================== */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ==================== FILTROS ==================== */
+        .filters-section {
+            background: var(--sedh-white);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .filters-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--sedh-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--sedh-dark-gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-control {
+            padding: 12px 14px;
+            border: 2px solid var(--sedh-light-gray);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: var(--sedh-white);
+            font-family: inherit;
+            color: var(--sedh-dark-gray);
+        }
+
+        .filter-control:focus {
+            outline: none;
+            border-color: var(--sedh-primary);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
+            background: #fafafa;
+        }
+
+        .filter-control::placeholder {
+            color: var(--sedh-gray);
+        }
+
+        .filters-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-filter {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-light) 100%);
+            color: var(--sedh-white);
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(15, 118, 110, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--sedh-light-gray);
+            color: var(--sedh-dark-gray);
+            border: 2px solid var(--sedh-gray);
+        }
+
+        .btn-secondary:hover {
+            background: var(--sedh-gray);
+            color: var(--sedh-white);
+        }
+
+        /* ==================== REQUISICIONES LIST ==================== */
+        .requisicions-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .req-card {
+            background: var(--sedh-white);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            border-left: 5px solid var(--sedh-primary);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .req-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(20, 184, 166, 0.05));
+            transition: right 0.35s ease;
+        }
+
+        .req-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .req-card:hover::before {
+            right: 0;
+        }
+
+        .req-card.status-aprobado {
+            border-left-color: var(--sedh-success);
+        }
+
+        .req-card.status-pendiente {
+            border-left-color: var(--sedh-warning);
+        }
+
+        .req-card.status-rechazado {
+            border-left-color: var(--sedh-danger);
+        }
+
+        .req-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .req-code {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--sedh-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-aprobado {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #047857;
+        }
+
+        .status-pendiente {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+        }
+
+        .status-rechazado {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+        }
+
+        .status-en-espera {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e40af;
+        }
+
+        .req-body {
+            position: relative;
+            z-index: 1;
+        }
+
+        .req-info {
+            margin-bottom: 16px;
+        }
+
+        .req-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--sedh-light-gray);
+            font-size: 0.9rem;
+        }
+
+        .req-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .req-info-label {
+            font-weight: 600;
+            color: var(--sedh-gray);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .req-info-value {
+            color: var(--sedh-dark-gray);
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .req-total {
+            background: linear-gradient(135deg, var(--sedh-primary), var(--sedh-light));
+            color: var(--sedh-white);
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .req-total-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .req-total-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .req-timeline {
+            background: var(--sedh-bg);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.85rem;
+        }
+
+        .timeline-label {
+            color: var(--sedh-gray);
+            font-weight: 600;
+        }
+
+        .timeline-value {
+            color: var(--sedh-dark-gray);
+            font-weight: 500;
+        }
+
+        .timeline-value.pending {
+            color: var(--sedh-warning);
+        }
+
+        /* ==================== EMPTY STATE ==================== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: var(--sedh-white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: var(--sedh-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--sedh-gray);
+            font-size: 1rem;
+        }
+
+        /* ==================== LOADING ==================== */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--sedh-gray);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--sedh-light-gray);
+            border-top-color: var(--sedh-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 1024px) {
+            .requisicions-container {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .requisicions-container {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-container {
+                flex-direction: column;
+            }
+
+            .nav-tab {
+                min-width: unset;
+            }
+        }
+
+        /* ==================== UTILITIES ==================== */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        /* ==================== RESULTADOS ==================== */
+        .results-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--sedh-bg);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: var(--sedh-gray);
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: var(--sedh-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-content">
+                <h1>📋 Sistema de Requisiciones</h1>
+                <p class="subtitle">Gestión de pedidos y aprobaciones - SEDH</p>
+            </div>
+        </div>
+
+        <!-- NAVEGACIÓN -->
+        <div class="nav-container">
+            <button class="nav-tab active" onclick="showTab('mis-requisiciones')">
+                📝 Mis Requisiciones
+            </button>
+            <button class="nav-tab" onclick="showTab('nueva-requisicion')">
+                ➕ Nueva Requisición
+            </button>
+            <button class="nav-tab" onclick="showTab('pendientes-aprobacion')">
+                ⏳ Pendientes de Aprobación
+            </button>
+        </div>
+
+        <!-- TAB: MIS REQUISICIONES -->
+        <div id="mis-requisiciones" class="tab-content active">
+            <!-- FILTROS -->
+            <div class="filters-section">
+                <div class="filters-title">🔍 Filtros Avanzados</div>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="filterEstado">Estado</label>
+                        <select id="filterEstado" class="filter-control" onchange="aplicarFiltros()">
+                            <option value="">Todos los estados</option>
+                            <option value="APROBADO">✓ Aprobado</option>
+                            <option value="EN ESPERA">⏳ En Espera</option>
+                            <option value="RECHAZADO">✗ Rechazado</option>
+                            <option value="ENTREGADO">📦 Entregado</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterPrograma">Programa</label>
+                        <select id="filterPrograma" class="filter-control" onchange="aplicarFiltros()">
+                            <option value="">Todos los programas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterMonto">Rango de Monto</label>
+                        <select id="filterMonto" class="filter-control" onchange="aplicarFiltros()">
+                            <option value="">Todos los montos</option>
+                            <option value="0-100">L. 0 - L. 100</option>
+                            <option value="100-500">L. 100 - L. 500</option>
+                            <option value="500-1000">L. 500 - L. 1,000</option>
+                            <option value="1000+">L. 1,000+</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterFecha">Fecha</label>
+                        <input type="month" id="filterFecha" class="filter-control" onchange="aplicarFiltros()">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="searchReq">Buscar</label>
+                        <input type="text" id="searchReq" class="filter-control" placeholder="Código, solicitante..." onkeyup="aplicarFiltros()">
+                    </div>
+                </div>
+
+                <div class="filters-actions">
+                    <button class="btn-filter btn-primary" onclick="aplicarFiltros()">🔍 Filtrar</button>
+                    <button class="btn-filter btn-secondary" onclick="limpiarFiltros()">↺ Limpiar</button>
+                </div>
+            </div>
+
+            <!-- RESULTADOS -->
+            <div id="resultados-info" class="results-info" style="display:none;">
+                <span>Se encontraron <strong class="results-count" id="resultado-count">0</strong> requisiciones</span>
+                <span id="tiempo-busqueda" style="font-size: 0.85rem; color: var(--sedh-gray);"></span>
+            </div>
+
+            <!-- LISTA DE REQUISICIONES -->
+            <div id="loading-mis-req" class="loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Cargando tus requisiciones...</p>
+            </div>
+            <div id="mis-req-container" class="requisicions-container"></div>
+        </div>
+
+        <!-- TAB: NUEVA REQUISICIÓN -->
+        <div id="nueva-requisicion" class="tab-content">
+            <div style="background: var(--sedh-white); border-radius: 12px; padding: 40px;">
+                <h2 style="color: var(--sedh-primary); margin-bottom: 10px; font-size: 1.5rem;">
+                    ➕ Crear Nueva Requisición
+                </h2>
+                <p style="color: var(--sedh-gray); margin-bottom: 30px; font-size: 0.95rem;">
+                    Selecciona los productos que necesitas y envía tu solicitud a la jefatura.
+                </p>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+                    <div style="background: var(--sedh-bg); padding: 20px; border-radius: 10px;">
+                        <label style="display: block; font-weight: 600; color: var(--sedh-dark-gray); margin-bottom: 8px;">
+                            Programa Final
+                        </label>
+                        <select id="programaFinal" onchange="cargarProgramasIntermediosPorFinal()" style="width: 100%; padding: 12px; border: 2px solid var(--sedh-light-gray); border-radius: 8px; font-size: 0.95rem;">
+                            <option value="">Cargando programas...</option>
+                        </select>
+                    </div>
+
+                    <div style="background: var(--sedh-bg); padding: 20px; border-radius: 10px;">
+                        <label style="display: block; font-weight: 600; color: var(--sedh-dark-gray); margin-bottom: 8px;">
+                            Programa Intermedio
+                        </label>
+                        <select id="programaIntermedio" style="width: 100%; padding: 12px; border: 2px solid var(--sedh-light-gray); border-radius: 8px; font-size: 0.95rem;">
+                            <option value="">Seleccione un programa final primero</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="background: var(--sedh-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+                    <label style="display: block; font-weight: 600; color: var(--sedh-dark-gray); margin-bottom: 8px;">
+                        Observaciones
+                    </label>
+                    <textarea id="observaciones" placeholder="Agrega detalles sobre lo que necesitas..." style="width: 100%; padding: 12px; border: 2px solid var(--sedh-light-gray); border-radius: 8px; font-size: 0.95rem; font-family: inherit; resize: vertical; min-height: 100px;"></textarea>
+                </div>
+
+                <div style="background: var(--sedh-bg); padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+                    <h3 style="color: var(--sedh-primary); font-size: 1.1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        📦 Productos en el Carrito
+                        <small style="color: var(--sedh-gray); font-weight: 400;">(se gestionan en la página de productos)</small>
+                    </h3>
+                    <p style="color: var(--sedh-gray); margin-bottom: 12px; font-size: 0.95rem;">
+                        Para agregar o editar productos, usa el catálogo y luego regresa aquí para enviar la requisición.
+                    </p>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px;">
+                        <button onclick="window.open('/productos', '_blank')" style="background: linear-gradient(135deg, var(--sedh-primary), var(--sedh-light)); color: var(--sedh-white); border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            🛒 Abrir catálogo de productos
+                        </button>
+                        <button onclick="renderResumenCarrito()" style="background: var(--sedh-white); color: var(--sedh-primary); border: 2px solid var(--sedh-primary); padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            🔄 Refrescar resumen
+                        </button>
+                    </div>
+                    <div id="carritoProductos" style="background: var(--sedh-white); padding: 15px; border-radius: 8px; min-height: 80px;">
+                        <p style="color: var(--sedh-gray); text-align: center;">No hay productos agregados aún en este resumen.</p>
+                    </div>
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 2px solid var(--sedh-light-gray);">
+                        <div style="display: flex; justify-content: space-between; font-weight: 600; color: var(--sedh-primary); font-size: 1.1rem;">
+                            <span>Total estimado: L. </span>
+                            <span id="totalCarrito">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="enviarRequisicion" style="background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-light) 100%); color: var(--sedh-white); border: none; padding: 14px 30px; font-size: 1rem; font-weight: 600; border-radius: 8px; cursor: pointer; width: 100%; transition: all 0.3s ease;">
+                    📤 Enviar Requisición
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB: PENDIENTES DE APROBACIÓN -->
+        <div id="pendientes-aprobacion" class="tab-content">
+            <div id="loading-pendientes" class="loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Cargando requisiciones pendientes...</p>
+            </div>
+            <div id="pendientes-container" class="requisicions-container"></div>
+        </div>
+    </div>
+
+    <!-- MODAL PARA APROBAR/RECHAZAR -->
+    <div id="modalAprobacion" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:var(--sedh-white); border-radius:16px; padding:30px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto;">
+            <h2 style="color:var(--sedh-primary); margin-bottom:20px;" id="modalTitulo">Aprobar/Rechazar Requisición</h2>
+            
+            <div id="modalDetalleReq" style="background:var(--sedh-bg); padding:20px; border-radius:8px; margin-bottom:20px;">
+                <p><strong>Código:</strong> <span id="modalCodigo"></span></p>
+                <p><strong>Solicitante:</strong> <span id="modalSolicitante"></span></p>
+                <p><strong>Dependencia:</strong> <span id="modalDependencia"></span></p>
+                <p><strong>Total:</strong> L. <span id="modalTotal"></span></p>
+            </div>
+
+            <div id="modalProductos" style="margin-bottom:20px;"></div>
+
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; color:var(--sedh-dark-gray); margin-bottom:8px;">Decisión:</label>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="setDecision('APROBADO')" id="btnAprobar" style="flex:1; padding:12px; border:2px solid var(--sedh-success); border-radius:8px; background:var(--sedh-white); color:var(--sedh-success); font-weight:600; cursor:pointer;">
+                        ✓ APROBAR
+                    </button>
+                    <button onclick="setDecision('RECHAZADO')" id="btnRechazar" style="flex:1; padding:12px; border:2px solid var(--sedh-danger); border-radius:8px; background:var(--sedh-white); color:var(--sedh-danger); font-weight:600; cursor:pointer;">
+                        ✗ RECHAZAR
+                    </button>
+                </div>
+            </div>
+
+            <div id="comentarioContainer" style="display:none; margin-bottom:20px;">
+                <label style="display:block; font-weight:600; color:var(--sedh-dark-gray); margin-bottom:8px;">Comentario (requerido para rechazo):</label>
+                <textarea id="comentarioAprobacion" style="width:100%; padding:12px; border:2px solid var(--sedh-light-gray); border-radius:8px; font-size:0.95rem; resize:vertical; min-height:80px;"></textarea>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button onclick="cerrarModalAprobacion()" style="flex:1; padding:12px; border:2px solid var(--sedh-gray); border-radius:8px; background:var(--sedh-white); color:var(--sedh-gray); font-weight:600; cursor:pointer;">
+                    Cancelar
+                </button>
+                <button onclick="confirmarAprobacion()" id="btnConfirmar" style="flex:1; padding:12px; border:none; border-radius:8px; background:linear-gradient(135deg, var(--sedh-primary), var(--sedh-light)); color:var(--sedh-white); font-weight:600; cursor:pointer;">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // VERSION: 2026-01-05-v2 - Modal de aprobación con cantidades editables
+        // CONFIGURACIÓN
+        const API_BASE_URL = 'http://192.168.180.164:8081/api/v1';
+        let todasLasRequisiciones = [];
+        let requisicionesFiltradas = [];
+
+        // FUNCIONES PRINCIPALES
+        function showTab(tabName, eventTarget = null) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Mostrar el tab seleccionado
+            document.getElementById(tabName).classList.add('active');
+            
+            // Activar botón de navegación si hay un target
+            if (eventTarget) {
+                eventTarget.classList.add('active');
+            } else {
+                // Buscar y activar el botón correspondiente por data-tab o onclick
+                const navButtons = document.querySelectorAll('.nav-tab');
+                navButtons.forEach(btn => {
+                    const onclickStr = btn.getAttribute('onclick') || '';
+                    if (onclickStr.includes(`'${tabName}'`)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+
+            // Cargar datos si es necesario
+            if (tabName === 'mis-requisiciones') {
+                cargarMisRequisiciones();
+            }
+            if (tabName === 'nueva-requisicion') {
+                cargarProgramasIntermedio();
+                renderResumenCarrito();
+            }
+            if (tabName === 'pendientes-aprobacion') {
+                cargarRequisicionesPendientes();
+            }
+        }
+
+        // Datos cacheados de programas (intermedios y finales)
+        let cacheProgramas = {
+            programas_intermedios: [],
+            programas_finales: []
+        };
+
+        // Cargar programas (primero finales, luego intermedios según selección)
+        async function cargarProgramasIntermedio() {
+            const selectIntermedio = document.getElementById('programaIntermedio');
+            const selectFinal = document.getElementById('programaFinal');
+            const token = localStorage.getItem('token');
+            
+            selectIntermedio.innerHTML = '<option value="">Seleccione un programa final primero</option>';
+            selectFinal.innerHTML = '<option value="">Cargando programas...</option>';
+
+            if (!token) return;
+
+            try {
+                const resp = await fetch(`${API_BASE_URL}/requisiciones/programas-cascading`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!resp.ok) throw new Error(`Error ${resp.status}`);
+
+                const data = await resp.json();
+                cacheProgramas = {
+                    programas_intermedios: data.programas_intermedios || [],
+                    programas_finales: data.programas_finales || []
+                };
+
+                // Poblar programas finales (primer combo)
+                selectFinal.innerHTML = '<option value="">-- Selecciona programa final --</option>';
+                cacheProgramas.programas_finales.forEach(pf => {
+                    const option = document.createElement('option');
+                    option.value = pf.idprograma;
+                    option.textContent = `${pf.codigo || ''} - ${pf.descripcion || ''}`.trim();
+                    selectFinal.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Error cargando programas:', err);
+                selectFinal.innerHTML = '<option value="">No se pudieron cargar programas</option>';
+            }
+        }
+
+        // Al elegir programa final, cargar intermedios asociados
+        function cargarProgramasIntermediosPorFinal() {
+            const selectFinal = document.getElementById('programaFinal');
+            const selectIntermedio = document.getElementById('programaIntermedio');
+            const idPrograma = selectFinal.value;
+
+            selectIntermedio.innerHTML = '<option value="">Selecciona programa intermedio</option>';
+
+            if (!idPrograma) return;
+
+            const intermediosFiltrados = cacheProgramas.programas_intermedios.filter(pi => `${pi.idprograma}` === `${idPrograma}`);
+
+            intermediosFiltrados.forEach(pi => {
+                const option = document.createElement('option');
+                option.value = pi.idprointermedio;
+                option.textContent = `${pi.codigo_pi || ''} - ${pi.programa_intermedio || ''}`.trim();
+                selectIntermedio.appendChild(option);
+            });
+
+            if (intermediosFiltrados.length === 1) {
+                selectIntermedio.value = intermediosFiltrados[0].idprointermedio;
+            }
+        }
+
+        // Renderizar resumen del carrito local (desde /productos)
+        function renderResumenCarrito() {
+            const contenedor = document.getElementById('carritoProductos');
+            const totalEl = document.getElementById('totalCarrito');
+            
+            if (!contenedor || !totalEl) return;
+
+            try {
+                // Leer desde localStorage con múltiples claves posibles
+                let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                
+                // Si no hay carrito, intentar con otra clave
+                if (!cart || cart.length === 0) {
+                    const email = getCurrentUserEmail();
+                    if (email) {
+                        const cartKey = `cart_productos_${email}`;
+                        cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+                    }
+                }
+
+                if (!cart || !Array.isArray(cart) || cart.length === 0) {
+                    contenedor.innerHTML = '<p style="color: var(--sedh-gray); text-align: center; padding: 20px;">No hay productos agregados aún en este resumen.</p>';
+                    totalEl.textContent = '0.00';
+                    return;
+                }
+
+                const rows = cart.map(item => {
+                    const cantidad = parseInt(item.cantidad) || 0;
+                    const precio = parseFloat(item.precio) || 0;
+                    const subtotal = precio * cantidad;
+                    return `
+                        <div style="display:flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--sedh-light-gray); background: var(--sedh-white); border-radius: 4px; margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700; color: var(--sedh-primary); font-size: 0.95rem;">${item.nombre || 'Producto'}</div>
+                                <div style="color: var(--sedh-gray); font-size: 0.85rem;">Código: <strong>${item.codigo || ''}</strong></div>
+                            </div>
+                            <div style="text-align: right; min-width: 150px; color: var(--sedh-dark-gray);">
+                                <div style="font-size: 0.9rem;">Cantidad: <strong>${cantidad}</strong></div>
+                                <div style="font-weight: 700; color: var(--sedh-primary); font-size: 1rem;">L. ${(subtotal || 0).toFixed(2)}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                const total = cart.reduce((sum, item) => {
+                    const precio = parseFloat(item.precio) || 0;
+                    const cantidad = parseInt(item.cantidad) || 0;
+                    return sum + (precio * cantidad);
+                }, 0);
+
+                contenedor.innerHTML = rows || '<p style="color: var(--sedh-gray); text-align: center;">No hay productos agregados aún.</p>';
+                totalEl.textContent = (total || 0).toFixed(2);
+            } catch (err) {
+                console.error('Error renderizando carrito:', err);
+                contenedor.innerHTML = '<p style="color: var(--sedh-danger);">Error al cargar carrito</p>';
+                totalEl.textContent = '0.00';
+            }
+        }
+
+        // Obtener email del usuario actual
+        function getCurrentUserEmail() {
+            try {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    const decoded = JSON.parse(atob(token.split('.')[1]));
+                    return decoded.email || decoded.sub || '';
+                }
+            } catch (e) {
+                console.error('Error decodificando token:', e);
+            }
+            return '';
+        }
+
+        async function cargarMisRequisiciones() {
+            const container = document.getElementById('mis-req-container');
+            const loading = document.getElementById('loading-mis-req');
+            const resultados = document.getElementById('resultados-info');
+
+            container.innerHTML = '';
+            loading.style.display = 'block';
+            resultados.style.display = 'none';
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔐</div>
+                        <h3>No autenticado</h3>
+                        <p>Por favor, inicia sesión primero</p>
+                    </div>
+                `;
+                loading.style.display = 'none';
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${API_BASE_URL}/requisiciones/mis-requisiciones`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!resp.ok) {
+                    throw new Error(`Error ${resp.status}`);
+                }
+
+                const data = await resp.json();
+                todasLasRequisiciones = data || [];
+
+                if (todasLasRequisiciones.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <h3>No hay requisiciones</h3>
+                            <p>Aún no has creado ninguna requisición</p>
+                        </div>
+                    `;
+                } else {
+                    renderizarRequisiciones(todasLasRequisiciones);
+                    resultados.style.display = 'flex';
+                    document.getElementById('resultado-count').textContent = todasLasRequisiciones.length;
+                    cargarProgramasEnFiltro();
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Error al cargar</h3>
+                        <p>${err.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function renderizarRequisiciones(requisiciones) {
+            const container = document.getElementById('mis-req-container');
+            
+            if (requisiciones.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>Sin resultados</h3>
+                        <p>No se encontraron requisiciones con los filtros aplicados</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const cards = requisiciones.map(req => {
+                const estado = (req.EstGeneral || 'PENDIENTE').toUpperCase();
+                const statusClass = estado === 'APROBADO' ? 'status-aprobado' : 
+                                   estado === 'RECHAZADO' ? 'status-rechazado' :
+                                   estado === 'ENTREGADO' ? 'status-aprobado' : 'status-en-espera';
+
+                return `
+                    <div class="req-card ${statusClass}">
+                        <div class="req-header">
+                            <div class="req-code">${req.CodRequisicion || 'SIN CÓDIGO'}</div>
+                            <span class="status-badge ${statusClass.replace('status-', 'status-')}">
+                                ${getStatusIcon(estado)} ${estado}
+                            </span>
+                        </div>
+
+                        <div class="req-body">
+                            <div class="req-info">
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Solicitante</span>
+                                    <span class="req-info-value">${req.NomEmpleado || '—'}</span>
+                                </div>
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Programa</span>
+                                    <span class="req-info-value">${req.ProFinal || '—'}</span>
+                                </div>
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Aprobador Actual</span>
+                                    <span class="req-info-value">${req.AprobadorActualRol || '—'}</span>
+                                </div>
+                            </div>
+
+                            <div class="req-total">
+                                <div class="req-total-label">Total del Pedido</div>
+                                <div class="req-total-value">L. ${formatMoney(req.GasTotalDelPedido || 0)}</div>
+                            </div>
+
+                            <div class="req-timeline">
+                                <div class="timeline-item">
+                                    <span class="timeline-label">📅 Creada</span>
+                                    <span class="timeline-value">${formatDate(req.FechaHoraCreacion)}</span>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-label">📤 Enviada</span>
+                                    <span class="timeline-value">${formatDate(req.FechaHoraEnvio)}</span>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-label">👤 Jefe</span>
+                                    <span class="timeline-value ${!req.FechaHoraAprobacionJefe ? 'pending' : ''}">${formatDate(req.FechaHoraAprobacionJefe) || '⏳ Pendiente'}</span>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-label">📦 Almacén</span>
+                                    <span class="timeline-value ${!req.FechaHoraAprobacionAlmacen ? 'pending' : ''}">${formatDate(req.FechaHoraAprobacionAlmacen) || '⏳ Pendiente'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = cards;
+        }
+
+        function cargarProgramasEnFiltro() {
+            const programas = new Set();
+            todasLasRequisiciones.forEach(req => {
+                if (req.ProFinal) programas.add(req.ProFinal);
+            });
+
+            const select = document.getElementById('filterPrograma');
+            const currentValue = select.value;
+            
+            Array.from(programas).sort().forEach(prog => {
+                if (!Array.from(select.options).some(o => o.value === prog)) {
+                    const option = document.createElement('option');
+                    option.value = prog;
+                    option.textContent = prog;
+                    select.appendChild(option);
+                }
+            });
+
+            select.value = currentValue;
+        }
+
+        function aplicarFiltros() {
+            const inicio = performance.now();
+            const estado = document.getElementById('filterEstado').value;
+            const programa = document.getElementById('filterPrograma').value;
+            const monto = document.getElementById('filterMonto').value;
+            const fecha = document.getElementById('filterFecha').value;
+            const busqueda = document.getElementById('searchReq').value.toLowerCase();
+
+            requisicionesFiltradas = todasLasRequisiciones.filter(req => {
+                // Filtro de estado
+                if (estado && (req.EstGeneral || '').toUpperCase() !== estado.toUpperCase()) {
+                    return false;
+                }
+
+                // Filtro de programa
+                if (programa && req.ProFinal !== programa) {
+                    return false;
+                }
+
+                // Filtro de monto
+                if (monto) {
+                    const total = req.GasTotalDelPedido || 0;
+                    if (monto === '0-100' && total > 100) return false;
+                    if (monto === '100-500' && (total < 100 || total > 500)) return false;
+                    if (monto === '500-1000' && (total < 500 || total > 1000)) return false;
+                    if (monto === '1000+' && total < 1000) return false;
+                }
+
+                // Filtro de fecha
+                if (fecha) {
+                    const reqFecha = new Date(req.FechaHoraCreacion);
+                    const [año, mes] = fecha.split('-');
+                    if (reqFecha.getFullYear() !== parseInt(año) || 
+                        (reqFecha.getMonth() + 1) !== parseInt(mes)) {
+                        return false;
+                    }
+                }
+
+                // Filtro de búsqueda
+                if (busqueda) {
+                    const textoReq = `${req.CodRequisicion} ${req.NomEmpleado}`.toLowerCase();
+                    if (!textoReq.includes(busqueda)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            const fin = performance.now();
+            renderizarRequisiciones(requisicionesFiltradas);
+            document.getElementById('resultado-count').textContent = requisicionesFiltradas.length;
+            document.getElementById('tiempo-busqueda').textContent = `(${(fin - inicio).toFixed(0)}ms)`;
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filterEstado').value = '';
+            document.getElementById('filterPrograma').value = '';
+            document.getElementById('filterMonto').value = '';
+            document.getElementById('filterFecha').value = '';
+            document.getElementById('searchReq').value = '';
+            aplicarFiltros();
+        }
+
+        // UTILIDADES
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('es-HN', {
+                    year: '2-digit',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+            } catch (e) {
+                return '—';
+            }
+        }
+
+        function formatMoney(amount) {
+            return (amount || 0).toLocaleString('es-HN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getStatusIcon(estado) {
+            const icons = {
+                'APROBADO': '✓',
+                'RECHAZADO': '✗',
+                'ENTREGADO': '📦',
+                'EN ESPERA': '⏳'
+            };
+            return icons[estado] || '•';
+        }
+
+        // ENVIAR REQUISICIÓN
+        async function enviarRequisicion() {
+            const btnEnviar = document.getElementById('enviarRequisicion');
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('⚠️ Debes iniciar sesión para enviar una requisición');
+                return;
+            }
+
+            // Obtener valores del formulario
+            const programaFinal = document.getElementById('programaFinal').value;
+            const programaIntermedio = document.getElementById('programaIntermedio').value;
+            const observaciones = document.getElementById('observaciones').value.trim();
+
+            // Validaciones
+            if (!programaFinal) {
+                alert('⚠️ Debes seleccionar un Programa Final');
+                return;
+            }
+
+            if (!programaIntermedio) {
+                alert('⚠️ Debes seleccionar un Programa Intermedio');
+                return;
+            }
+
+            // Obtener productos del carrito
+            let cart = [];
+            try {
+                const email = getCurrentUserEmail();
+                const cartKey = email ? `cart_productos_${email}` : 'cart';
+                cart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+            } catch (err) {
+                console.error('Error leyendo carrito:', err);
+                cart = [];
+            }
+
+            if (!cart || cart.length === 0) {
+                alert('⚠️ Debes agregar al menos un producto al carrito.\n\nUsa el botón "Abrir catálogo de productos" para seleccionar productos.');
+                return;
+            }
+
+            // Mapear productos al formato esperado por el backend
+            const productos = cart.map(item => ({
+                idProducto: item.idProducto,
+                nombre: item.nombre || '',
+                cantidad: parseFloat(item.cantidad) || 0,
+                gasUnitario: parseFloat(item.precio) || 0,
+                gasTotalProducto: (parseFloat(item.cantidad) || 0) * (parseFloat(item.precio) || 0)
+            }));
+
+            // Calcular total del pedido
+            const gasTotalPedido = productos.reduce((sum, p) => sum + p.gasTotalProducto, 0);
+
+            const payload = {
+                proIntermedio: parseFloat(programaIntermedio),
+                proFinal: parseInt(programaFinal),
+                obsEmpleado: observaciones || null,
+                gasTotalPedido: gasTotalPedido,
+                productos: productos
+            };
+
+            console.log('📤 Enviando requisición:', payload);
+
+            // Deshabilitar botón y mostrar loading
+            btnEnviar.disabled = true;
+            btnEnviar.innerHTML = '<span class="spinner"></span> Enviando...';
+
+            try {
+                const resp = await fetch(`${API_BASE_URL}/requisiciones/`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resp.ok) {
+                    const error = await resp.json();
+                    throw new Error(error.detail || `Error ${resp.status}`);
+                }
+
+                const result = await resp.json();
+                console.log('✅ Requisición creada:', result);
+
+                // Limpiar carrito tras envío exitoso
+                const email = getCurrentUserEmail();
+                const cartKey = email ? `cart_productos_${email}` : 'cart';
+                localStorage.removeItem(cartKey);
+
+                // Limpiar formulario
+                document.getElementById('programaFinal').value = '';
+                document.getElementById('programaIntermedio').value = '';
+                document.getElementById('observaciones').value = '';
+                renderResumenCarrito();
+
+                alert(`✅ Requisición creada exitosamente!\n\nCódigo: ${result.codrequisicion}\nJefe Inmediato: ${result.nombrejefeInmediato}\nEmail: ${result.emailjefeInmediato}`);
+
+                // Cambiar a pestaña "Mis Requisiciones"
+                showTab('mis-requisiciones');
+
+            } catch (err) {
+                console.error('❌ Error al enviar:', err);
+                alert(`❌ Error al crear la requisición:\n\n${err.message}`);
+            } finally {
+                btnEnviar.disabled = false;
+                btnEnviar.innerHTML = '📤 Enviar Requisición';
+            }
+        }
+
+        // Conectar botón con la función
+        document.addEventListener('DOMContentLoaded', () => {
+            const btnEnviar = document.getElementById('enviarRequisicion');
+            if (btnEnviar) {
+                btnEnviar.addEventListener('click', enviarRequisicion);
+            }
+        });
+
+        // ========== FUNCIONES PARA APROBACIONES (TODOS LOS ROLES) ==========
+        let requisicionesPendientes = [];
+        let requisicionActualModal = null;
+        let decisionActual = null;
+
+        // Decodificar JWT para obtener roles
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('Error decodificando token:', e);
+                return null;
+            }
+        }
+
+        function normalizarRoles(payload) {
+            const roles = [];
+            if (Array.isArray(payload?.roles)) roles.push(...payload.roles);
+            if (payload?.rol) roles.push(payload.rol);
+            if (payload?.role) roles.push(payload.role);
+
+            return roles
+                .filter(Boolean)
+                .map(r => r.toString().trim().toLowerCase());
+        }
+
+        function tieneRol(roles, alias) {
+            return roles.some(r => alias.some(a => r === a || r.includes(a)));
+        }
+
+        // Detectar endpoint según roles del usuario
+        function obtenerEndpointPendientes(token) {
+            const payload = parseJwt(token);
+            const roles = normalizarRoles(payload);
+
+            if (!roles.length) {
+                return null;
+            }
+
+            // Prioridad: Almacén > Jefe Materiales > Gerente > Jefe Inmediato
+            if (tieneRol(roles, ['empleado de almacen', 'empleado de almac', 'almacen', 'almac', 'empalmacen'])) {
+                return '/requisiciones/pendientes/almacen';
+            }
+            if (tieneRol(roles, ['jefe de materiales', 'jefe materiales', 'jefsermat', 'jef mat'])) {
+                return '/requisiciones/pendientes/jefe-materiales';
+            }
+            if (tieneRol(roles, ['gerente administrativo', 'gerente admin', 'geradmon'])) {
+                return '/requisiciones/pendientes/gerente';
+            }
+            if (tieneRol(roles, ['jefe inmediato', 'jefeinmediato', 'jefinmediato'])) {
+                return '/requisiciones/pendientes/jefe';
+            }
+
+            return null;
+        }
+
+        async function cargarRequisicionesPendientes() {
+            const container = document.getElementById('pendientes-container');
+            const loading = document.getElementById('loading-pendientes');
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔐</div>
+                        <h3>No autenticado</h3>
+                        <p>Por favor, inicia sesión primero</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Detectar endpoint según rol del usuario
+            const endpoint = obtenerEndpointPendientes(token);
+            if (!endpoint) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Rol no autorizado</h3>
+                        <p>Tu rol no tiene permisos para ver requisiciones pendientes</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            loading.style.display = 'block';
+
+            try {
+                const resp = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!resp.ok) {
+                    throw new Error(`Error ${resp.status}`);
+                }
+
+                requisicionesPendientes = await resp.json();
+
+                if (requisicionesPendientes.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <div class="empty-state-icon">✅</div>
+                            <h3>No hay requisiciones pendientes</h3>
+                            <p>Todas las requisiciones han sido procesadas</p>
+                        </div>
+                    `;
+                } else {
+                    renderizarRequisicionesPendientes(requisicionesPendientes);
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Error al cargar</h3>
+                        <p>${err.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function renderizarRequisicionesPendientes(requisiciones) {
+            const container = document.getElementById('pendientes-container');
+            
+            const cards = requisiciones.map(req => {
+                const productosHtml = req.productos.map(p => `
+                    <div style="padding:8px 0; border-bottom:1px solid var(--sedh-light-gray);">
+                        <strong>${p.nombre_producto}</strong>
+                        <br>Cantidad: ${p.cantidad_solicitada} | L. ${formatMoney(p.gas_total_producto)}
+                    </div>
+                `).join('');
+
+                return `
+                    <div class="req-card">
+                        <div class="req-header">
+                            <div class="req-code">${req.codRequisicion}</div>
+                            <span class="status-badge status-en-espera">⏳ PENDIENTE</span>
+                        </div>
+
+                        <div class="req-body">
+                            <div class="req-info">
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Solicitante</span>
+                                    <span class="req-info-value">${req.nombreSubordinado}</span>
+                                </div>
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Dependencia</span>
+                                    <span class="req-info-value">${req.dependencia}</span>
+                                </div>
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Fecha</span>
+                                    <span class="req-info-value">${formatDate(req.fecSolicitud)}</span>
+                                </div>
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Programa</span>
+                                    <span class="req-info-value">${req.proFinal}</span>
+                                </div>
+                            </div>
+
+                            <div style="margin:15px 0; padding:15px; background:var(--sedh-bg); border-radius:8px; max-height:200px; overflow-y:auto;">
+                                <strong style="color:var(--sedh-primary);">Productos:</strong>
+                                ${productosHtml}
+                            </div>
+
+                            ${req.obsEmpleado ? `
+                                <div style="margin:10px 0; padding:12px; background:var(--sedh-bg); border-radius:8px;">
+                                    <strong style="color:var(--sedh-primary);">Observaciones:</strong>
+                                    <p style="margin-top:5px;">${req.obsEmpleado}</p>
+                                </div>
+                            ` : ''}
+
+                            <div class="req-total">
+                                <div class="req-total-label">Total del Pedido</div>
+                                <div class="req-total-value">L. ${formatMoney(req.gasTotalDelPedido)}</div>
+                            </div>
+
+                            <button onclick='abrirModalAprobacion(${JSON.stringify(req).replace(/'/g, "\\'")})' 
+                                    style="width:100%; margin-top:15px; padding:12px; border:none; border-radius:8px; background:linear-gradient(135deg, var(--sedh-primary), var(--sedh-light)); color:var(--sedh-white); font-weight:600; cursor:pointer;">
+                                📋 Revisar y Responder
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = cards;
+        }
+
+        function abrirModalAprobacion(requisicion) {
+            requisicionActualModal = requisicion;
+            decisionActual = null;
+
+            document.getElementById('modalCodigo').textContent = requisicion.codRequisicion;
+            document.getElementById('modalSolicitante').textContent = requisicion.nombreSubordinado;
+            document.getElementById('modalDependencia').textContent = requisicion.dependencia;
+            document.getElementById('modalTotal').textContent = 'L. ' + formatMoney(requisicion.gasTotalDelPedido);
+
+            // Buscar descripciones de programas en el caché
+            let descripcionIntermedio = requisicion.proIntermedio;
+            let descripcionFinal = requisicion.proFinal;
+
+            if (cacheProgramas && cacheProgramas.programas_intermedios) {
+                const pi = cacheProgramas.programas_intermedios.find(p => 
+                    parseFloat(p.idprointermedio) === parseFloat(requisicion.proIntermedio)
+                );
+                if (pi) {
+                    descripcionIntermedio = `${pi.codigo_pi || ''} - ${pi.programa_intermedio || ''}`.trim();
+                }
+            }
+
+            if (cacheProgramas && cacheProgramas.programas_finales) {
+                const pf = cacheProgramas.programas_finales.find(p => 
+                    parseInt(p.idprograma) === parseInt(requisicion.proFinal)
+                );
+                if (pf) {
+                    descripcionFinal = `${pf.codigo || ''} - ${pf.descripcion || ''}`.trim();
+                }
+            }
+
+            // Mostrar programas con descripciones
+            const programasHtml = `
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
+                    <div style="background:var(--sedh-bg); padding:12px; border-radius:8px;">
+                        <small style="color:#666; display:block; margin-bottom:5px;">Programa Intermedio</small>
+                        <strong style="color:var(--sedh-primary); font-size:0.9em; line-height:1.3;">${descripcionIntermedio}</strong>
+                    </div>
+                    <div style="background:var(--sedh-bg); padding:12px; border-radius:8px;">
+                        <small style="color:#666; display:block; margin-bottom:5px;">Programa Final</small>
+                        <strong style="color:var(--sedh-primary); font-size:0.9em; line-height:1.3;">${descripcionFinal}</strong>
+                    </div>
+                </div>
+            `;
+
+            // Productos SIN inputs editables (Jefe Inmediato solo aprueba/rechaza, NO modifica)
+            const productosHtml = requisicion.productos.map((p, idx) => `
+                <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--sedh-light-gray); align-items:center;">
+                    <div>
+                        <strong>${p.nombre || 'Producto sin nombre'}</strong>
+                        <br><small style="color:#666;">Precio unitario: L. ${formatMoney(p.gasUnitario || 0)}</small>
+                        <br><small style="color:var(--sedh-primary); font-weight:600;">Cantidad: ${p.cantidad || 0}</small>
+                    </div>
+                    <div style="text-align:right;">
+                        <strong style="color:var(--sedh-primary); font-size:1.1em;">L. ${formatMoney(p.gasTotalProducto || 0)}</strong>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('modalProductos').innerHTML = `
+                ${programasHtml}
+                <div style="background:var(--sedh-bg); padding:15px; border-radius:8px; max-height:250px; overflow-y:auto;">
+                    <strong style="color:var(--sedh-primary);">Productos solicitados:</strong>
+                    ${productosHtml}
+                </div>
+            `;
+
+            document.getElementById('comentarioContainer').style.display = 'none';
+            document.getElementById('comentarioAprobacion').value = '';
+            document.getElementById('btnAprobar').style.background = 'var(--sedh-white)';
+            document.getElementById('btnRechazar').style.background = 'var(--sedh-white)';
+            
+            document.getElementById('modalAprobacion').style.display = 'flex';
+        }
+
+        function cerrarModalAprobacion() {
+            document.getElementById('modalAprobacion').style.display = 'none';
+            requisicionActualModal = null;
+            decisionActual = null;
+        }
+
+        function setDecision(decision) {
+            decisionActual = decision;
+            
+            if (decision === 'APROBADO') {
+                document.getElementById('btnAprobar').style.background = 'var(--sedh-success)';
+                document.getElementById('btnAprobar').style.color = 'var(--sedh-white)';
+                document.getElementById('btnRechazar').style.background = 'var(--sedh-white)';
+                document.getElementById('btnRechazar').style.color = 'var(--sedh-danger)';
+                document.getElementById('comentarioContainer').style.display = 'none';
+            } else {
+                document.getElementById('btnRechazar').style.background = 'var(--sedh-danger)';
+                document.getElementById('btnRechazar').style.color = 'var(--sedh-white)';
+                document.getElementById('btnAprobar').style.background = 'var(--sedh-white)';
+                document.getElementById('btnAprobar').style.color = 'var(--sedh-success)';
+                document.getElementById('comentarioContainer').style.display = 'block';
+            }
+        }
+
+        async function confirmarAprobacion() {
+            if (!decisionActual) {
+                alert('⚠️ Debes seleccionar APROBAR o RECHAZAR');
+                return;
+            }
+
+            const comentario = document.getElementById('comentarioAprobacion').value.trim();
+
+            if (decisionActual === 'RECHAZADO' && !comentario) {
+                alert('⚠️ El comentario es obligatorio para rechazar');
+                return;
+            }
+
+            const btnConfirmar = document.getElementById('btnConfirmar');
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                alert('⚠️ No hay sesión activa');
+                return;
+            }
+
+            btnConfirmar.disabled = true;
+            btnConfirmar.innerHTML = '<span class="spinner"></span> Procesando...';
+
+            try {
+                // JEFE INMEDIATO NO MODIFICA CANTIDADES, solo aprueba/rechaza
+                const payload = {
+                    idRequisicion: requisicionActualModal.idRequisicion,
+                    estado: decisionActual,  // Campo corregido: 'estado' en lugar de 'estadoAprobacion'
+                    comentario: comentario || null
+                    // NO enviamos 'productos' porque el Jefe Inmediato no modifica cantidades
+                };
+
+                const resp = await fetch(`${API_BASE_URL}/requisiciones/responder/jefe`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!resp.ok) {
+                    const error = await resp.json();
+                    throw new Error(error.detail || `Error ${resp.status}`);
+                }
+
+                const result = await resp.json();
+                alert(`✅ Requisición ${decisionActual.toLowerCase()} exitosamente!\n\n${result.mensaje || ''}`);
+                
+                cerrarModalAprobacion();
+                cargarRequisicionesPendientes();
+
+            } catch (err) {
+                console.error('❌ Error:', err);
+                alert(`❌ Error al procesar:\n\n${err.message}`);
+            } finally {
+                btnConfirmar.disabled = false;
+                btnConfirmar.innerHTML = 'Confirmar';
+            }
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarMisRequisiciones();
+            cargarProgramasIntermedio();
+            renderResumenCarrito();
+        });
+    </script>
+</body>
+</html>

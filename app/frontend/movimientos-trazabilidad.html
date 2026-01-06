@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trazabilidad de Productos - SEDH</title>
+    <style>
+        :root {
+            --sedh-primary: #0f766e;
+            --sedh-secondary: #14b8a6;
+            --sedh-accent: #2dd4bf;
+            --sedh-success: #10b981;
+            --sedh-warning: #f59e0b;
+            --sedh-danger: #ef4444;
+            --sedh-dark: #1f2937;
+            --sedh-light: #f8fafc;
+            --sedh-border: #e5e7eb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b3f3b 0%, #0f5e59 45%, #0f766e 100%);
+            min-height: 100vh;
+            color: var(--sedh-dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            color: var(--sedh-primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header .subtitle {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: var(--sedh-primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: var(--sedh-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(15, 118, 110, 0.3);
+        }
+
+        /* Búsqueda de Productos */
+        .busqueda-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .busqueda-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--sedh-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .busqueda-grid {
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--sedh-dark);
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            padding: 12px 16px;
+            border: 2px solid var(--sedh-border);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--sedh-primary);
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--sedh-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--sedh-secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(15, 118, 110, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-scanner {
+            background: var(--sedh-success);
+            color: white;
+        }
+
+        .btn-scanner:hover {
+            background: #059669;
+        }
+
+        /* Información del Producto */
+        .producto-info {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .producto-header {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--sedh-border);
+        }
+
+        .producto-imagen {
+            width: 80px;
+            height: 80px;
+            background: var(--sedh-light);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: var(--sedh-primary);
+            border: 2px solid var(--sedh-border);
+        }
+
+        .producto-detalles h2 {
+            color: var(--sedh-primary);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .producto-codigo {
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .producto-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: var(--sedh-light);
+            border-radius: 10px;
+            border-left: 4px solid var(--sedh-primary);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--sedh-primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 5px;
+        }
+
+        /* Timeline */
+        .timeline-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .timeline-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--sedh-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--sedh-border);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--sedh-light);
+            border-radius: 15px;
+            border-left: 4px solid var(--sedh-primary);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 25px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--sedh-primary);
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px var(--sedh-primary);
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .timeline-tipo {
+            font-weight: 600;
+            color: var(--sedh-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timeline-fecha {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .timeline-detalles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detalle-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detalle-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .detalle-value {
+            font-weight: 600;
+            color: var(--sedh-dark);
+            margin-top: 2px;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-entrada {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-salida {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-ajuste {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Loading */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            font-size: 1.1rem;
+            color: #64748b;
+        }
+
+        .loading::before {
+            content: "🔍";
+            margin-right: 10px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Scanner Modal */
+        .scanner-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .scanner-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .scanner-video {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .busqueda-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .producto-header {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .producto-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-detalles {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Estados */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--sedh-danger);
+        }
+
+        /* Filtros de Timeline */
+        .timeline-filtros {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filtro-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--sedh-border);
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filtro-btn.active {
+            background: var(--sedh-primary);
+            color: white;
+            border-color: var(--sedh-primary);
+        }
+
+        .filtro-btn:hover {
+            border-color: var(--sedh-primary);
+        }
+
+        /* Tarjetas de Productos */
+        .producto-card {
+            background: white;
+            border: 2px solid var(--sedh-border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .producto-card:hover {
+            border-color: var(--sedh-primary);
+            box-shadow: 0 4px 20px rgba(15, 118, 110, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .producto-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .producto-card-icon {
+            font-size: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--sedh-light);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--sedh-border);
+        }
+
+        .producto-card-info {
+            flex: 1;
+        }
+
+        .producto-card-nombre {
+            font-weight: 700;
+            color: var(--sedh-primary);
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .producto-card-codigo {
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .producto-card-detalles {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 10px;
+            border-top: 1px solid var(--sedh-border);
+            font-size: 0.9rem;
+        }
+
+        .producto-card-stock {
+            font-weight: 600;
+        }
+
+        .stock-normal {
+            color: var(--sedh-success);
+        }
+
+        .stock-bajo {
+            color: var(--sedh-warning);
+        }
+
+        .stock-critico {
+            color: var(--sedh-danger);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔍 Trazabilidad de Productos</h1>
+            <p class="subtitle">Historial completo y seguimiento detallado de productos</p>
+            <div class="nav-buttons">
+                <a href="/dashboard" class="nav-btn">🏠 Dashboard Principal</a>
+                <a href="/movimientos-dashboard" class="nav-btn">📊 Dashboard Movimientos</a>
+                <a href="/movimientos-alertas" class="nav-btn">🚨 Alertas</a>
+                <a href="/movimientos-inventario" class="nav-btn">📋 Inventario Físico</a>
+                <a href="/control-almacen" class="nav-btn">📦 Control Almacén</a>
+            </div>
+        </div>
+
+        <!-- Búsqueda de Productos -->
+        <div class="busqueda-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="busqueda-title">
+                    🔎 Búsqueda de Productos
+                </div>
+                <button class="btn btn-secondary" onclick="volverAListaProductos()" id="btnVolverLista" style="display: none;">
+                    ← Volver a lista
+                </button>
+            </div>
+            <div class="busqueda-grid">
+                <div class="form-group">
+                    <label class="form-label">🔍 Buscar por nombre o código</label>
+                    <input type="text" id="busquedaProducto" class="form-control" 
+                           placeholder="Ingrese nombre del producto o código de barras..."
+                           onkeypress="if(event.key==='Enter') buscarProducto()">
+                </div>
+                <button class="btn btn-primary" onclick="buscarProducto()">
+                    🔍 Buscar
+                </button>
+                <button class="btn btn-scanner" onclick="abrirScanner()">
+                    📱 Escanear
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de Productos Disponibles -->
+        <div class="busqueda-section" id="listaProductosSection">
+            <div class="busqueda-title">
+                📦 Productos Disponibles
+            </div>
+            <div id="productosDisponibles" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; margin-top: 20px;">
+                <!-- Productos se cargarán aquí -->
+            </div>
+        </div>
+
+        <!-- Información del Producto -->
+        <div class="producto-info" id="productoInfo">
+            <div class="producto-header">
+                <div class="producto-imagen" id="productoImagen">
+                    📦
+                </div>
+                <div class="producto-detalles">
+                    <h2 id="productoNombre">Nombre del Producto</h2>
+                    <div class="producto-codigo" id="productoCodigo">Código: P001</div>
+                    <div style="color: #64748b;" id="productoCategoria">Categoría • Estado</div>
+                </div>
+                <div class="producto-stats" id="productoStats">
+                    <!-- Stats dinámicas -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline de Movimientos -->
+        <div class="timeline-section" id="timelineSection">
+            <div class="timeline-title">
+                📅 Historial de Movimientos
+            </div>
+            
+            <!-- Filtros de Timeline -->
+            <div class="timeline-filtros">
+                <button class="filtro-btn active" onclick="filtrarTimeline('todos')">Todos</button>
+                <button class="filtro-btn" onclick="filtrarTimeline('entrada')">📥 Entradas</button>
+                <button class="filtro-btn" onclick="filtrarTimeline('salida')">📤 Salidas</button>
+                <button class="filtro-btn" onclick="filtrarTimeline('ajuste')">⚙️ Ajustes</button>
+                <button class="filtro-btn" onclick="filtrarTimeline('devolucion')">↩️ Devoluciones</button>
+            </div>
+
+            <div class="timeline" id="timelineContainer">
+                <!-- Timeline items dinámicos -->
+            </div>
+        </div>
+
+        <!-- Scanner Modal -->
+        <div class="scanner-modal" id="scannerModal">
+            <div class="scanner-content">
+                <h3 style="color: var(--sedh-primary); margin-bottom: 20px;">📱 Scanner de Códigos</h3>
+                <video id="scannerVideo" class="scanner-video" autoplay></video>
+                <div style="margin-top: 20px;">
+                    <button class="btn btn-secondary" onclick="cerrarScanner()">Cancelar</button>
+                </div>
+                <p style="margin-top: 15px; color: #64748b; font-size: 0.9rem;">
+                    Apunte la cámara hacia el código de barras del producto
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api/v1`;
+        let authToken = '';
+        let productoActual = null;
+        let movimientosActuales = [];
+        let filtroTimelineActual = 'todos';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            authToken = localStorage.getItem('token');
+            if (!authToken) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            // Cargar lista de productos disponibles
+            cargarProductosDisponibles();
+        });
+
+        async function cargarProductosDisponibles() {
+            try {
+                const productos = await obtenerTodosLosProductos();
+                mostrarProductosDisponibles(productos);
+            } catch (error) {
+                console.error('Error cargando productos:', error);
+            }
+        }
+
+        async function obtenerTodosLosProductos() {
+            // Simulación - en producción consultaría API real
+            return [
+                {
+                    id: 'P001',
+                    nombre: 'PAPEL BON',
+                    codigo: '33100-002',
+                    categoria: 'Papel y Cartón',
+                    estado: 'Activo',
+                    stockActual: 150,
+                    stockMinimo: 50,
+                    ubicacion: 'Bodega Principal - Estante A-1',
+                    fechaIngreso: '2025-01-15',
+                    proveedor: 'Distribuidora Nacional de Papel',
+                    descripcion: 'Papel bond blanco tamaño carta 75g/m² para impresión'
+                },
+                {
+                    id: 'P002',
+                    nombre: 'LAPICEROS',
+                    codigo: '33100-001',
+                    categoria: 'Útiles y Materiales de Oficina',
+                    estado: 'Activo',
+                    stockActual: 85,
+                    stockMinimo: 20,
+                    ubicacion: 'Bodega Principal - Estante B-3',
+                    fechaIngreso: '2025-02-10',
+                    proveedor: 'Papelería y Suministros SA',
+                    descripcion: 'Lapiceros de tinta azul punto medio, caja x12 unidades'
+                },
+                {
+                    id: 'P003',
+                    nombre: 'TONER PARA IMPRESORA HP',
+                    codigo: '33500-015',
+                    categoria: 'Equipo y Mobiliario de Oficina',
+                    estado: 'Activo',
+                    stockActual: 8,
+                    stockMinimo: 3,
+                    ubicacion: 'Almacén Tecnología - Rack IT-05',
+                    fechaIngreso: '2025-03-05',
+                    proveedor: 'TechSupply Honduras',
+                    descripcion: 'Toner original HP LaserJet CF217A Negro para serie M100'
+                }
+            ];
+        }
+
+        function mostrarProductosDisponibles(productos) {
+            const container = document.getElementById('productosDisponibles');
+            
+            if (productos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No hay productos disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const iconos = {
+                'Papel y Cartón': '📄',
+                'Útiles y Materiales de Oficina': '✏️',
+                'Equipo y Mobiliario de Oficina': '🖨️',
+                'default': '📦'
+            };
+
+            container.innerHTML = productos.map(producto => {
+                const porcentajeStock = (producto.stockActual / (producto.stockMinimo * 2)) * 100;
+                let estadoStockClase = 'stock-normal';
+                let estadoStockTexto = 'Normal';
+                
+                if (porcentajeStock < 50) {
+                    estadoStockClase = 'stock-critico';
+                    estadoStockTexto = 'Crítico';
+                } else if (porcentajeStock < 100) {
+                    estadoStockClase = 'stock-bajo';
+                    estadoStockTexto = 'Bajo';
+                }
+
+                const icono = iconos[producto.categoria] || iconos.default;
+
+                return `
+                    <div class="producto-card" onclick="seleccionarProducto('${producto.id}')">
+                        <div class="producto-card-header">
+                            <div class="producto-card-icon">${icono}</div>
+                            <div class="producto-card-info">
+                                <div class="producto-card-nombre">${producto.nombre}</div>
+                                <div class="producto-card-codigo">Código: ${producto.codigo}</div>
+                            </div>
+                        </div>
+                        <div class="producto-card-detalles">
+                            <span>${producto.categoria}</span>
+                            <span class="producto-card-stock ${estadoStockClase}">
+                                Stock: ${producto.stockActual} (${estadoStockTexto})
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function seleccionarProducto(productoId) {
+            const productos = await obtenerTodosLosProductos();
+            const producto = productos.find(p => p.id === productoId);
+            
+            if (producto) {
+                // Ocultar lista de productos
+                document.getElementById('listaProductosSection').style.display = 'none';
+                
+                // Mostrar botón de volver
+                document.getElementById('btnVolverLista').style.display = 'block';
+                
+                // Mostrar información del producto seleccionado
+                await mostrarInformacionProducto(producto);
+                await cargarHistorialMovimientos(producto.id);
+            }
+        }
+
+        function volverAListaProductos() {
+            // Mostrar lista de productos
+            document.getElementById('listaProductosSection').style.display = 'block';
+            
+            // Ocultar botón de volver
+            document.getElementById('btnVolverLista').style.display = 'none';
+            
+            // Ocultar información del producto
+            document.getElementById('productoInfo').style.display = 'none';
+            document.getElementById('timelineSection').style.display = 'none';
+            
+            // Limpiar búsqueda
+            document.getElementById('busquedaProducto').value = '';
+        }
+
+        async function buscarProducto() {
+            const busqueda = document.getElementById('busquedaProducto').value.trim();
+            
+            if (!busqueda) {
+                alert('Por favor ingrese un término de búsqueda');
+                return;
+            }
+
+            try {
+                // Mostrar loading
+                document.getElementById('productoInfo').style.display = 'block';
+                document.getElementById('productoInfo').innerHTML = '<div class="loading">Buscando producto...</div>';
+                document.getElementById('timelineSection').style.display = 'none';
+                
+                // Ocultar lista de productos
+                document.getElementById('listaProductosSection').style.display = 'none';
+                
+                // Mostrar botón de volver
+                document.getElementById('btnVolverLista').style.display = 'block';
+
+                // Buscar producto (simulado - en producción sería API real)
+                const producto = await buscarProductoEnAPI(busqueda);
+                
+                if (producto) {
+                    await mostrarInformacionProducto(producto);
+                    await cargarHistorialMovimientos(producto.id);
+                } else {
+                    mostrarProductoNoEncontrado();
+                }
+
+            } catch (error) {
+                console.error('Error buscando producto:', error);
+                mostrarError('Error al buscar el producto');
+            }
+        }
+
+        async function buscarProductoEnAPI(busqueda) {
+            // Simulación de búsqueda - en producción consultaría API real
+            const productosSimulados = [
+                {
+                    id: 'P001',
+                    nombre: 'PAPEL BON',
+                    codigo: '33100-002',
+                    categoria: 'Papel y Cartón',
+                    estado: 'Activo',
+                    stockActual: 150,
+                    stockMinimo: 50,
+                    ubicacion: 'Bodega Principal - Estante A-1',
+                    fechaIngreso: '2025-01-15',
+                    proveedor: 'Distribuidora Nacional de Papel',
+                    descripcion: 'Papel bond blanco tamaño carta 75g/m² para impresión'
+                },
+                {
+                    id: 'P002',
+                    nombre: 'LAPICEROS',
+                    codigo: '33100-001',
+                    categoria: 'Útiles y Materiales de Oficina',
+                    estado: 'Activo',
+                    stockActual: 85,
+                    stockMinimo: 20,
+                    ubicacion: 'Bodega Principal - Estante B-3',
+                    fechaIngreso: '2025-02-10',
+                    proveedor: 'Papelería y Suministros SA',
+                    descripcion: 'Lapiceros de tinta azul punto medio, caja x12 unidades'
+                },
+                {
+                    id: 'P003',
+                    nombre: 'TONER PARA IMPRESORA HP',
+                    codigo: '33500-015',
+                    categoria: 'Equipo y Mobiliario de Oficina',
+                    estado: 'Activo',
+                    stockActual: 8,
+                    stockMinimo: 3,
+                    ubicacion: 'Almacén Tecnología - Rack IT-05',
+                    fechaIngreso: '2025-03-05',
+                    proveedor: 'TechSupply Honduras',
+                    descripcion: 'Toner original HP LaserJet CF217A Negro para serie M100'
+                }
+            ];
+
+            // Buscar por nombre o código
+            return productosSimulados.find(p => 
+                p.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+                p.codigo.toLowerCase().includes(busqueda.toLowerCase())
+            );
+        }
+
+        async function mostrarInformacionProducto(producto) {
+            productoActual = producto;
+
+            // Determinar icono según categoría
+            const iconos = {
+                'Papel y Cartón': '📄',
+                'Útiles y Materiales de Oficina': '✏️',
+                'Equipo y Mobiliario de Oficina': '🖨️',
+                'Papelería': '📄',
+                'Útiles de Oficina': '✏️',
+                'Consumibles IT': '🖨️',
+                'default': '📦'
+            };
+            const icono = iconos[producto.categoria] || iconos.default;
+
+            // Calcular estado del stock
+            const porcentajeStock = (producto.stockActual / (producto.stockMinimo * 2)) * 100;
+            let estadoStock = 'Normal';
+            let colorStock = 'var(--sedh-success)';
+            
+            if (porcentajeStock < 50) {
+                estadoStock = 'Crítico';
+                colorStock = 'var(--sedh-danger)';
+            } else if (porcentajeStock < 100) {
+                estadoStock = 'Bajo';
+                colorStock = 'var(--sedh-warning)';
+            }
+
+            document.getElementById('productoInfo').innerHTML = `
+                <div class="producto-header">
+                    <div class="producto-imagen">
+                        ${icono}
+                    </div>
+                    <div class="producto-detalles">
+                        <h2>${producto.nombre}</h2>
+                        <div class="producto-codigo">Código: ${producto.codigo}</div>
+                        <div style="color: #64748b;">${producto.categoria} • ${producto.estado}</div>
+                        <div style="color: #64748b; font-size: 0.9rem; margin-top: 5px;">
+                            📍 ${producto.ubicacion} • 🏢 ${producto.proveedor}
+                        </div>
+                    </div>
+                    <div class="producto-stats">
+                        <div class="stat-item">
+                            <div class="stat-value" style="color: ${colorStock};">${producto.stockActual}</div>
+                            <div class="stat-label">Stock Actual</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${producto.stockMinimo}</div>
+                            <div class="stat-label">Stock Mínimo</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" style="color: ${colorStock};">${estadoStock}</div>
+                            <div class="stat-label">Estado Stock</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="background: var(--sedh-light); padding: 15px; border-radius: 10px; margin-top: 20px;">
+                    <strong>Descripción:</strong> ${producto.descripcion}
+                    <br><strong>Fecha de Ingreso:</strong> ${formatearFecha(producto.fechaIngreso)}
+                </div>
+            `;
+        }
+
+        async function cargarHistorialMovimientos(productoId) {
+            try {
+                // Simular carga de movimientos - en producción sería API real
+                const movimientos = await obtenerMovimientosProducto(productoId);
+                movimientosActuales = movimientos;
+                
+                mostrarTimeline(movimientos);
+                document.getElementById('timelineSection').style.display = 'block';
+
+            } catch (error) {
+                console.error('Error cargando historial:', error);
+                document.getElementById('timelineSection').innerHTML = `
+                    <div class="error-state">
+                        ❌ Error al cargar el historial de movimientos
+                    </div>
+                `;
+                document.getElementById('timelineSection').style.display = 'block';
+            }
+        }
+
+        async function obtenerMovimientosProducto(productoId) {
+            // Simulación de movimientos - en producción consultaría API
+            const movimientosSimulados = [
+                {
+                    id: 'M001',
+                    fecha: '2025-11-28T10:30:00Z',
+                    tipo: 'salida',
+                    cantidad: 5,
+                    cantidadAnterior: 155,
+                    cantidadNueva: 150,
+                    usuario: 'maria.lopez@sedh.gob.hn',
+                    departamento: 'Unidad de Informática y Telecomunicaciones (UIT)',
+                    requisicion: 'UIT-040-2025',
+                    observaciones: 'Material de oficina para el departamento de soporte técnico',
+                    autorizadoPor: 'jefe.uit@sedh.gob.hn'
+                },
+                {
+                    id: 'M002',
+                    fecha: '2025-11-20T14:15:00Z',
+                    tipo: 'entrada',
+                    cantidad: 100,
+                    cantidadAnterior: 55,
+                    cantidadNueva: 155,
+                    usuario: 'almacen.central@sedh.gob.hn',
+                    proveedor: 'Distribuidora Nacional de Papel',
+                    numeroFactura: 'FAC-2025-001234',
+                    observaciones: 'Reposición mensual de papel - Orden de compra OC-2025-0089'
+                },
+                {
+                    id: 'M003',
+                    fecha: '2025-11-15T09:45:00Z',
+                    tipo: 'salida',
+                    cantidad: 10,
+                    cantidadAnterior: 65,
+                    cantidadNueva: 55,
+                    usuario: 'carlos.mendez@sedh.gob.hn',
+                    departamento: 'Dirección de Comunicaciones',
+                    requisicion: 'DCOM-025-2025',
+                    observaciones: 'Suministros para campaña de comunicación institucional'
+                },
+                {
+                    id: 'M004',
+                    fecha: '2025-11-10T16:20:00Z',
+                    tipo: 'ajuste',
+                    cantidad: 2,
+                    cantidadAnterior: 63,
+                    cantidadNueva: 65,
+                    usuario: 'inventario@sedh.gob.hn',
+                    observaciones: 'Ajuste por inventario físico mensual - Discrepancia encontrada en conteo',
+                    tipoAjuste: 'Inventario Físico'
+                },
+                {
+                    id: 'M005',
+                    fecha: '2025-11-01T08:00:00Z',
+                    tipo: 'entrada',
+                    cantidad: 63,
+                    cantidadAnterior: 0,
+                    cantidadNueva: 63,
+                    usuario: 'almacen.central@sedh.gob.hn',
+                    proveedor: 'Distribuidora Nacional de Papel',
+                    numeroFactura: 'FAC-2025-001200',
+                    observaciones: 'Ingreso inicial producto nuevo en catálogo - Orden de compra OC-2025-0075'
+                }
+            ];
+
+            return movimientosSimulados;
+        }
+
+        function mostrarTimeline(movimientos) {
+            const container = document.getElementById('timelineContainer');
+            
+            if (movimientos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No se encontraron movimientos para este producto</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Filtrar según filtro actual
+            const movimientosFiltrados = filtroTimelineActual === 'todos' 
+                ? movimientos 
+                : movimientos.filter(m => m.tipo === filtroTimelineActual);
+
+            if (movimientosFiltrados.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <p>No hay movimientos de tipo "${filtroTimelineActual}"</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = movimientosFiltrados.map(movimiento => {
+                const iconos = {
+                    'entrada': '📥',
+                    'salida': '📤',
+                    'ajuste': '⚙️',
+                    'devolucion': '↩️'
+                };
+                
+                const colores = {
+                    'entrada': 'var(--sedh-success)',
+                    'salida': 'var(--sedh-danger)',
+                    'ajuste': 'var(--sedh-warning)',
+                    'devolucion': 'var(--sedh-secondary)'
+                };
+
+                return `
+                    <div class="timeline-item" style="border-left-color: ${colores[movimiento.tipo]};">
+                        <div class="timeline-header">
+                            <div class="timeline-tipo" style="color: ${colores[movimiento.tipo]};">
+                                ${iconos[movimiento.tipo]} ${movimiento.tipo.toUpperCase()}
+                            </div>
+                            <div class="timeline-fecha">
+                                ${formatearFechaCompleta(movimiento.fecha)}
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-detalles">
+                            <div class="detalle-item">
+                                <div class="detalle-label">Cantidad</div>
+                                <div class="detalle-value" style="color: ${colores[movimiento.tipo]};">
+                                    ${movimiento.tipo === 'entrada' || movimiento.tipo === 'ajuste' && movimiento.cantidad > 0 ? '+' : ''}${movimiento.cantidad}
+                                </div>
+                            </div>
+                            <div class="detalle-item">
+                                <div class="detalle-label">Stock Anterior</div>
+                                <div class="detalle-value">${movimiento.cantidadAnterior}</div>
+                            </div>
+                            <div class="detalle-item">
+                                <div class="detalle-label">Stock Nuevo</div>
+                                <div class="detalle-value">${movimiento.cantidadNueva}</div>
+                            </div>
+                            <div class="detalle-item">
+                                <div class="detalle-label">Usuario</div>
+                                <div class="detalle-value">${movimiento.usuario}</div>
+                            </div>
+                            ${movimiento.departamento ? `
+                                <div class="detalle-item">
+                                    <div class="detalle-label">Departamento</div>
+                                    <div class="detalle-value">${movimiento.departamento}</div>
+                                </div>
+                            ` : ''}
+                            ${movimiento.requisicion ? `
+                                <div class="detalle-item">
+                                    <div class="detalle-label">Requisición</div>
+                                    <div class="detalle-value">${movimiento.requisicion}</div>
+                                </div>
+                            ` : ''}
+                            ${movimiento.proveedor ? `
+                                <div class="detalle-item">
+                                    <div class="detalle-label">Proveedor</div>
+                                    <div class="detalle-value">${movimiento.proveedor}</div>
+                                </div>
+                            ` : ''}
+                            ${movimiento.numeroFactura ? `
+                                <div class="detalle-item">
+                                    <div class="detalle-label">Factura</div>
+                                    <div class="detalle-value">${movimiento.numeroFactura}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+                        
+                        ${movimiento.observaciones ? `
+                            <div style="margin-top: 15px; padding: 10px; background: rgba(15, 118, 110, 0.1); border-radius: 8px;">
+                                <strong>Observaciones:</strong> ${movimiento.observaciones}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filtrarTimeline(tipoFiltro) {
+            filtroTimelineActual = tipoFiltro;
+            
+            // Actualizar botones activos
+            document.querySelectorAll('.filtro-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Mostrar timeline filtrado
+            mostrarTimeline(movimientosActuales);
+        }
+
+        function mostrarProductoNoEncontrado() {
+            document.getElementById('productoInfo').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">🔍</div>
+                    <h3>Producto no encontrado</h3>
+                    <p>No se encontró ningún producto con ese nombre o código.</p>
+                    <p style="margin-top: 10px; color: var(--sedh-primary);">
+                        Intente con otro término de búsqueda o use el scanner.
+                    </p>
+                </div>
+            `;
+            document.getElementById('timelineSection').style.display = 'none';
+        }
+
+        function mostrarError(mensaje) {
+            document.getElementById('productoInfo').innerHTML = `
+                <div class="error-state">
+                    ❌ ${mensaje}
+                </div>
+            `;
+            document.getElementById('timelineSection').style.display = 'none';
+        }
+
+        function abrirScanner() {
+            document.getElementById('scannerModal').style.display = 'flex';
+            iniciarScanner();
+        }
+
+        function cerrarScanner() {
+            document.getElementById('scannerModal').style.display = 'none';
+            detenerScanner();
+        }
+
+        function iniciarScanner() {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(stream => {
+                    const video = document.getElementById('scannerVideo');
+                    video.srcObject = stream;
+                    video.play();
+                    
+                    // Simular lectura de código después de 3 segundos
+                    setTimeout(() => {
+                        // Simular código escaneado
+                        const codigoEscaneado = 'PBC-001';
+                        document.getElementById('busquedaProducto').value = codigoEscaneado;
+                        cerrarScanner();
+                        buscarProducto();
+                    }, 3000);
+                })
+                .catch(err => {
+                    console.error('Error accediendo a la cámara:', err);
+                    alert('No se pudo acceder a la cámara. Verifique los permisos.');
+                    cerrarScanner();
+                });
+        }
+
+        function detenerScanner() {
+            const video = document.getElementById('scannerVideo');
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+            }
+        }
+
+        function formatearFecha(fecha) {
+            return new Date(fecha).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function formatearFechaCompleta(fecha) {
+            return new Date(fecha).toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('scannerModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                cerrarScanner();
+            }
+        });
+    </script>
+</body>
+</html>

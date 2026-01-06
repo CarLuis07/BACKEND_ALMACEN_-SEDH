@@ -1,0 +1,113 @@
+/* ========================================================
+   TEMA GLOBAL - PALETA TEAL UNIFICADA
+   Variables CSS reutilizables para toda la aplicación
+   ======================================================== */
+
+:root {
+    /* Colores principales - Teal/Emerald */
+    --sedh-primary: #0f766e;        /* Teal oscuro (principal) */
+    --sedh-secondary: #0f5e59;      /* Teal más oscuro (secundario) */
+    --sedh-light: #14b8a6;          /* Teal claro (acentos) */
+    --sedh-accent: #2dd4bf;         /* Cyan brillante (highlights) */
+    
+    /* Neutrales */
+    --sedh-bg: #f0fdfa;             /* Fondo claro teal */
+    --sedh-white: #ffffff;
+    --sedh-gray: #6c757d;
+    --sedh-light-gray: #e9ecef;
+    
+    /* Estados y alertas */
+    --sedh-success: #22c55e;        /* Verde éxito */
+    --sedh-warning: #f59e0b;        /* Amarillo advertencia */
+    --sedh-danger: #ef4444;         /* Rojo error */
+    --sedh-info: #06b6d4;           /* Cyan información */
+    
+    /* Gradientes predefinidos */
+    --gradient-primary: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-light) 100%);
+    --gradient-bg: linear-gradient(135deg, #0b3f3b 0%, #0f5e59 50%, #0f766e 100%);
+    
+    /* Sombras */
+    --shadow-teal: 0 6px 20px rgba(15, 118, 110, 0.3);
+    --shadow-teal-hover: 0 4px 12px rgba(15, 118, 110, 0.4);
+    --focus-ring: 0 0 0 3px rgba(15, 118, 110, 0.18);
+}
+
+/* ========================================================
+   ESTILOS DE LOGIN (compatibilidad legacy)
+   ======================================================== */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-container {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    width: 300px;
+}
+
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    width: 100%;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.success {
+    color: green;
+    margin-top: 10px;
+}
+
+.error {
+    color: red;
+    margin-top: 10px;
+}
+
+/* Estilos para mensajes animados */
+.success {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.error {
+    animation: shake 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}

@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Completo de Requisiciones - SEDH</title>
+    <!-- SheetJS para generar archivos Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- jsPDF para generar archivos PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- FileSaver.js para descargar archivos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- Chart.js para gráficas interactivas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <style>
+        :root {
+            --sedh-primary: #0f766e;
+            --sedh-secondary: #0f5e59;
+            --sedh-light: #14b8a6;
+            --sedh-accent: #2dd4bf;
+            --sedh-bg: #f0fdfa;
+            --sedh-white: #ffffff;
+            --sedh-gray: #6c757d;
+            --sedh-light-gray: #e9ecef;
+            --sedh-success: #22c55e;
+            --sedh-warning: #f59e0b;
+            --sedh-danger: #ef4444;
+            --sedh-info: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b3f3b 0%, #0f5e59 50%, #0f766e 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-secondary) 100%);
+            color: var(--sedh-white);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 20px rgba(15, 118, 110, 0.3);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .nav-buttons {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .nav-btn:hover {
+            background: white;
+            color: var(--sedh-primary);
+            transform: translateY(-2px);
+        }
+
+        .filters-section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-label {
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--sedh-primary);
+        }
+
+        .form-control {
+            padding: 12px;
+            border: 2px solid var(--sedh-light-gray);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: var(--sedh-primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.18);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-light) 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.4);
+        }
+
+        .btn-success {
+            background: var(--sedh-success);
+            color: white;
+        }
+
+        .btn-info {
+            background: var(--sedh-info);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--sedh-warning);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--sedh-primary);
+        }
+
+        /* Estilos para Resumen General */
+        .resumen-general-container {
+            margin: 20px 0;
+            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(15, 118, 110, 0.3);
+        }
+
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .resumen-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .resumen-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .resumen-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+            opacity: 0.9;
+        }
+
+        .resumen-content {
+            flex: 1;
+        }
+
+        .resumen-numero {
+            font-size: 2rem;
+            font-weight: bold;
+            line-height: 1.2;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .resumen-texto {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--sedh-primary);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--sedh-gray);
+            font-weight: 600;
+        }
+
+        .results-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .results-header {
+            background: var(--sedh-primary);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .requisicion-card {
+            border-bottom: 1px solid var(--sedh-light-gray);
+            padding: 25px;
+            transition: all 0.3s;
+        }
+
+        .requisicion-card:hover {
+            background: #f8f9fa;
+        }
+
+        .requisicion-header {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .codigo-requisicion {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--sedh-primary);
+            padding: 8px 15px;
+            background: rgba(15, 118, 110, 0.10);
+            border-radius: 25px;
+        }
+
+        .empleado-info {
+            flex: 1;
+        }
+
+        .empleado-nombre {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .empleado-email {
+            color: var(--sedh-gray);
+            font-size: 0.9rem;
+        }
+
+        .fecha-badge {
+            padding: 6px 12px;
+            background: var(--sedh-info);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .estado-badge {
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .estado-pendiente {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .estado-aprobado {
+            background: #d1edff;
+            color: #0c5460;
+            border: 1px solid #b6effb;
+        }
+
+        .estado-rechazado {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .flujo-aprobacion {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .flujo-step {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            position: relative;
+        }
+
+        .flujo-step.pendiente {
+            background: #fff3cd;
+            border-left: 4px solid var(--sedh-warning);
+        }
+
+        .flujo-step.aprobado {
+            background: #d1edff;
+            border-left: 4px solid var(--sedh-success);
+        }
+
+        .flujo-step.rechazado {
+            background: #f8d7da;
+            border-left: 4px solid var(--sedh-danger);
+        }
+
+        .flujo-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .flujo-status {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .productos-lista {
+            margin-top: 15px;
+        }
+
+        .productos-header {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--sedh-primary);
+        }
+
+        .producto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .producto-nombre {
+            font-weight: 500;
+        }
+
+        .producto-cantidad {
+            color: var(--sedh-gray);
+            font-size: 0.9rem;
+        }
+
+        .producto-total {
+            font-weight: 600;
+            color: var(--sedh-primary);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--sedh-gray);
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px;
+            color: var(--sedh-gray);
+        }
+
+        /* Estilos para gráficas */
+        .charts-section {
+            background: var(--sedh-white);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid var(--sedh-light-gray);
+        }
+
+        .charts-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--sedh-primary);
+        }
+
+        .charts-title {
+            color: var(--sedh-primary);
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: var(--sedh-white);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--sedh-light-gray);
+            position: relative;
+        }
+
+        .chart-title {
+            color: var(--sedh-primary);
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--sedh-accent);
+        }
+
+        .chart-canvas {
+            max-height: 400px;
+            width: 100%;
+        }
+
+        .chart-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--sedh-light-gray);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: var(--sedh-bg);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--sedh-primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--sedh-gray);
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .flujo-aprobacion {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                padding: 15px;
+            }
+            
+            .requisicion-header {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header" style="position: relative;">
+            <div class="nav-buttons">
+                <a href="/dashboard" class="nav-btn">🏠 Inicio</a>
+                <a href="/admin" class="nav-btn">🏛️ Administrador</a>
+            </div>
+            <h1>📊 Reporte Completo de Requisiciones</h1>
+            <p class="subtitle">Análisis detallado de solicitudes, flujos de aprobación y productos</p>
+        </header>
+
+        <!-- Resumen General de la Plataforma -->
+        <div id="resumenGeneral" class="resumen-general-container" style="display: none;">
+            <!-- El contenido se generará dinámicamente -->
+        </div>
+
+        <!-- Filtros -->
+        <div class="filters-section">
+            <div class="filters-grid">
+                <div class="form-group">
+                    <label class="form-label" for="mes">📅 Mes</label>
+                    <select id="mes" class="form-control">
+                        <option value="">Todos los meses</option>
+                        <option value="1">Enero</option>
+                        <option value="2">Febrero</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Mayo</option>
+                        <option value="6">Junio</option>
+                        <option value="7">Julio</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="anio">📅 Año</label>
+                    <select id="anio" class="form-control">
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="estado">📋 Estado</label>
+                    <select id="estado" class="form-control">
+                        <option value="">Todos los estados</option>
+                        <option value="EN ESPERA">En Espera</option>
+                        <option value="APROBADO">Aprobado</option>
+                        <option value="RECHAZADO">Rechazado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="dependencia">🏢 Dependencia</label>
+                    <select id="dependencia" class="form-control">
+                        <option value="">Todas las dependencias</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="busqueda">🔍 Buscar</label>
+                    <input type="text" id="busqueda" class="form-control" placeholder="Código de requisición o nombre de empleado..." 
+                           onkeypress="if(event.key==='Enter') generarReporte()" 
+                           autocomplete="off" />
+                    <small style="color: var(--sedh-gray); margin-top: 5px; font-size: 0.85rem;">
+                        💡 Presiona Enter para buscar o usa el botón "Generar Reporte"
+                    </small>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <button class="btn btn-primary" onclick="generarReporte()">📊 Generar Reporte Completo</button>
+                <button class="btn btn-secondary" onclick="limpiarFiltros()" style="margin-left: 10px;">🧹 Limpiar Filtros</button>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div id="stats-section" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number" id="total-requisiciones">0</div>
+                    <div class="stat-label">Total Requisiciones</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="requisiciones-pendientes">0</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="requisiciones-aprobadas">0</div>
+                    <div class="stat-label">Aprobadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="total-productos">0</div>
+                    <div class="stat-label">Productos Solicitados</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="monto-total">$0</div>
+                    <div class="stat-label">Monto Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="dependencias-activas">0</div>
+                    <div class="stat-label">Dependencias Activas</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resultados -->
+        <div id="results-container" class="results-container" style="display: none;">
+            <div class="results-header">
+                <div class="results-title">Requisiciones Encontradas</div>
+                <div class="export-buttons">
+                    <button class="btn btn-success" onclick="exportarExcel()">📊 Excel</button>
+                    <button class="btn btn-info" onclick="exportarPDF()">📄 PDF</button>
+                    <button class="btn btn-warning" onclick="exportarWord()">📝 Word</button>
+                </div>
+            </div>
+            <div id="requisiciones-content">
+                <!-- Aquí se cargarán las requisiciones -->
+            </div>
+        </div>
+
+        <!-- Sección de Gráficas -->
+        <div class="charts-section" id="chartsSection" style="display: none;">
+            <div class="charts-header">
+                <h2 class="charts-title">
+                    <span>📊</span>
+                    <span>Análisis Visual de Requisiciones</span>
+                    <span>📈</span>
+                </h2>
+                <p style="color: var(--sedh-gray); margin-top: 10px;">Gráficas interactivas con estadísticas detalladas del sistema</p>
+            </div>
+
+            <div class="charts-grid">
+                <!-- Gráfica de Estados -->
+                <div class="chart-container">
+                    <h3 class="chart-title">📋 Distribución por Estados</h3>
+                    <canvas id="estadosChart" class="chart-canvas"></canvas>
+                    <div class="chart-stats" id="estadosStats"></div>
+                </div>
+
+                <!-- Gráfica de Departamentos -->
+                <div class="chart-container">
+                    <h3 class="chart-title">🏢 Requisiciones por Departamento</h3>
+                    <canvas id="departamentosChart" class="chart-canvas"></canvas>
+                    <div class="chart-stats" id="departamentosStats"></div>
+                </div>
+
+                <!-- Gráfica de Tendencia Mensual -->
+                <div class="chart-container">
+                    <h3 class="chart-title">📅 Tendencia Mensual</h3>
+                    <canvas id="tendenciaChart" class="chart-canvas"></canvas>
+                    <div class="chart-stats" id="tendenciaStats"></div>
+                </div>
+
+                <!-- Gráfica de Productos más Solicitados -->
+                <div class="chart-container">
+                    <h3 class="chart-title">📋 Artículos Más Solicitados</h3>
+                    <canvas id="productosChart" class="chart-canvas"></canvas>
+                    <div class="chart-stats" id="productosStats"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading" style="display: none;">
+            <h3>⏳ Generando reporte...</h3>
+            <p>Por favor espere mientras procesamos la información</p>
+        </div>
+
+        <div id="no-results" class="no-results" style="display: none;">
+            <h3>📭 No se encontraron requisiciones</h3>
+            <p>Intente ajustar los filtros de búsqueda</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api/v1`;
+        let requisicionesActuales = [];
+
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            verificarAutenticacion();
+            cargarDependencias();
+            
+            // Seleccionar mes y año actual por defecto
+            const fechaActual = new Date();
+            document.getElementById('mes').value = fechaActual.getMonth() + 1;
+            document.getElementById('anio').value = fechaActual.getFullYear();
+        });
+
+        function verificarAutenticacion() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('⚠️ Debe iniciar sesión para acceder a los reportes');
+                window.location.href = '/login';
+                return;
+            }
+        }
+
+        async function cargarDependencias() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/dependencias`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const dependencias = await response.json();
+                    const select = document.getElementById('dependencia');
+                    
+                    dependencias.forEach(dep => {
+                        const option = document.createElement('option');
+                        option.value = dep.iddependencia;
+                        option.textContent = `${dep.sigla} - ${dep.nomdependencia}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error cargando dependencias:', error);
+            }
+        }
+
+        async function generarReporte() {
+            const loading = document.getElementById('loading');
+            const statsSection = document.getElementById('stats-section');
+            const resultsContainer = document.getElementById('results-container');
+            const noResults = document.getElementById('no-results');
+
+            // Ocultar secciones y mostrar loading
+            statsSection.style.display = 'none';
+            resultsContainer.style.display = 'none';
+            noResults.style.display = 'none';
+            loading.style.display = 'block';
+
+            const token = localStorage.getItem('token');
+            const mes = document.getElementById('mes').value;
+            const anio = document.getElementById('anio').value;
+            const estado = document.getElementById('estado').value;
+            const dependencia = document.getElementById('dependencia').value;
+            const busqueda = document.getElementById('busqueda').value;
+
+            try {
+                // Usar endpoint real de producción
+                let url = `${API_BASE_URL}/requisiciones/todas`;
+                const params = new URLSearchParams();
+                
+                if (mes) params.append('mes', mes);
+                if (anio) params.append('anio', anio);
+                if (estado) params.append('estado', estado);
+                if (dependencia) params.append('dependencia', dependencia);
+                if (busqueda) params.append('busqueda', busqueda);
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+
+                const response = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                
+                // MANEJO TEMPORAL PARA ENDPOINT DE PRUEBA
+                if (data.mensaje && data.total_requisiciones !== undefined) {
+                    // Es respuesta del endpoint de prueba
+                    loading.style.display = 'none';
+                    alert(`✅ Conexión exitosa!\n\nMensaje: ${data.mensaje}\nTotal de requisiciones en BD: ${data.total_requisiciones}\nUsuario: ${data.usuario}`);
+                    
+                    // Crear datos de prueba para mostrar la interfaz
+                    const requisiciones = [
+                        {
+                            IdRequisicion: "1",
+                            CodRequisicion: "UIT-001-2025",
+                            NomEmpleado: "Usuario de Prueba",
+                            CreadoPor: data.usuario,
+                            SiglasDependencia: "UIT",
+                            NomDependencia: "Unidad de Informática",
+                            FecSolicitud: new Date().toISOString(),
+                            EstGeneral: "EN ESPERA",
+                            ObsEmpleado: "Requisición de prueba para demostrar la interfaz",
+                            GasTotalDelPedido: 1500.00,
+                            TotalProductos: 3,
+                            Productos: [
+                                { NomProducto: "Producto Ejemplo 1", CantSolicitada: 2, GasUnitario: 250.00 },
+                                { NomProducto: "Producto Ejemplo 2", CantSolicitada: 1, GasUnitario: 1000.00 }
+                            ],
+                            FlujoAprobacion: {
+                                JefeInmediato: "Pendiente",
+                                GerenteAdministrativo: "Pendiente",
+                                JefeServiciosMateriales: "Pendiente",
+                                Almacen: "Pendiente"
+                            }
+                        }
+                    ];
+                    
+                    requisicionesActuales = requisiciones;
+                    
+                    // Actualizar resumen general con datos de prueba
+                    actualizarResumenGeneral(requisiciones);
+                    
+                    mostrarEstadisticas(requisiciones);
+                    statsSection.style.display = 'block';
+                    mostrarRequisiciones(requisiciones);
+                    resultsContainer.style.display = 'block';
+                    
+                    // Generar gráficas con datos de prueba
+                    generarGraficas(requisiciones);
+                    return;
+                }
+                
+                // MANEJO NORMAL PARA ENDPOINT DE PRODUCCIÓN
+                const requisiciones = Array.isArray(data) ? data : [];
+                requisicionesActuales = requisiciones;
+
+                loading.style.display = 'none';
+
+                if (requisiciones.length === 0) {
+                    noResults.style.display = 'block';
+                    return;
+                }
+
+                // Actualizar resumen general de la plataforma
+                actualizarResumenGeneral(requisiciones);
+
+                // Mostrar estadísticas
+                mostrarEstadisticas(requisiciones);
+                statsSection.style.display = 'block';
+
+                // Mostrar requisiciones
+                mostrarRequisiciones(requisiciones);
+                resultsContainer.style.display = 'block';
+
+                // Generar gráficas interactivas
+                generarGraficas(requisiciones);
+
+            } catch (error) {
+                console.error('Error generando reporte:', error);
+                loading.style.display = 'none';
+                alert('❌ Error al generar el reporte: ' + error.message);
+            }
+        }
+
+        function actualizarResumenGeneral(requisiciones) {
+            try {
+                console.log('=== ACTUALIZANDO RESUMEN GENERAL ===');
+                console.log('Total requisiciones recibidas:', requisiciones.length);
+                
+                // Calcular métricas generales
+                const totalRequisiciones = requisiciones.length;
+                
+                // Obtener departamentos únicos
+                const departamentosUnicos = new Set();
+                requisiciones.forEach(req => {
+                    const departamento = req.Dependencia || req.nomdependencia || req.NomDependencia || '';
+                    if (departamento.trim()) {
+                        departamentosUnicos.add(departamento.trim());
+                    }
+                });
+                
+                // Obtener usuarios únicos
+                const usuariosUnicos = new Set();
+                requisiciones.forEach(req => {
+                    const usuario = req.Usuario || req.nomUsuario || req.NomEmpleado || req.CreadoPor || '';
+                    if (usuario.trim()) {
+                        usuariosUnicos.add(usuario.trim());
+                    }
+                });
+                
+                // Calcular productos únicos
+                let productosUnicos = new Set();
+                let totalProductosSolicitados = 0;
+                
+                requisiciones.forEach(req => {
+                    const productos = req.Productos || req.productos || [];
+                    if (Array.isArray(productos)) {
+                        productos.forEach(prod => {
+                            const nombreProducto = prod.NomProducto || prod.nomproducto || '';
+                            const cantidad = parseFloat(prod.CantSolicitada || prod.cantsolicitada || 0);
+                            
+                            if (nombreProducto.trim()) {
+                                productosUnicos.add(nombreProducto.trim());
+                                totalProductosSolicitados += cantidad;
+                            }
+                        });
+                    }
+                });
+
+                console.log('Departamentos únicos:', departamentosUnicos.size);
+                console.log('Usuarios únicos:', usuariosUnicos.size);
+                console.log('Productos únicos:', productosUnicos.size);
+                console.log('Total productos solicitados:', totalProductosSolicitados);
+
+                // Actualizar la interfaz con el resumen
+                const resumenElement = document.getElementById('resumenGeneral');
+                if (resumenElement) {
+                    resumenElement.innerHTML = `
+                        <div class="resumen-grid">
+                            <div class="resumen-item">
+                                <div class="resumen-icon">📋</div>
+                                <div class="resumen-content">
+                                    <div class="resumen-numero">${totalRequisiciones}</div>
+                                    <div class="resumen-texto">Requisiciones Totales</div>
+                                </div>
+                            </div>
+                            <div class="resumen-item">
+                                <div class="resumen-icon">🏢</div>
+                                <div class="resumen-content">
+                                    <div class="resumen-numero">${departamentosUnicos.size}</div>
+                                    <div class="resumen-texto">Departamentos Activos</div>
+                                </div>
+                            </div>
+                            <div class="resumen-item">
+                                <div class="resumen-icon">👥</div>
+                                <div class="resumen-content">
+                                    <div class="resumen-numero">${usuariosUnicos.size}</div>
+                                    <div class="resumen-texto">Usuarios Únicos</div>
+                                </div>
+                            </div>
+                            <div class="resumen-item">
+                                <div class="resumen-icon">📦</div>
+                                <div class="resumen-content">
+                                    <div class="resumen-numero">${productosUnicos.size}</div>
+                                    <div class="resumen-texto">Productos Distintos</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Mostrar el resumen
+                    resumenElement.style.display = 'block';
+                    
+                    console.log('✅ Resumen general actualizado exitosamente');
+                }
+            } catch (error) {
+                console.error('❌ Error generando resumen general:', error);
+            }
+        }
+
+        function mostrarEstadisticas(requisiciones) {
+            // Verificar que requisiciones es un array
+            if (!Array.isArray(requisiciones)) {
+                console.error('mostrarEstadisticas: requisiciones no es un array', requisiciones);
+                return;
+            }
+            
+            const totalRequisiciones = requisiciones.length;
+            const pendientes = requisiciones.filter(r => r.EstGeneral === 'EN ESPERA').length;
+            const aprobadas = requisiciones.filter(r => r.EstGeneral === 'APROBADO').length;
+            
+            let totalProductos = 0;
+            let montoTotal = 0;
+            const dependenciasUnicas = new Set();
+
+            requisiciones.forEach(req => {
+                if (req.Productos && Array.isArray(req.Productos)) {
+                    totalProductos += req.Productos.length;
+                }
+                montoTotal += req.GasTotalDelPedido || 0;
+                dependenciasUnicas.add(req.IdDependencia);
+            });
+
+            document.getElementById('total-requisiciones').textContent = totalRequisiciones;
+            document.getElementById('requisiciones-pendientes').textContent = pendientes;
+            document.getElementById('requisiciones-aprobadas').textContent = aprobadas;
+            document.getElementById('total-productos').textContent = totalProductos;
+            document.getElementById('monto-total').textContent = `L ${montoTotal.toFixed(2)}`;
+            document.getElementById('dependencias-activas').textContent = dependenciasUnicas.size;
+        }
+
+        function mostrarRequisiciones(requisiciones) {
+            const container = document.getElementById('requisiciones-content');
+            container.innerHTML = '';
+
+            // Verificar que requisiciones es un array
+            if (!Array.isArray(requisiciones)) {
+                console.error('mostrarRequisiciones: requisiciones no es un array', requisiciones);
+                container.innerHTML = '<div class="loading">❌ Error: Datos inválidos</div>';
+                return;
+            }
+
+            requisiciones.forEach(req => {
+                const card = crearTarjetaRequisicion(req);
+                container.appendChild(card);
+            });
+        }
+
+        function crearTarjetaRequisicion(req) {
+            const card = document.createElement('div');
+            card.className = 'requisicion-card';
+
+            const fechaFormateada = new Date(req.FecSolicitud).toLocaleDateString('es-HN', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+
+            const estadoClass = req.EstGeneral === 'EN ESPERA' ? 'estado-pendiente' : 
+                              req.EstGeneral === 'APROBADO' ? 'estado-aprobado' : 'estado-rechazado';
+
+            card.innerHTML = `
+                <div class="requisicion-header">
+                    <div class="codigo-requisicion">${req.CodRequisicion}</div>
+                    <div class="empleado-info">
+                        <div class="empleado-nombre">${req.NomEmpleado}</div>
+                        <div class="empleado-email">${req.CreadoPor}</div>
+                    </div>
+                    <div class="fecha-badge">${fechaFormateada}</div>
+                    <div class="estado-badge ${estadoClass}">${req.EstGeneral}</div>
+                </div>
+
+                <div class="flujo-aprobacion">
+                    <div class="flujo-step ${getEstadoClase(req.FlujoAprobacion?.JefeInmediato)}">
+                        <div class="flujo-title">👨‍💼 Jefe Inmediato</div>
+                        <div class="flujo-status">${req.FlujoAprobacion?.JefeInmediato || 'Pendiente'}</div>
+                    </div>
+                    <div class="flujo-step ${getEstadoClase(req.FlujoAprobacion?.GerenteAdministrativo)}">
+                        <div class="flujo-title">🏢 Gerente Admin.</div>
+                        <div class="flujo-status">${req.FlujoAprobacion?.GerenteAdministrativo || 'Pendiente'}</div>
+                    </div>
+                    <div class="flujo-step ${getEstadoClase(req.FlujoAprobacion?.JefeServiciosMateriales)}">
+                        <div class="flujo-title">📦 Jefe Materiales</div>
+                        <div class="flujo-status">${req.FlujoAprobacion?.JefeServiciosMateriales || 'Pendiente'}</div>
+                    </div>
+                    <div class="flujo-step ${getEstadoClase(req.FlujoAprobacion?.Almacen)}">
+                        <div class="flujo-title">🏪 Almacén</div>
+                        <div class="flujo-status">${req.FlujoAprobacion?.Almacen || 'Pendiente'}</div>
+                    </div>
+                </div>
+
+                ${req.ObsEmpleado ? `<div style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                    <strong>📝 Observaciones:</strong> ${req.ObsEmpleado}
+                </div>` : ''}
+
+                <div class="productos-lista">
+                    <div class="productos-header">📦 Productos Solicitados (${req.TotalProductos})</div>
+                    ${crearListaProductos(req.Productos)}
+                    <div style="text-align: right; margin-top: 15px; font-size: 1.1rem; font-weight: bold; color: var(--sedh-primary);">
+                        💰 Total: L ${(req.GasTotalDelPedido || 0).toFixed(2)}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function getEstadoClase(estado) {
+            if (estado === 'Aprobado') return 'aprobado';
+            if (estado === 'Rechazado') return 'rechazado';
+            return 'pendiente';
+        }
+
+        function crearListaProductos(productos) {
+            if (!productos || !Array.isArray(productos)) {
+                return '<div style="color: #666; font-style: italic;">No hay productos detallados</div>';
+            }
+
+            return productos.map(prod => `
+                <div class="producto-item" style="display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 1fr; gap: 10px; align-items: center; padding: 12px; margin: 8px 0; background: white; border-radius: 6px; border-left: 4px solid var(--sedh-accent);">
+                    <div class="producto-nombre" style="font-weight: 600; color: #333;">${prod.NomProducto || 'Producto sin nombre'}</div>
+                    <div class="producto-cantidad" style="text-align: center; color: #666;">Cant: ${prod.CantSolicitada || 0}</div>
+                    <div style="text-align: center; font-size: 0.85em; color: #777;">${prod.NumFactura ? `📄 ${prod.NumFactura}` : '<span style="color: #ccc;">Sin factura</span>'}</div>
+                    <div style="text-align: center; font-size: 0.85em; color: #777;">${prod.OrdenCompra ? `📋 ${prod.OrdenCompra}` : '<span style="color: #ccc;">Sin orden</span>'}</div>
+                    <div class="producto-unitario" style="text-align: right; color: #666;">L ${(prod.GasUnitario || 0).toFixed(2)}</div>
+                    <div class="producto-total" style="text-align: right; font-weight: bold; color: var(--sedh-primary);">L ${((prod.GasUnitario || 0) * (prod.CantSolicitada || 0)).toFixed(2)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Funciones de exportación
+        async function exportarExcel() {
+            if (requisicionesActuales.length === 0) {
+                alert('⚠️ No hay datos para exportar');
+                return;
+            }
+            
+            await descargarExcelMejorado();
+        }
+
+        async function exportarPDF() {
+            if (requisicionesActuales.length === 0) {
+                alert('⚠️ No hay datos para exportar');
+                return;
+            }
+            
+            await generarPDFCompleto();
+        }
+
+        async function exportarWord() {
+            if (requisicionesActuales.length === 0) {
+                alert('⚠️ No hay datos para exportar');
+                return;
+            }
+            
+            await generarDocumentoWord();
+        }
+
+        async function descargarExcelMejorado() {
+            // Crear un libro de Excel con formato mejorado
+            const wb = XLSX.utils.book_new();
+            
+            // Hoja 1: Resumen Ejecutivo
+            const resumenData = prepararResumenEjecutivo();
+            const wsResumen = XLSX.utils.aoa_to_sheet(resumenData);
+            
+            // Aplicar formato al resumen
+            const rangeResumen = XLSX.utils.decode_range(wsResumen['!ref']);
+            wsResumen['!cols'] = [
+                { wch: 25 }, // Columna A - Concepto
+                { wch: 20 }  // Columna B - Valor
+            ];
+            
+            XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen Ejecutivo');
+
+            // Hoja 2: Requisiciones Completa
+            const requisicionesData = prepararDatosParaExportacionMejorada();
+            const wsRequisiciones = XLSX.utils.aoa_to_sheet(requisicionesData);
+            
+            // Configurar anchos de columna para mejor visualización
+            wsRequisiciones['!cols'] = [
+                { wch: 15 }, // Código
+                { wch: 25 }, // Empleado
+                { wch: 30 }, // Email
+                { wch: 20 }, // Dependencia
+                { wch: 12 }, // Fecha
+                { wch: 12 }, // Estado
+                { wch: 15 }, // Jefe Inmediato
+                { wch: 15 }, // Gerente Admin
+                { wch: 15 }, // Jefe Materiales
+                { wch: 12 }, // Almacén
+                { wch: 12 }, // Total Productos
+                { wch: 15 }, // Monto Total
+                { wch: 40 }  // Observaciones
+            ];
+
+            XLSX.utils.book_append_sheet(wb, wsRequisiciones, 'Requisiciones Detalladas');
+
+            // Hoja 3: Productos por Requisición
+            const productosData = prepararDatosProductosDetallados();
+            const wsProductos = XLSX.utils.aoa_to_sheet(productosData);
+            
+            wsProductos['!cols'] = [
+                { wch: 15 }, // Código Requisición
+                { wch: 30 }, // Nombre Producto
+                { wch: 12 }, // Cantidad
+                { wch: 18 }, // Número de Factura
+                { wch: 18 }, // Orden de Compra
+                { wch: 15 }, // Precio Unitario
+                { wch: 15 }, // Total
+                { wch: 20 }  // Estado Producto
+            ];
+
+            XLSX.utils.book_append_sheet(wb, wsProductos, 'Productos Detallados');
+
+            // Hoja 4: Estadísticas por Dependencia
+            const estadisticasData = prepararEstadisticasPorDependencia();
+            const wsEstadisticas = XLSX.utils.aoa_to_sheet(estadisticasData);
+            
+            wsEstadisticas['!cols'] = [
+                { wch: 25 }, // Dependencia
+                { wch: 15 }, // Total Requisiciones
+                { wch: 15 }, // En Espera
+                { wch: 15 }, // Aprobadas
+                { wch: 15 }, // Rechazadas
+                { wch: 18 }  // Monto Total
+            ];
+
+            XLSX.utils.book_append_sheet(wb, wsEstadisticas, 'Estadísticas por Área');
+
+            // Generar archivo con nombre descriptivo
+            const fecha = new Date().toISOString().split('T')[0];
+            const filename = `Reporte_Requisiciones_SecretariaDerechosHumanos_${fecha}.xlsx`;
+            
+            // Descargar archivo
+            XLSX.writeFile(wb, filename);
+        }
+
+        function prepararResumenEjecutivo() {
+            const totalRequisiciones = requisicionesActuales.length;
+            const enEspera = requisicionesActuales.filter(r => r.EstGeneral === 'EN ESPERA').length;
+            const aprobadas = requisicionesActuales.filter(r => r.EstGeneral === 'APROBADO').length;
+            const rechazadas = requisicionesActuales.filter(r => r.EstGeneral === 'RECHAZADO').length;
+            const montoTotal = requisicionesActuales.reduce((sum, r) => sum + (r.GasTotalDelPedido || 0), 0);
+            const totalProductos = requisicionesActuales.reduce((sum, r) => sum + (r.TotalProductos || 0), 0);
+            
+            const fechaGeneracion = new Date().toLocaleString('es-HN');
+            
+            return [
+                ['REPORTE EJECUTIVO - SECRETARÍA DE DERECHOS HUMANOS', ''],
+                ['SISTEMA DE GESTIÓN DE REQUISICIONES', ''],
+                ['Fecha de Generación:', fechaGeneracion],
+                ['', ''],
+                ['RESUMEN GENERAL', ''],
+                ['═══════════════════════════════════════════════════', ''],
+                ['Total de Requisiciones:', totalRequisiciones],
+                ['Total de Productos Solicitados:', totalProductos],
+                ['Monto Total Solicitado:', `L ${montoTotal.toFixed(2)}`],
+                ['', ''],
+                ['ESTADO DE REQUISICIONES', ''],
+                ['══════════════════════════════════════════════════', ''],
+                ['En Espera:', `${enEspera} (${((enEspera/totalRequisiciones)*100).toFixed(1)}%)`],
+                ['Aprobadas:', `${aprobadas} (${((aprobadas/totalRequisiciones)*100).toFixed(1)}%)`],
+                ['Rechazadas:', `${rechazadas} (${((rechazadas/totalRequisiciones)*100).toFixed(1)}%)`],
+                ['', ''],
+                ['PROMEDIO POR REQUISICIÓN', ''],
+                ['═══════════════════════════════════════════════════', ''],
+                ['Promedio de Productos por Requisición:', (totalProductos/totalRequisiciones).toFixed(1)],
+                ['Promedio de Monto por Requisición:', `L ${(montoTotal/totalRequisiciones).toFixed(2)}`]
+            ];
+        }
+
+        function prepararDatosParaExportacionMejorada() {
+            const headers = [
+                'Código Requisición',
+                'Empleado Solicitante', 
+                'Correo Electrónico',
+                'Dependencia',
+                'Fecha Solicitud',
+                'Estado General',
+                'Jefe Inmediato',
+                'Gerente Administrativo',
+                'Jefe de Materiales',
+                'Almacén',
+                'Total Productos',
+                'Monto Total (L)',
+                'Observaciones del Empleado'
+            ];
+
+            const rows = requisicionesActuales.map(req => [
+                req.CodRequisicion || 'N/A',
+                req.NomEmpleado || 'N/A',
+                req.CreadoPor || 'N/A',
+                req.NomDependencia || 'Sin Asignar',
+                new Date(req.FecSolicitud).toLocaleDateString('es-HN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }),
+                req.EstGeneral || 'Sin Estado',
+                req.FlujoAprobacion?.JefeInmediato || 'Pendiente',
+                req.FlujoAprobacion?.GerenteAdministrativo || 'Pendiente',
+                req.FlujoAprobacion?.JefeServiciosMateriales || 'Pendiente',
+                req.FlujoAprobacion?.Almacen || 'Pendiente',
+                req.TotalProductos || 0,
+                (req.GasTotalDelPedido || 0).toFixed(2),
+                req.ObsEmpleado || 'Sin observaciones'
+            ]);
+
+            return [headers, ...rows];
+        }
+
+        function prepararDatosProductosDetallados() {
+            const headers = [
+                'Código Requisición',
+                'Nombre del Producto',
+                'Cantidad Solicitada',
+                'Número de Factura',
+                'Orden de Compra',
+                'Precio Unitario (L)',
+                'Total Producto (L)',
+                'Estado del Producto'
+            ];
+
+            const rows = [];
+            
+            requisicionesActuales.forEach(req => {
+                if (req.Productos && Array.isArray(req.Productos)) {
+                    req.Productos.forEach(prod => {
+                        rows.push([
+                            req.CodRequisicion || 'N/A',
+                            prod.NomProducto || 'Producto sin nombre',
+                            prod.CantSolicitada || 0,
+                            prod.NumFactura || 'Sin factura',
+                            prod.OrdenCompra || 'Sin orden',
+                            (prod.GasUnitario || 0).toFixed(2),
+                            ((prod.GasUnitario || 0) * (prod.CantSolicitada || 0)).toFixed(2),
+                            prod.EstProducto || 'Sin Estado'
+                        ]);
+                    });
+                } else {
+                    rows.push([
+                        req.CodRequisicion || 'N/A',
+                        'Sin productos detallados',
+                        0,
+                        'N/A',
+                        'N/A',
+                        '0.00',
+                        '0.00',
+                        'N/A'
+                    ]);
+                }
+            });
+
+            return [headers, ...rows];
+        }
+
+        function prepararEstadisticasPorDependencia() {
+            const headers = [
+                'Dependencia',
+                'Total Requisiciones',
+                'En Espera',
+                'Aprobadas',
+                'Rechazadas',
+                'Monto Total (L)'
+            ];
+
+            const estadisticas = {};
+            
+            requisicionesActuales.forEach(req => {
+                const dep = req.NomDependencia || 'Sin Asignar';
+                
+                if (!estadisticas[dep]) {
+                    estadisticas[dep] = {
+                        total: 0,
+                        enEspera: 0,
+                        aprobadas: 0,
+                        rechazadas: 0,
+                        montoTotal: 0
+                    };
+                }
+                
+                estadisticas[dep].total++;
+                estadisticas[dep].montoTotal += (req.GasTotalDelPedido || 0);
+                
+                switch(req.EstGeneral) {
+                    case 'EN ESPERA':
+                        estadisticas[dep].enEspera++;
+                        break;
+                    case 'APROBADO':
+                        estadisticas[dep].aprobadas++;
+                        break;
+                    case 'RECHAZADO':
+                        estadisticas[dep].rechazadas++;
+                        break;
+                }
+            });
+
+            const rows = Object.entries(estadisticas).map(([dep, stats]) => [
+                dep,
+                stats.total,
+                stats.enEspera,
+                stats.aprobadas,
+                stats.rechazadas,
+                stats.montoTotal.toFixed(2)
+            ]);
+
+            return [headers, ...rows];
+        }
+
+        async function generarPDFCompleto() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('l', 'mm', 'a4'); // Landscape orientation para más espacio
+            
+            // Configuración de colores SEDH
+            const sedhGreen = [15, 118, 110];
+            const sedhLightGreen = [20, 184, 166];
+            const darkGray = [51, 51, 51];
+            const lightGray = [240, 240, 240];
+            
+            let yPosition = 20;
+            
+            // ========== PÁGINA 1: PORTADA Y RESUMEN EJECUTIVO ==========
+            
+            // Header institucional
+            pdf.setFillColor(...sedhGreen);
+            pdf.rect(0, 0, 297, 40, 'F');
+            
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(24);
+            pdf.setFont("helvetica", "bold");
+            pdf.text('SECRETARÍA DE DERECHOS HUMANOS', 148.5, 15, { align: 'center' });
+            pdf.setFontSize(18);
+            pdf.text('REPORTE COMPLETO DE REQUISICIONES', 148.5, 25, { align: 'center' });
+            pdf.setFontSize(12);
+            pdf.text(`Generado el: ${new Date().toLocaleDateString('es-HN', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            })}`, 148.5, 35, { align: 'center' });
+            
+            yPosition = 60;
+            
+            // Resumen ejecutivo
+            pdf.setTextColor(...darkGray);
+            pdf.setFontSize(16);
+            pdf.setFont("helvetica", "bold");
+            pdf.text('📊 RESUMEN EJECUTIVO', 20, yPosition);
+            
+            yPosition += 15;
+            
+            const totalRequisiciones = requisicionesActuales.length;
+            const enEspera = requisicionesActuales.filter(r => r.EstGeneral === 'EN ESPERA').length;
+            const aprobadas = requisicionesActuales.filter(r => r.EstGeneral === 'APROBADO').length;
+            const rechazadas = requisicionesActuales.filter(r => r.EstGeneral === 'RECHAZADO').length;
+            const montoTotal = requisicionesActuales.reduce((sum, r) => sum + (r.GasTotalDelPedido || 0), 0);
+            const totalProductos = requisicionesActuales.reduce((sum, r) => sum + (r.TotalProductos || 0), 0);
+            
+            // Tabla de resumen ejecutivo
+            pdf.autoTable({
+                startY: yPosition,
+                head: [['Concepto', 'Valor', 'Porcentaje']],
+                body: [
+                    ['Total de Requisiciones', totalRequisiciones.toString(), '100%'],
+                    ['En Espera', enEspera.toString(), `${((enEspera/totalRequisiciones)*100).toFixed(1)}%`],
+                    ['Aprobadas', aprobadas.toString(), `${((aprobadas/totalRequisiciones)*100).toFixed(1)}%`],
+                    ['Rechazadas', rechazadas.toString(), `${((rechazadas/totalRequisiciones)*100).toFixed(1)}%`],
+                    ['Total de Productos', totalProductos.toString(), '-'],
+                    ['Monto Total Solicitado', `L ${montoTotal.toFixed(2)}`, '-'],
+                    ['Promedio por Requisición', `L ${(montoTotal/totalRequisiciones).toFixed(2)}`, '-'],
+                    ['Promedio Productos/Req.', (totalProductos/totalRequisiciones).toFixed(1), '-']
+                ],
+                headStyles: { 
+                    fillColor: sedhGreen,
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 12
+                },
+                bodyStyles: { 
+                    fontSize: 10,
+                    textColor: darkGray
+                },
+                alternateRowStyles: { 
+                    fillColor: lightGray 
+                },
+                margin: { left: 20, right: 20 }
+            });
+            
+            // Estadísticas por dependencia
+            yPosition = pdf.lastAutoTable.finalY + 20;
+            
+            pdf.setFontSize(14);
+            pdf.setFont("helvetica", "bold");
+            pdf.text('🏢 ESTADÍSTICAS POR DEPENDENCIA', 20, yPosition);
+            
+            yPosition += 10;
+            
+            const estadisticasDep = prepararEstadisticasPorDependenciaPDF();
+            
+            pdf.autoTable({
+                startY: yPosition,
+                head: [['Dependencia', 'Total Req.', 'En Espera', 'Aprobadas', 'Rechazadas', 'Monto Total (L)']],
+                body: estadisticasDep,
+                headStyles: { 
+                    fillColor: sedhLightGreen,
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 10
+                },
+                bodyStyles: { 
+                    fontSize: 9,
+                    textColor: darkGray
+                },
+                alternateRowStyles: { 
+                    fillColor: lightGray 
+                },
+                margin: { left: 20, right: 20 }
+            });
+            
+            // ========== PÁGINA 2: REQUISICIONES DETALLADAS ==========
+            pdf.addPage();
+            yPosition = 20;
+            
+            // Header de página
+            pdf.setFillColor(...sedhGreen);
+            pdf.rect(0, 0, 297, 25, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFontSize(16);
+            pdf.setFont("helvetica", "bold");
+            pdf.text('📝 REQUISICIONES DETALLADAS', 148.5, 15, { align: 'center' });
+            
+            yPosition = 35;
+            
+            // Tabla de requisiciones detalladas
+            const requisicionesData = requisicionesActuales.map(req => [
+                req.CodRequisicion || 'N/A',
+                (req.NomEmpleado || 'N/A').substring(0, 20) + '...',
+                (req.NomDependencia || 'Sin Asignar').substring(0, 15) + '...',
+                new Date(req.FecSolicitud).toLocaleDateString('es-HN'),
+                req.EstGeneral || 'Sin Estado',
+                req.FlujoAprobacion?.JefeInmediato || 'Pendiente',
+                req.FlujoAprobacion?.GerenteAdministrativo || 'Pendiente',
+                req.FlujoAprobacion?.JefeServiciosMateriales || 'Pendiente',
+                req.FlujoAprobacion?.Almacen || 'Pendiente',
+                req.TotalProductos || 0,
+                `L ${(req.GasTotalDelPedido || 0).toFixed(2)}`
+            ]);
+            
+            pdf.autoTable({
+                startY: yPosition,
+                head: [['Código', 'Empleado', 'Dependencia', 'Fecha', 'Estado', 'Jefe Inm.', 'Gte. Admin', 'Jefe Mat.', 'Almacén', 'Prod.', 'Monto']],
+                body: requisicionesData,
+                headStyles: { 
+                    fillColor: sedhGreen,
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 8
+                },
+                bodyStyles: { 
+                    fontSize: 7,
+                    textColor: darkGray
+                },
+                alternateRowStyles: { 
+                    fillColor: lightGray 
+                },
+                columnStyles: {
+                    0: { cellWidth: 25 }, // Código
+                    1: { cellWidth: 30 }, // Empleado
+                    2: { cellWidth: 25 }, // Dependencia
+                    3: { cellWidth: 20 }, // Fecha
+                    4: { cellWidth: 20 }, // Estado
+                    5: { cellWidth: 18 }, // Jefe Inm
+                    6: { cellWidth: 18 }, // Gte Admin
+                    7: { cellWidth: 18 }, // Jefe Mat
+                    8: { cellWidth: 18 }, // Almacén
+                    9: { cellWidth: 15 }, // Productos
+                    10: { cellWidth: 25 } // Monto
+                },
+                margin: { left: 10, right: 10 }
+            });
+            
+            // ========== PÁGINA 3: PRODUCTOS DETALLADOS ==========
+            if (requisicionesActuales.some(req => req.Productos && req.Productos.length > 0)) {
+                pdf.addPage();
+                yPosition = 20;
+                
+                // Header de página
+                pdf.setFillColor(...sedhGreen);
+                pdf.rect(0, 0, 297, 25, 'F');
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(16);
+                pdf.setFont("helvetica", "bold");
+                pdf.text('📦 PRODUCTOS DETALLADOS POR REQUISICIÓN', 148.5, 15, { align: 'center' });
+                
+                yPosition = 35;
+                
+                const productosData = [];
+                requisicionesActuales.forEach(req => {
+                    if (req.Productos && Array.isArray(req.Productos) && req.Productos.length > 0) {
+                        req.Productos.forEach(prod => {
+                            productosData.push([
+                                req.CodRequisicion || 'N/A',
+                                (prod.NomProducto || 'Producto sin nombre').substring(0, 30),
+                                prod.CantSolicitada || 0,
+                                (prod.NumFactura || 'Sin factura').substring(0, 15),
+                                (prod.OrdenCompra || 'Sin orden').substring(0, 15),
+                                `L ${(prod.GasUnitario || 0).toFixed(2)}`,
+                                `L ${((prod.GasUnitario || 0) * (prod.CantSolicitada || 0)).toFixed(2)}`
+                            ]);
+                        });
+                    }
+                });
+                
+                if (productosData.length > 0) {
+                    pdf.autoTable({
+                        startY: yPosition,
+                        head: [['Código', 'Producto', 'Cant.', 'Num. Factura', 'Ord. Compra', 'P. Unit.', 'Total']],
+                        body: productosData,
+                        headStyles: { 
+                            fillColor: sedhGreen,
+                            textColor: [255, 255, 255],
+                            fontStyle: 'bold',
+                            fontSize: 9
+                        },
+                        bodyStyles: { 
+                            fontSize: 7,
+                            textColor: darkGray
+                        },
+                        alternateRowStyles: { 
+                            fillColor: lightGray 
+                        },
+                        columnStyles: {
+                            0: { cellWidth: 25 }, // Código Req
+                            1: { cellWidth: 60 }, // Producto
+                            2: { cellWidth: 20 }, // Cantidad
+                            3: { cellWidth: 35 }, // Num. Factura
+                            4: { cellWidth: 35 }, // Ord. Compra
+                            5: { cellWidth: 25 }, // Precio Unit
+                            6: { cellWidth: 25 }  // Total
+                        },
+                        margin: { left: 15, right: 15 }
+                    });
+                }
+            }
+            
+            // Footer en todas las páginas
+            const pageCount = pdf.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                pdf.setPage(i);
+                pdf.setFontSize(10);
+                pdf.setTextColor(...darkGray);
+                pdf.text(`Sistema de Gestión de Requisiciones - Secretaría de Derechos Humanos - Página ${i} de ${pageCount}`, 148.5, 200, { align: 'center' });
+                pdf.text(`Generado automáticamente el ${new Date().toLocaleString('es-HN')}`, 148.5, 205, { align: 'center' });
+            }
+            
+            // Descargar PDF
+            const fecha = new Date().toISOString().split('T')[0];
+            const filename = `Reporte_Requisiciones_SecretariaDerechosHumanos_${fecha}.pdf`;
+            pdf.save(filename);
+        }
+        
+        function prepararEstadisticasPorDependenciaPDF() {
+            const estadisticas = {};
+            
+            requisicionesActuales.forEach(req => {
+                const dep = req.NomDependencia || 'Sin Asignar';
+                
+                if (!estadisticas[dep]) {
+                    estadisticas[dep] = {
+                        total: 0,
+                        enEspera: 0,
+                        aprobadas: 0,
+                        rechazadas: 0,
+                        montoTotal: 0
+                    };
+                }
+                
+                estadisticas[dep].total++;
+                estadisticas[dep].montoTotal += (req.GasTotalDelPedido || 0);
+                
+                switch(req.EstGeneral) {
+                    case 'EN ESPERA':
+                        estadisticas[dep].enEspera++;
+                        break;
+                    case 'APROBADO':
+                        estadisticas[dep].aprobadas++;
+                        break;
+                    case 'RECHAZADO':
+                        estadisticas[dep].rechazadas++;
+                        break;
+                }
+            });
+
+            return Object.entries(estadisticas).map(([dep, stats]) => [
+                dep.length > 18 ? dep.substring(0, 18) + '...' : dep,
+                stats.total.toString(),
+                stats.enEspera.toString(),
+                stats.aprobadas.toString(),
+                stats.rechazadas.toString(),
+                stats.montoTotal.toFixed(2)
+            ]);
+        }
+
+        async function generarDocumentoWord() {
+            // Estadísticas para el resumen
+            const totalRequisiciones = requisicionesActuales.length;
+            const enEspera = requisicionesActuales.filter(r => r.EstGeneral === 'EN ESPERA').length;
+            const aprobadas = requisicionesActuales.filter(r => r.EstGeneral === 'APROBADO').length;
+            const rechazadas = requisicionesActuales.filter(r => r.EstGeneral === 'RECHAZADO').length;
+            const montoTotal = requisicionesActuales.reduce((sum, r) => sum + (r.GasTotalDelPedido || 0), 0);
+            const totalProductos = requisicionesActuales.reduce((sum, r) => sum + (r.TotalProductos || 0), 0);
+            
+            const fechaGeneracion = new Date().toLocaleDateString('es-HN', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+
+            // Crear contenido HTML compatible con Word
+            const htmlContent = `
+<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" 
+      xmlns:w="urn:schemas-microsoft-com:office:word" 
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+    <meta charset="utf-8">
+    <meta name="ProgId" content="Word.Document">
+    <meta name="Generator" content="Microsoft Word 15">
+    <meta name="Originator" content="Microsoft Word 15">
+    <title>Reporte de Requisiciones - Secretaría de Derechos Humanos</title>
+    <style>
+        @page { 
+            margin: 1in; 
+            mso-page-orientation: portrait; 
+        }
+        body { 
+            font-family: 'Calibri', sans-serif; 
+            font-size: 11pt; 
+            line-height: 1.2; 
+        }
+        .header-institucional { 
+            text-align: center; 
+            color: #0f766e; 
+            font-weight: bold; 
+            font-size: 18pt; 
+            margin-bottom: 20pt; 
+        }
+        .titulo-reporte { 
+            text-align: center; 
+            color: #0f5e59; 
+            font-weight: bold; 
+            font-size: 16pt; 
+            margin-bottom: 10pt; 
+        }
+        .fecha-generacion { 
+            text-align: center; 
+            font-style: italic; 
+            font-size: 12pt; 
+            margin-bottom: 30pt; 
+        }
+        .seccion-titulo { 
+            color: #0f766e; 
+            font-weight: bold; 
+            font-size: 14pt; 
+            margin-top: 25pt; 
+            margin-bottom: 15pt; 
+            border-bottom: 2px solid #0f766e; 
+            padding-bottom: 5pt; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20pt; 
+            font-size: 10pt; 
+        }
+        th { 
+            background-color: #0f766e; 
+            color: white; 
+            font-weight: bold; 
+            padding: 8pt; 
+            border: 1px solid #333; 
+            text-align: center; 
+        }
+        td { 
+            padding: 6pt; 
+            border: 1px solid #ccc; 
+            text-align: left; 
+        }
+        tr:nth-child(even) { 
+            background-color: #f8f9fa; 
+        }
+        .numero { 
+            text-align: right; 
+        }
+        .footer { 
+            text-align: center; 
+            font-style: italic; 
+            font-size: 9pt; 
+            color: #666; 
+            margin-top: 40pt; 
+        }
+        .page-break { 
+            page-break-before: always; 
+        }
+        .destacado { 
+            background-color: #14b8a6; 
+            color: white; 
+        }
+    </style>
+</head>
+<body>
+    <div class="header-institucional">SECRETARÍA DE DERECHOS HUMANOS</div>
+    <div class="titulo-reporte">REPORTE COMPLETO DE REQUISICIONES</div>
+    <div class="fecha-generacion">Generado el: ${fechaGeneracion}</div>
+    
+    <div class="seccion-titulo">📊 RESUMEN EJECUTIVO</div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Concepto</th>
+                <th>Valor</th>
+                <th>Porcentaje</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Total de Requisiciones</strong></td>
+                <td class="numero">${totalRequisiciones}</td>
+                <td class="numero">100%</td>
+            </tr>
+            <tr>
+                <td>En Espera</td>
+                <td class="numero">${enEspera}</td>
+                <td class="numero">${((enEspera/totalRequisiciones)*100).toFixed(1)}%</td>
+            </tr>
+            <tr>
+                <td>Aprobadas</td>
+                <td class="numero">${aprobadas}</td>
+                <td class="numero">${((aprobadas/totalRequisiciones)*100).toFixed(1)}%</td>
+            </tr>
+            <tr>
+                <td>Rechazadas</td>
+                <td class="numero">${rechazadas}</td>
+                <td class="numero">${((rechazadas/totalRequisiciones)*100).toFixed(1)}%</td>
+            </tr>
+            <tr>
+                <td><strong>Total de Productos</strong></td>
+                <td class="numero">${totalProductos}</td>
+                <td class="numero">-</td>
+            </tr>
+            <tr>
+                <td><strong>Monto Total Solicitado</strong></td>
+                <td class="numero">L ${montoTotal.toFixed(2)}</td>
+                <td class="numero">-</td>
+            </tr>
+            <tr>
+                <td><strong>Promedio por Requisición</strong></td>
+                <td class="numero">L ${(montoTotal/totalRequisiciones).toFixed(2)}</td>
+                <td class="numero">-</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="seccion-titulo">🏢 ESTADÍSTICAS POR DEPENDENCIA</div>
+    ${generarTablaEstadisticasDependenciaHTML()}
+    
+    <div class="page-break"></div>
+    <div class="seccion-titulo">📝 REQUISICIONES DETALLADAS</div>
+    ${generarTablaRequisicionesHTML()}
+    
+    <div class="page-break"></div>
+    <div class="seccion-titulo">📦 PRODUCTOS DETALLADOS</div>
+    ${generarTablaProductosHTML()}
+    
+    <div class="footer">
+        <p>Sistema de Gestión de Requisiciones - Secretaría de Derechos Humanos</p>
+        <p>Generado automáticamente el ${new Date().toLocaleString('es-HN')}</p>
+    </div>
+</body>
+</html>`;
+
+            // Crear y descargar el archivo
+            const blob = new Blob([htmlContent], { 
+                type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+            });
+            const fecha = new Date().toISOString().split('T')[0];
+            const filename = `Reporte_Requisiciones_SecretariaDerechosHumanos_${fecha}.doc`;
+            
+            saveAs(blob, filename);
+        }
+
+        function generarTablaEstadisticasDependenciaHTML() {
+            const estadisticas = {};
+            
+            requisicionesActuales.forEach(req => {
+                const dep = req.NomDependencia || 'Sin Asignar';
+                
+                if (!estadisticas[dep]) {
+                    estadisticas[dep] = {
+                        total: 0,
+                        enEspera: 0,
+                        aprobadas: 0,
+                        rechazadas: 0,
+                        montoTotal: 0
+                    };
+                }
+                
+                estadisticas[dep].total++;
+                estadisticas[dep].montoTotal += (req.GasTotalDelPedido || 0);
+                
+                switch(req.EstGeneral) {
+                    case 'EN ESPERA':
+                        estadisticas[dep].enEspera++;
+                        break;
+                    case 'APROBADO':
+                        estadisticas[dep].aprobadas++;
+                        break;
+                    case 'RECHAZADO':
+                        estadisticas[dep].rechazadas++;
+                        break;
+                }
+            });
+
+            let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dependencia</th>
+                        <th>Total</th>
+                        <th>En Espera</th>
+                        <th>Aprobadas</th>
+                        <th>Rechazadas</th>
+                        <th>Monto Total</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            Object.entries(estadisticas).forEach(([dep, stats]) => {
+                html += `
+                    <tr>
+                        <td>${dep}</td>
+                        <td class="numero">${stats.total}</td>
+                        <td class="numero">${stats.enEspera}</td>
+                        <td class="numero">${stats.aprobadas}</td>
+                        <td class="numero">${stats.rechazadas}</td>
+                        <td class="numero">L ${stats.montoTotal.toFixed(2)}</td>
+                    </tr>`;
+            });
+
+            html += `
+                </tbody>
+            </table>`;
+
+            return html;
+        }
+
+        function generarTablaRequisicionesHTML() {
+            let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Empleado</th>
+                        <th>Dependencia</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Productos</th>
+                        <th>Monto Total</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            requisicionesActuales.forEach(req => {
+                html += `
+                    <tr>
+                        <td>${req.CodRequisicion || 'N/A'}</td>
+                        <td>${(req.NomEmpleado || 'N/A').substring(0, 30)}</td>
+                        <td>${(req.NomDependencia || 'Sin Asignar').substring(0, 25)}</td>
+                        <td>${new Date(req.FecSolicitud).toLocaleDateString('es-HN')}</td>
+                        <td>${req.EstGeneral || 'Sin Estado'}</td>
+                        <td class="numero">${req.TotalProductos || 0}</td>
+                        <td class="numero">L ${(req.GasTotalDelPedido || 0).toFixed(2)}</td>
+                    </tr>`;
+            });
+
+            html += `
+                </tbody>
+            </table>`;
+
+            return html;
+        }
+
+        function generarTablaProductosHTML() {
+            let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código Req.</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unit.</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            requisicionesActuales.forEach(req => {
+                if (req.Productos && Array.isArray(req.Productos) && req.Productos.length > 0) {
+                    req.Productos.forEach(prod => {
+                        html += `
+                            <tr>
+                                <td>${req.CodRequisicion || 'N/A'}</td>
+                                <td>${(prod.NomProducto || 'Sin nombre').substring(0, 40)}</td>
+                                <td class="numero">${prod.CantSolicitada || 0}</td>
+                                <td class="numero">L ${(prod.GasUnitario || 0).toFixed(2)}</td>
+                                <td class="numero">L ${((prod.GasUnitario || 0) * (prod.CantSolicitada || 0)).toFixed(2)}</td>
+                                <td>${prod.EstProducto || 'Sin Estado'}</td>
+                            </tr>`;
+                    });
+                } else {
+                    html += `
+                        <tr>
+                            <td>${req.CodRequisicion || 'N/A'}</td>
+                            <td><em>Sin productos detallados</em></td>
+                            <td class="numero">0</td>
+                            <td class="numero">L 0.00</td>
+                            <td class="numero">L 0.00</td>
+                            <td>N/A</td>
+                        </tr>`;
+                }
+            });
+
+            html += `
+                </tbody>
+            </table>`;
+
+            return html;
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('mes').value = '';
+            document.getElementById('anio').value = '2025';
+            document.getElementById('estado').value = '';
+            document.getElementById('dependencia').value = '';
+            document.getElementById('busqueda').value = '';
+            
+            // Opcional: generar reporte automáticamente después de limpiar
+            // generarReporte();
+        }
+
+        // ===== FUNCIONES PARA GRÁFICAS INTERACTIVAS =====
+
+        let chartsInstances = {}; // Para almacenar instancias de gráficas
+
+        function generarGraficas(requisiciones) {
+            console.log('=== GENERANDO GRÁFICAS ===');
+            console.log('Total requisiciones:', requisiciones.length);
+            console.log('Ejemplo de requisición (primera):', requisiciones[0]);
+            console.log('Campos disponibles:', Object.keys(requisiciones[0] || {}));
+            
+            // Mostrar sección de gráficas
+            document.getElementById('chartsSection').style.display = 'block';
+            
+            // Destruir gráficas existentes
+            Object.values(chartsInstances).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            chartsInstances = {};
+            
+            // Generar cada gráfica
+            generarGraficaEstados(requisiciones);
+            generarGraficaDepartamentos(requisiciones);
+            generarGraficaTendencia(requisiciones);
+            generarGraficaProductos(requisiciones);
+        }
+
+        function generarGraficaEstados(requisiciones) {
+            console.log('Generando gráfica de estados con:', requisiciones.length, 'requisiciones');
+            
+            const estadosCount = {};
+            
+            requisiciones.forEach(req => {
+                // Buscar el campo de estado en diferentes formatos posibles
+                const estado = req.estgeneral || req.EstGeneral || req.estado || req.Estado || 'Sin Estado';
+                estadosCount[estado] = (estadosCount[estado] || 0) + 1;
+            });
+            
+            console.log('Estados encontrados:', estadosCount);
+            
+            // Validar que hay datos
+            if (Object.keys(estadosCount).length === 0) {
+                console.log('No hay datos de estados para graficar');
+                document.getElementById('estadosStats').innerHTML = '<div class="stat-item"><div class="stat-value">0</div><div class="stat-label">Sin datos</div></div>';
+                return;
+            }
+
+            const labels = Object.keys(estadosCount);
+            const data = Object.values(estadosCount);
+            
+            // Validar que hay datos para mostrar
+            if (labels.length === 0 || data.every(val => val === 0)) {
+                document.getElementById('estadosChart').getContext('2d').clearRect(0, 0, 400, 400);
+                const canvas = document.getElementById('estadosChart');
+                const ctx = canvas.getContext('2d');
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos de estados disponibles', canvas.width/2, canvas.height/2);
+                document.getElementById('estadosStats').innerHTML = '<div class="stat-item"><div class="stat-value">0</div><div class="stat-label">Sin datos</div></div>';
+                return;
+            }
+            
+            // Colores específicos por estado
+            const colores = labels.map(estado => {
+                switch(estado) {
+                    case 'APROBADO': return '#28a745';
+                    case 'EN ESPERA': return '#ffc107';
+                    case 'RECHAZADO': return '#dc3545';
+                    case 'EN PROCESO': return '#17a2b8';
+                    default: return '#6c757d';
+                }
+            });
+
+            const ctx = document.getElementById('estadosChart');
+            chartsInstances.estados = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colores,
+                        borderColor: '#fff',
+                        borderWidth: 3,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: { size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Generar estadísticas
+            const total = data.reduce((a, b) => a + b, 0);
+            const statsHtml = labels.map((label, index) => {
+                const valor = data[index];
+                const porcentaje = ((valor / total) * 100).toFixed(1);
+                return `
+                    <div class="stat-item">
+                        <div class="stat-value">${valor}</div>
+                        <div class="stat-label">${label}</div>
+                        <div class="stat-label">${porcentaje}%</div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.getElementById('estadosStats').innerHTML = statsHtml;
+        }
+
+        function generarGraficaDepartamentos(requisiciones) {
+            console.log('Generando gráfica de departamentos con detalles de usuarios');
+            
+            const depCount = {};
+            const depDetails = {}; // Para almacenar detalles por departamento
+            
+            requisiciones.forEach(req => {
+                // Usar el campo correcto del endpoint
+                const dep = req.nomdependencia || req.NombreDependencia || req.NomDependencia || 'Sin Departamento';
+                const usuario = req.NomEmpleado || req.nomempleado || 'Usuario Desconocido';
+                const fecha = req.FecSolicitud || req.fecsolicitud || 'Sin fecha';
+                const monto = parseFloat(req.GasTotalDelPedido || req.gastotaldelPedido || 0);
+                
+                // Contar requisiciones por departamento
+                depCount[dep] = (depCount[dep] || 0) + 1;
+                
+                // Almacenar detalles del departamento
+                if (!depDetails[dep]) {
+                    depDetails[dep] = {
+                        usuarios: {},
+                        totalMonto: 0,
+                        ultimaRequisicion: fecha,
+                        requisiciones: []
+                    };
+                }
+                
+                // Contar requisiciones por usuario en este departamento
+                depDetails[dep].usuarios[usuario] = (depDetails[dep].usuarios[usuario] || 0) + 1;
+                depDetails[dep].totalMonto += monto;
+                depDetails[dep].requisiciones.push({
+                    usuario: usuario,
+                    fecha: fecha,
+                    monto: monto
+                });
+                
+                // Actualizar última requisición si es más reciente
+                if (fecha > depDetails[dep].ultimaRequisicion) {
+                    depDetails[dep].ultimaRequisicion = fecha;
+                }
+            });
+            
+            console.log('Departamentos encontrados:', depCount);
+            console.log('Detalles por departamento:', depDetails);
+
+            // Validar que hay datos
+            if (Object.keys(depCount).length === 0) {
+                console.log('No hay datos de departamentos para graficar');
+                document.getElementById('departamentosStats').innerHTML = '<div class="stat-item"><div class="stat-value">0</div><div class="stat-label">Sin datos</div></div>';
+                return;
+            }
+
+            // Tomar top 10 departamentos
+            const sortedDeps = Object.entries(depCount)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            if (sortedDeps.length === 0) {
+                console.log('No hay datos de departamentos para graficar');
+                return;
+            }
+
+            const labels = sortedDeps.map(item => item[0]);
+            const data = sortedDeps.map(item => item[1]);
+            
+            // Validar que hay datos para mostrar
+            if (labels.length === 0 || data.every(val => val === 0)) {
+                const canvas = document.getElementById('departamentosChart');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos de departamentos disponibles', canvas.width/2, canvas.height/2);
+                document.getElementById('departamentosStats').innerHTML = '<div class="stat-item"><div class="stat-value">0</div><div class="stat-label">Sin datos</div></div>';
+                return;
+            }
+
+            const ctx = document.getElementById('departamentosChart');
+            chartsInstances.departamentos = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Número de Requisiciones',
+                        data: data,
+                        backgroundColor: 'rgba(15, 118, 110, 0.85)',
+                        borderColor: '#0f766e',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        },
+                        x: {
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: '#0f766e',
+                            borderWidth: 2,
+                            cornerRadius: 8,
+                            displayColors: false,
+                            callbacks: {
+                                title: function(context) {
+                                    return `🏢 ${context[0].label}`;
+                                },
+                                beforeBody: function(context) {
+                                    const departamento = context[0].label;
+                                    const detalles = depDetails[departamento];
+                                    
+                                    if (!detalles) return [];
+                                    
+                                    // Obtener top 3 usuarios que más solicitan
+                                    const topUsuarios = Object.entries(detalles.usuarios)
+                                        .sort((a, b) => b[1] - a[1])
+                                        .slice(0, 3);
+                                    
+                                    let info = [
+                                        `📊 Total: ${context[0].parsed.y} requisiciones`,
+                                        `💰 Monto total: L ${detalles.totalMonto.toFixed(2)}`,
+                                        `📅 Última requisición: ${detalles.ultimaRequisicion}`,
+                                        '',
+                                        '👥 Usuarios que más solicitan:'
+                                    ];
+                                    
+                                    topUsuarios.forEach((usuario, index) => {
+                                        const emoji = index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉';
+                                        info.push(`${emoji} ${usuario[0]}: ${usuario[1]} requisiciones`);
+                                    });
+                                    
+                                    if (Object.keys(detalles.usuarios).length > 3) {
+                                        info.push(`... y ${Object.keys(detalles.usuarios).length - 3} usuarios más`);
+                                    }
+                                    
+                                    return info;
+                                },
+                                label: function(context) {
+                                    return null; // No mostrar el label normal
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Generar estadísticas avanzadas con información de usuarios
+            const total = data.length > 0 ? data.reduce((a, b) => a + b, 0) : 0;
+            const promedio = labels.length > 0 ? (total / labels.length).toFixed(1) : '0';
+            const maximo = data.length > 0 ? Math.max(...data) : 0;
+            
+            // Calcular total de usuarios únicos
+            const todosLosUsuarios = new Set();
+            Object.values(depDetails).forEach(dep => {
+                Object.keys(dep.usuarios).forEach(usuario => {
+                    todosLosUsuarios.add(usuario);
+                });
+            });
+            
+            // Encontrar el departamento más activo
+            const depMasActivo = sortedDeps.length > 0 ? sortedDeps[0][0] : 'N/A';
+            
+            document.getElementById('departamentosStats').innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${labels.length}</div>
+                    <div class="stat-label">Departamentos Activos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${todosLosUsuarios.size}</div>
+                    <div class="stat-label">Usuarios Únicos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${promedio}</div>
+                    <div class="stat-label">Promedio/Depto</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${maximo}</div>
+                    <div class="stat-label">Máxima Actividad</div>
+                </div>
+            `;
+        }
+
+        function generarGraficaTendencia(requisiciones) {
+            console.log('Generando gráfica de tendencia');
+            
+            const mesesCount = {};
+            
+            requisiciones.forEach(req => {
+                // Usar el campo correcto del endpoint
+                const fechaField = req.fecsolicitud || req.FecSolicitud || req.FechCreacion;
+                
+                if (fechaField) {
+                    try {
+                        const fecha = new Date(fechaField);
+                        if (!isNaN(fecha.getTime())) {
+                            const mesAno = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+                            mesesCount[mesAno] = (mesesCount[mesAno] || 0) + 1;
+                        }
+                    } catch (e) {
+                        console.log('Error parseando fecha:', fechaField, e);
+                    }
+                }
+            });
+            
+            console.log('Meses encontrados:', mesesCount);
+
+            // Validar que hay datos
+            if (Object.keys(mesesCount).length === 0) {
+                console.log('No hay datos de tendencia para graficar');
+                document.getElementById('tendenciaStats').innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Meses</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Ordenar por fecha
+            const sortedMeses = Object.entries(mesesCount)
+                .sort((a, b) => a[0].localeCompare(b[0]));
+
+            if (sortedMeses.length === 0) {
+                console.log('No hay datos de tendencia para graficar');
+                return;
+            }
+
+            const labels = sortedMeses.map(item => {
+                const [year, month] = item[0].split('-');
+                const fecha = new Date(year, month - 1);
+                return fecha.toLocaleDateString('es-HN', { month: 'short', year: 'numeric' });
+            });
+            const data = sortedMeses.map(item => item[1]);
+            
+            // Validar que hay datos para mostrar
+            if (labels.length === 0 || data.every(val => val === 0)) {
+                const canvas = document.getElementById('tendenciaChart');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos de fechas disponibles', canvas.width/2, canvas.height/2);
+                document.getElementById('tendenciaStats').innerHTML = '<div class="stat-item"><div class="stat-value">0</div><div class="stat-label">Sin datos</div></div>';
+                return;
+            }
+
+            const ctx = document.getElementById('tendenciaChart');
+            chartsInstances.tendencia = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Requisiciones por Mes',
+                        data: data,
+                        backgroundColor: 'rgba(45, 212, 191, 0.25)',
+                        borderColor: '#0f766e',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#14b8a6',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+
+            // Generar estadísticas con validaciones
+            const total = data.length > 0 ? data.reduce((a, b) => a + b, 0) : 0;
+            const promedio = data.length > 0 ? (total / data.length).toFixed(1) : '0';
+            const maximo = data.length > 0 ? Math.max(...data) : 0;
+            const minimo = data.length > 0 ? Math.min(...data) : 0;
+            
+            document.getElementById('tendenciaStats').innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${data.length}</div>
+                    <div class="stat-label">Meses</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${promedio}</div>
+                    <div class="stat-label">Promedio/Mes</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${maximo}</div>
+                    <div class="stat-label">Máximo</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${minimo}</div>
+                    <div class="stat-label">Mínimo</div>
+                </div>
+            `;
+        }
+
+        function generarGraficaProductos(requisiciones) {
+            console.log('=== GENERANDO GRÁFICA DE ARTÍCULOS ===');
+            console.log('Total requisiciones:', requisiciones.length);
+            
+            const productosCount = {};
+            let requisicionesConProductos = 0;
+            let totalProductosProcesados = 0;
+            
+            // Contar productos de todas las requisiciones
+            requisiciones.forEach(req => {
+                // El endpoint devuelve: req.Productos[] (con P mayúscula)
+                const productos = req.Productos || req.productos || [];
+                
+                if (Array.isArray(productos) && productos.length > 0) {
+                    requisicionesConProductos++;
+                    productos.forEach(prod => {
+                        // El endpoint devuelve: NomProducto, CantSolicitada
+                        const nombre = prod.NomProducto || prod.nomproducto || '';
+                        const cantidad = parseFloat(prod.CantSolicitada || prod.cantsolicitada || 0);
+                        
+                        if (nombre && nombre.trim() !== '' && cantidad > 0) {
+                            productosCount[nombre.trim()] = (productosCount[nombre.trim()] || 0) + cantidad;
+                            totalProductosProcesados++;
+                        }
+                    });
+                }
+            });
+            
+            console.log('Requisiciones con productos:', requisicionesConProductos);
+            console.log('Total productos procesados:', totalProductosProcesados);
+            console.log('Artíulos únicos encontrados:', Object.keys(productosCount).length);
+            console.log('Productos agrupados:', productosCount);
+            
+            console.log('Productos encontrados:', productosCount);
+
+            // Validar que hay datos de productos válidos
+            if (Object.keys(productosCount).length === 0) {
+                console.log('No se encontraron productos con datos válidos para graficar');
+                document.getElementById('productosStats').innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Artículos Registrados</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">N/A</div>
+                        <div class="stat-label">Datos Insuficientes</div>
+                    </div>
+                `;
+                return;
+            }
+
+            // Tomar top 10 productos más solicitados
+            const sortedProds = Object.entries(productosCount)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+
+            if (sortedProds.length === 0) {
+                console.log('No hay datos de productos para graficar');
+                document.getElementById('productosStats').innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Productos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Total Solicitado</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const labels = sortedProds.map(item => {
+                // Truncar nombres largos
+                return item[0].length > 20 ? item[0].substring(0, 20) + '...' : item[0];
+            });
+            const data = sortedProds.map(item => item[1]);
+            
+            // Validar que hay datos para mostrar
+            if (labels.length === 0 || data.every(val => val === 0)) {
+                const canvas = document.getElementById('productosChart');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.font = '16px Arial';
+                ctx.fillStyle = '#666';
+                ctx.textAlign = 'center';
+                ctx.fillText('No hay datos de productos disponibles', canvas.width/2, canvas.height/2);
+                document.getElementById('productosStats').innerHTML = '<div class="stat-item"><div class="stat-value">0</div><div class="stat-label">Sin datos</div></div>';
+                return;
+            }
+
+            // Generar paleta consistente en tonos teal
+            const colores = labels.map((_, index) => {
+                const lightness = 40 + (index % 8) * 5; // 40% a 75%
+                return `hsl(174, 70%, ${Math.min(lightness, 75)}%)`;
+            });
+
+            const ctx = document.getElementById('productosChart');
+            chartsInstances.productos = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Cantidad Solicitada',
+                        data: data,
+                        backgroundColor: colores,
+                        borderColor: '#0f5e59',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    // Mostrar nombre completo en tooltip
+                                    const index = context[0].dataIndex;
+                                    return sortedProds[index][0];
+                                },
+                                label: function(context) {
+                                    return `Cantidad: ${context.parsed.x}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Generar estadísticas con validaciones
+            const totalProductos = Object.keys(productosCount).length;
+            const totalCantidad = data.length > 0 ? data.reduce((a, b) => a + b, 0) : 0;
+            const promedio = data.length > 0 ? (totalCantidad / data.length).toFixed(1) : '0';
+            
+            document.getElementById('productosStats').innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${totalProductos}</div>
+                    <div class="stat-label">Artículos Catalogados</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${Math.round(totalCantidad)}</div>
+                    <div class="stat-label">Unidades Solicitadas</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${promedio}</div>
+                    <div class="stat-label">Promedio por Artículo</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${Math.round(Math.max(...data))}</div>
+                    <div class="stat-label">Mayor Demanda</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

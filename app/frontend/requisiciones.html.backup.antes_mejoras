@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Requisiciones - SEDH</title>
+    <style>
+        :root {
+            --sedh-primary: #0f766e;
+            --sedh-secondary: #0d5c56;
+            --sedh-light: #14b8a6;
+            --sedh-accent: #2dd4bf;
+            --sedh-bg: #f0f9f8;
+            --sedh-white: #ffffff;
+            --sedh-gray: #6c757d;
+            --sedh-light-gray: #e9ecef;
+            --sedh-dark-gray: #2d3436;
+            --sedh-success: #10b981;
+            --sedh-warning: #f59e0b;
+            --sedh-danger: #ef4444;
+            --sedh-info: #06b6d4;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-md: 0 4px 15px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b3f3b 0%, #0f5e59 50%, #0f766e 100%);
+            color: var(--sedh-dark-gray);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ==================== HEADER ==================== */
+        .header {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-secondary) 100%);
+            color: var(--sedh-white);
+            padding: 40px 30px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(45, 212, 191, 0.1);
+            border-radius: 50%;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            opacity: 0.95;
+            font-size: 1.1rem;
+            font-weight: 300;
+        }
+
+        /* ==================== NAVEGACIÓN ==================== */
+        .nav-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+            background: var(--sedh-white);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            flex: 1;
+            min-width: 150px;
+            padding: 14px 20px;
+            text-align: center;
+            background: transparent;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--sedh-gray);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .nav-tab:hover {
+            color: var(--sedh-primary);
+            background: var(--sedh-bg);
+            transform: translateY(-2px);
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-light) 100%);
+            color: var(--sedh-white);
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.3);
+            border-color: transparent;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tab {
+                min-width: 120px;
+                padding: 12px 15px;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* ==================== TAB CONTENT ==================== */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ==================== FILTROS ==================== */
+        .filters-section {
+            background: var(--sedh-white);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .filters-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--sedh-primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--sedh-dark-gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-control {
+            padding: 12px 14px;
+            border: 2px solid var(--sedh-light-gray);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            background: var(--sedh-white);
+            font-family: inherit;
+            color: var(--sedh-dark-gray);
+        }
+
+        .filter-control:focus {
+            outline: none;
+            border-color: var(--sedh-primary);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
+            background: #fafafa;
+        }
+
+        .filter-control::placeholder {
+            color: var(--sedh-gray);
+        }
+
+        .filters-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-filter {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--sedh-primary) 0%, var(--sedh-light) 100%);
+            color: var(--sedh-white);
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(15, 118, 110, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--sedh-light-gray);
+            color: var(--sedh-dark-gray);
+            border: 2px solid var(--sedh-gray);
+        }
+
+        .btn-secondary:hover {
+            background: var(--sedh-gray);
+            color: var(--sedh-white);
+        }
+
+        /* ==================== REQUISICIONES LIST ==================== */
+        .requisicions-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .req-card {
+            background: var(--sedh-white);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            border-left: 5px solid var(--sedh-primary);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .req-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(45, 212, 191, 0.1), rgba(20, 184, 166, 0.05));
+            transition: right 0.35s ease;
+        }
+
+        .req-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .req-card:hover::before {
+            right: 0;
+        }
+
+        .req-card.status-aprobado {
+            border-left-color: var(--sedh-success);
+        }
+
+        .req-card.status-pendiente {
+            border-left-color: var(--sedh-warning);
+        }
+
+        .req-card.status-rechazado {
+            border-left-color: var(--sedh-danger);
+        }
+
+        .req-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            gap: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .req-code {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--sedh-primary);
+            letter-spacing: -0.5px;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .status-aprobado {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #047857;
+        }
+
+        .status-pendiente {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+        }
+
+        .status-rechazado {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+        }
+
+        .status-en-espera {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e40af;
+        }
+
+        .req-body {
+            position: relative;
+            z-index: 1;
+        }
+
+        .req-info {
+            margin-bottom: 16px;
+        }
+
+        .req-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--sedh-light-gray);
+            font-size: 0.9rem;
+        }
+
+        .req-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .req-info-label {
+            font-weight: 600;
+            color: var(--sedh-gray);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .req-info-value {
+            color: var(--sedh-dark-gray);
+            font-weight: 500;
+            text-align: right;
+        }
+
+        .req-total {
+            background: linear-gradient(135deg, var(--sedh-primary), var(--sedh-light));
+            color: var(--sedh-white);
+            padding: 16px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .req-total-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .req-total-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .req-timeline {
+            background: var(--sedh-bg);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+        }
+
+        .timeline-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 0.85rem;
+        }
+
+        .timeline-label {
+            color: var(--sedh-gray);
+            font-weight: 600;
+        }
+
+        .timeline-value {
+            color: var(--sedh-dark-gray);
+            font-weight: 500;
+        }
+
+        .timeline-value.pending {
+            color: var(--sedh-warning);
+        }
+
+        /* ==================== EMPTY STATE ==================== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            background: var(--sedh-white);
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: var(--sedh-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--sedh-gray);
+            font-size: 1rem;
+        }
+
+        /* ==================== LOADING ==================== */
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--sedh-gray);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--sedh-light-gray);
+            border-top-color: var(--sedh-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 1024px) {
+            .requisicions-container {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .requisicions-container {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-container {
+                flex-direction: column;
+            }
+
+            .nav-tab {
+                min-width: unset;
+            }
+        }
+
+        /* ==================== UTILITIES ==================== */
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-primary {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-20 {
+            margin-top: 20px;
+        }
+
+        .mb-20 {
+            margin-bottom: 20px;
+        }
+
+        /* ==================== RESULTADOS ==================== */
+        .results-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--sedh-bg);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            color: var(--sedh-gray);
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: var(--sedh-primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-content">
+                <h1>📋 Sistema de Requisiciones</h1>
+                <p class="subtitle">Gestión de pedidos y aprobaciones - SEDH</p>
+            </div>
+        </div>
+
+        <!-- NAVEGACIÓN -->
+        <div class="nav-container">
+            <button class="nav-tab active" onclick="showTab('mis-requisiciones')">
+                📝 Mis Requisiciones
+            </button>
+            <button class="nav-tab" onclick="showTab('nueva-requisicion')">
+                ➕ Nueva Requisición
+            </button>
+            <button class="nav-tab" onclick="showTab('pendientes-aprobacion')">
+                ⏳ Pendientes de Aprobación
+            </button>
+        </div>
+
+        <!-- TAB: MIS REQUISICIONES -->
+        <div id="mis-requisiciones" class="tab-content active">
+            <!-- FILTROS -->
+            <div class="filters-section">
+                <div class="filters-title">🔍 Filtros Avanzados</div>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label for="filterEstado">Estado</label>
+                        <select id="filterEstado" class="filter-control" onchange="aplicarFiltros()">
+                            <option value="">Todos los estados</option>
+                            <option value="APROBADO">✓ Aprobado</option>
+                            <option value="EN ESPERA">⏳ En Espera</option>
+                            <option value="RECHAZADO">✗ Rechazado</option>
+                            <option value="ENTREGADO">📦 Entregado</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterPrograma">Programa</label>
+                        <select id="filterPrograma" class="filter-control" onchange="aplicarFiltros()">
+                            <option value="">Todos los programas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterMonto">Rango de Monto</label>
+                        <select id="filterMonto" class="filter-control" onchange="aplicarFiltros()">
+                            <option value="">Todos los montos</option>
+                            <option value="0-100">L. 0 - L. 100</option>
+                            <option value="100-500">L. 100 - L. 500</option>
+                            <option value="500-1000">L. 500 - L. 1,000</option>
+                            <option value="1000+">L. 1,000+</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filterFecha">Fecha</label>
+                        <input type="month" id="filterFecha" class="filter-control" onchange="aplicarFiltros()">
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="searchReq">Buscar</label>
+                        <input type="text" id="searchReq" class="filter-control" placeholder="Código, solicitante..." onkeyup="aplicarFiltros()">
+                    </div>
+                </div>
+
+                <div class="filters-actions">
+                    <button class="btn-filter btn-primary" onclick="aplicarFiltros()">🔍 Filtrar</button>
+                    <button class="btn-filter btn-secondary" onclick="limpiarFiltros()">↺ Limpiar</button>
+                </div>
+            </div>
+
+            <!-- RESULTADOS -->
+            <div id="resultados-info" class="results-info" style="display:none;">
+                <span>Se encontraron <strong class="results-count" id="resultado-count">0</strong> requisiciones</span>
+                <span id="tiempo-busqueda" style="font-size: 0.85rem; color: var(--sedh-gray);"></span>
+            </div>
+
+            <!-- LISTA DE REQUISICIONES -->
+            <div id="loading-mis-req" class="loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Cargando tus requisiciones...</p>
+            </div>
+            <div id="mis-req-container" class="requisicions-container"></div>
+        </div>
+
+        <!-- TAB: NUEVA REQUISICIÓN -->
+        <div id="nueva-requisicion" class="tab-content">
+            <div style="background: var(--sedh-white); border-radius: 12px; padding: 40px; text-align: center;">
+                <h2>Crear Nueva Requisición</h2>
+                <p style="color: var(--sedh-gray); margin-top: 10px; font-size: 1.1rem;">
+                    Esta funcionalidad se encontrará disponible en la siguiente sección
+                </p>
+            </div>
+        </div>
+
+        <!-- TAB: PENDIENTES DE APROBACIÓN -->
+        <div id="pendientes-aprobacion" class="tab-content">
+            <div style="background: var(--sedh-white); border-radius: 12px; padding: 40px; text-align: center;">
+                <h2>Requisiciones Pendientes de Aprobación</h2>
+                <p style="color: var(--sedh-gray); margin-top: 10px; font-size: 1.1rem;">
+                    Esta funcionalidad se encontrará disponible en la siguiente sección
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN
+        const API_BASE_URL = 'http://192.168.180.164:8081/api/v1';
+        let todasLasRequisiciones = [];
+        let requisicionesFiltradas = [];
+
+        // FUNCIONES PRINCIPALES
+        function showTab(tabName) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Mostrar el tab seleccionado
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Cargar datos si es necesario
+            if (tabName === 'mis-requisiciones') {
+                cargarMisRequisiciones();
+            }
+        }
+
+        async function cargarMisRequisiciones() {
+            const container = document.getElementById('mis-req-container');
+            const loading = document.getElementById('loading-mis-req');
+            const resultados = document.getElementById('resultados-info');
+
+            container.innerHTML = '';
+            loading.style.display = 'block';
+            resultados.style.display = 'none';
+
+            const token = localStorage.getItem('token');
+            if (!token) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔐</div>
+                        <h3>No autenticado</h3>
+                        <p>Por favor, inicia sesión primero</p>
+                    </div>
+                `;
+                loading.style.display = 'none';
+                return;
+            }
+
+            try {
+                const resp = await fetch(`${API_BASE_URL}/requisiciones/mis-requisiciones`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!resp.ok) {
+                    throw new Error(`Error ${resp.status}`);
+                }
+
+                const data = await resp.json();
+                todasLasRequisiciones = data || [];
+
+                if (todasLasRequisiciones.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <h3>No hay requisiciones</h3>
+                            <p>Aún no has creado ninguna requisición</p>
+                        </div>
+                    `;
+                } else {
+                    renderizarRequisiciones(todasLasRequisiciones);
+                    resultados.style.display = 'flex';
+                    document.getElementById('resultado-count').textContent = todasLasRequisiciones.length;
+                    cargarProgramasEnFiltro();
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Error al cargar</h3>
+                        <p>${err.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function renderizarRequisiciones(requisiciones) {
+            const container = document.getElementById('mis-req-container');
+            
+            if (requisiciones.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>Sin resultados</h3>
+                        <p>No se encontraron requisiciones con los filtros aplicados</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const cards = requisiciones.map(req => {
+                const estado = (req.EstGeneral || 'PENDIENTE').toUpperCase();
+                const statusClass = estado === 'APROBADO' ? 'status-aprobado' : 
+                                   estado === 'RECHAZADO' ? 'status-rechazado' :
+                                   estado === 'ENTREGADO' ? 'status-aprobado' : 'status-en-espera';
+
+                return `
+                    <div class="req-card ${statusClass}">
+                        <div class="req-header">
+                            <div class="req-code">${req.CodRequisicion || 'SIN CÓDIGO'}</div>
+                            <span class="status-badge ${statusClass.replace('status-', 'status-')}">
+                                ${getStatusIcon(estado)} ${estado}
+                            </span>
+                        </div>
+
+                        <div class="req-body">
+                            <div class="req-info">
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Solicitante</span>
+                                    <span class="req-info-value">${req.NomEmpleado || '—'}</span>
+                                </div>
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Programa</span>
+                                    <span class="req-info-value">${req.ProFinal || '—'}</span>
+                                </div>
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Aprobador Actual</span>
+                                    <span class="req-info-value">${req.AprobadorActualRol || '—'}</span>
+                                </div>
+                            </div>
+
+                            <div class="req-total">
+                                <div class="req-total-label">Total del Pedido</div>
+                                <div class="req-total-value">L. ${formatMoney(req.GasTotalDelPedido || 0)}</div>
+                            </div>
+
+                            <div class="req-timeline">
+                                <div class="timeline-item">
+                                    <span class="timeline-label">📅 Creada</span>
+                                    <span class="timeline-value">${formatDate(req.FechaHoraCreacion)}</span>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-label">📤 Enviada</span>
+                                    <span class="timeline-value">${formatDate(req.FechaHoraEnvio)}</span>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-label">👤 Jefe</span>
+                                    <span class="timeline-value ${!req.FechaHoraAprobacionJefe ? 'pending' : ''}">${formatDate(req.FechaHoraAprobacionJefe) || '⏳ Pendiente'}</span>
+                                </div>
+                                <div class="timeline-item">
+                                    <span class="timeline-label">📦 Almacén</span>
+                                    <span class="timeline-value ${!req.FechaHoraAprobacionAlmacen ? 'pending' : ''}">${formatDate(req.FechaHoraAprobacionAlmacen) || '⏳ Pendiente'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = cards;
+        }
+
+        function cargarProgramasEnFiltro() {
+            const programas = new Set();
+            todasLasRequisiciones.forEach(req => {
+                if (req.ProFinal) programas.add(req.ProFinal);
+            });
+
+            const select = document.getElementById('filterPrograma');
+            const currentValue = select.value;
+            
+            Array.from(programas).sort().forEach(prog => {
+                if (!Array.from(select.options).some(o => o.value === prog)) {
+                    const option = document.createElement('option');
+                    option.value = prog;
+                    option.textContent = prog;
+                    select.appendChild(option);
+                }
+            });
+
+            select.value = currentValue;
+        }
+
+        function aplicarFiltros() {
+            const inicio = performance.now();
+            const estado = document.getElementById('filterEstado').value;
+            const programa = document.getElementById('filterPrograma').value;
+            const monto = document.getElementById('filterMonto').value;
+            const fecha = document.getElementById('filterFecha').value;
+            const busqueda = document.getElementById('searchReq').value.toLowerCase();
+
+            requisicionesFiltradas = todasLasRequisiciones.filter(req => {
+                // Filtro de estado
+                if (estado && (req.EstGeneral || '').toUpperCase() !== estado.toUpperCase()) {
+                    return false;
+                }
+
+                // Filtro de programa
+                if (programa && req.ProFinal !== programa) {
+                    return false;
+                }
+
+                // Filtro de monto
+                if (monto) {
+                    const total = req.GasTotalDelPedido || 0;
+                    if (monto === '0-100' && total > 100) return false;
+                    if (monto === '100-500' && (total < 100 || total > 500)) return false;
+                    if (monto === '500-1000' && (total < 500 || total > 1000)) return false;
+                    if (monto === '1000+' && total < 1000) return false;
+                }
+
+                // Filtro de fecha
+                if (fecha) {
+                    const reqFecha = new Date(req.FechaHoraCreacion);
+                    const [año, mes] = fecha.split('-');
+                    if (reqFecha.getFullYear() !== parseInt(año) || 
+                        (reqFecha.getMonth() + 1) !== parseInt(mes)) {
+                        return false;
+                    }
+                }
+
+                // Filtro de búsqueda
+                if (busqueda) {
+                    const textoReq = `${req.CodRequisicion} ${req.NomEmpleado}`.toLowerCase();
+                    if (!textoReq.includes(busqueda)) {
+                        return false;
+                    }
+                }
+
+                return true;
+            });
+
+            const fin = performance.now();
+            renderizarRequisiciones(requisicionesFiltradas);
+            document.getElementById('resultado-count').textContent = requisicionesFiltradas.length;
+            document.getElementById('tiempo-busqueda').textContent = `(${(fin - inicio).toFixed(0)}ms)`;
+        }
+
+        function limpiarFiltros() {
+            document.getElementById('filterEstado').value = '';
+            document.getElementById('filterPrograma').value = '';
+            document.getElementById('filterMonto').value = '';
+            document.getElementById('filterFecha').value = '';
+            document.getElementById('searchReq').value = '';
+            aplicarFiltros();
+        }
+
+        // UTILIDADES
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('es-HN', {
+                    year: '2-digit',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+            } catch (e) {
+                return '—';
+            }
+        }
+
+        function formatMoney(amount) {
+            return (amount || 0).toLocaleString('es-HN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function getStatusIcon(estado) {
+            const icons = {
+                'APROBADO': '✓',
+                'RECHAZADO': '✗',
+                'ENTREGADO': '📦',
+                'EN ESPERA': '⏳'
+            };
+            return icons[estado] || '•';
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarMisRequisiciones();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEDH - Productos</title>
+    <style>
+        :root {
+            --color-primary-dark: #0b3f3b;
+            --color-primary: #0f5e59;
+            --color-primary-light: #0f766e;
+            --color-primary-darker: #082a28;
+            --color-accent: #2dd4bf;
+            --color-accent-dark: #14b8a6;
+            --color-warn: #ff8c00;
+            --color-danger: #dc3545;
+            --color-info: #0dcaf0;
+        }
+
+        body.theme-blue {
+            --color-primary-dark: #0d47a1;
+            --color-primary: #1565c0;
+            --color-primary-light: #42a5f5;
+            --color-primary-darker: #0a2a66;
+            --color-accent: #ff6f00;
+            --color-accent-dark: #e65100;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-primary-light) 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .productos-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+
+        
+        /* Header estilo SEDH - simplificado */
+        .header {
+            background: linear-gradient(90deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-primary-light) 100%);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo {
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+            padding: 4px;
+        }
+
+        .title-section h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            font-weight: 300;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 10px 40px 10px 15px;
+            border-radius: 25px;
+            width: 300px;
+            font-size: 14px;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255,255,255,0.8);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .cart-container {
+            position: relative;
+        }
+
+        .cart-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            position: relative;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background-color 0.3s;
+        }
+
+        .cart-btn:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .user-info {
+            text-align: right;
+            color: white;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, #c62828 0%, #f44336 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(198, 40, 40, 0.3);
+        }
+        
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #b71c1c 0%, #e53935 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(198, 40, 40, 0.4);
+        }
+
+        .user-info {
+            text-align: right;
+            color: white;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .user-role {
+            font-size: 9px;
+            opacity: 0.7;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .productos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .producto-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+        }
+
+        .producto-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .producto-header {
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .producto-nombre {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin: 0 0 8px 0;
+        }
+
+        .producto-codigo {
+            background: #e9ecef;
+            color: #666;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .producto-body {
+            margin-bottom: 12px;
+        }
+
+        .producto-info {
+            margin-bottom: 8px;
+        }
+
+        .producto-categoria {
+            color: var(--color-primary);
+            margin: 0 0 8px 0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .producto-descripcion {
+            color: #666;
+            margin: 0 0 8px 0;
+            font-size: 11px;
+            line-height: 1.3;
+            display: -webkit-box;
+           
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .producto-detalles {
+            display: grid;
+            gap: 4px;
+        }
+
+        .detalle-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .detalle-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 10px;
+        }
+
+        .detalle-valor {
+            font-weight: 500;
+            font-size: 10px;
+        }
+
+        .stock-disponible {
+            color: #28a745;
+        }
+
+        .stock-bajo {
+            color: #ff8c00;
+            font-weight: 600;
+        }
+
+        .stock-agotado {
+            color: #dc3545;
+        }
+
+        .precio {
+            color: var(--color-accent);
+            font-weight: 600;
+        }
+
+        .valor-total {
+            color: var(--color-primary-dark);
+            font-weight: 600;
+        }
+
+        .producto-actions {
+            margin-top: 8px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+            padding-top: 8px;
+        }
+
+        .btn-agregar-carrito {
+            background: linear-gradient(45deg, var(--color-primary-dark), var(--color-primary));
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-agregar-carrito:hover {
+            background: linear-gradient(45deg, var(--color-primary-darker), var(--color-primary-dark));
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(45, 80, 22, 0.3);
+        }
+
+        .btn-agregar-carrito:disabled {
+            background: #c0c0c0;
+            color: #666666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+        .btn-agregar-carrito:disabled:hover {
+            background: #c0c0c0;
+        }
+        
+        .producto-details {
+            display: none; /* Ocultar detalles para diseño simplificado */
+        }        .filters {
+            display: none; /* Ocultar filtros para el nuevo diseño */
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            .filter-row {
+                grid-template-columns: 1fr;
+                gap: 2px;
+            }
+            
+            .filters {
+                padding: 3px;
+            }
+        }        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .filter-group label {
+            font-weight: bold;
+            margin-bottom: 2px;
+            color: #495057;
+            font-size: 9px;
+        }
+
+        .filter-group input, .filter-group select {
+            padding: 3px;
+            border: 1px solid #ced4da;
+            border-radius: 2px;
+            font-size: 9px;
+        }        /* Navegación superior simplificada */
+        .nav-menu {
+            background: linear-gradient(90deg, var(--color-primary-dark) 0%, var(--color-primary) 50%, var(--color-primary-light) 100%);
+            padding: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-item {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 20px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: 600;
+        }
+
+        .stats-bar {
+            display: none; /* Ocultar stats bar para el nuevo diseño */
+        }
+
+        .stats-bar {
+            display: none;
+        }
+
+        .user-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 8px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .user-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .theme-toggle-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .ver-productos-btn {
+            background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            width: 100%;
+            transition: all 0.3s ease;
+            text-transform: none;
+        }
+
+        .ver-productos-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(15, 118, 110, 0.35);
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+        }
+
+        .ver-productos-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .quantity-selector {
+            display: none; /* Ocultar selector de cantidad para diseño simplificado */
+        }
+
+        /* Footer estilo SEDH */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            text-align: center;
+            padding: 15px 20px;
+            font-size: 12px;
+            z-index: 1000;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-logo {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .footer-logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 50%;
+            padding: 3px;
+        }
+
+        /* Estilos para el modal de categorías */
+        .productos-categoria-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .producto-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .producto-item h4 {
+            color: var(--color-primary-dark);
+            margin: 0 0 10px 0;
+        }
+
+        .cantidad-container {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        /* Modal del Carrito - mismos estilos que en dashboard */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .cart-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .cart-header {
+            background-color: var(--color-accent);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .cart-header h2 {
+            margin: 0;
+        }
+
+        .close-cart-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cart-body {
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            margin: 50px 0;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: bold;
+            color: var(--color-accent);
+            margin-bottom: 5px;
+        }
+
+        .cart-item-details {
+            font-size: 14px;
+            color: #6c757d;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .quantity-btn {
+            background-color: var(--color-accent);
+            color: white;
+            border: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn:hover {
+            background-color: var(--color-accent-dark);
+        }
+
+        .quantity-display {
+            min-width: 30px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .remove-item-btn {
+            background-color: var(--color-danger);
+            color: white;
+            border: none;
+            padding: 5px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-item-btn:hover {
+            background-color: #c82333;
+        }
+
+        .cart-footer {
+            padding: 20px;
+            border-top: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .cart-total {
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .cart-actions {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn-clear-cart,
+            .btn-checkout,
+            .btn-goto-requisiciones,
+            .btn-continue-shopping {
+                width: 100%;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+
+        .btn-clear-cart {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-clear-cart:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-checkout {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-checkout:hover {
+            background-color: #218838;
+        }
+
+        .btn-goto-requisiciones {
+            background-color: var(--color-accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-goto-requisiciones:hover {
+            background-color: var(--color-accent-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .btn-continue-shopping {
+            background-color: #17a2b8;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-continue-shopping:hover {
+            background-color: #138496;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+        }
+
+        /* Sistema de Alertas simplificado */
+        .alertas-vencimiento {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .alertas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .alertas-titulo {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #dc3545;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alertas-contador {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .alertas-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .alerta-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid;
+            background: #f8f9fa;
+            transition: all 0.2s ease;
+        }
+
+        .alerta-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .alerta-critica {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .alerta-advertencia {
+            border-left-color: var(--color-warn);
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+        }
+
+        .alerta-info {
+            border-left-color: var(--color-info);
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+        }
+
+        .alerta-icono {
+            font-size: 1.5rem;
+        }
+
+        .alerta-contenido {
+            flex: 1;
+        }
+
+        .alerta-titulo-item {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .alerta-descripcion {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .alerta-dias {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .dias-criticos {
+            background: #dc3545;
+            color: white;
+        }
+
+        .dias-advertencia {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .dias-info {
+            background: var(--color-info);
+            color: white;
+        }
+
+        /* Indicadores en las tarjetas de productos */
+        .producto-vencimiento {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .vencimiento-critico {
+            background: #dc3545;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .vencimiento-advertencia {
+            background: #fd7e14;
+            color: white;
+        }
+
+        .vencimiento-proximo {
+            background: #0dcaf0;
+            color: white;
+        }
+
+        .vencimiento-normal {
+            background: #28a745;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Filtro de vencimiento */
+        .filtro-vencimiento {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filtro-vencimiento select {
+            padding: 8px 12px;
+            border: 2px solid var(--color-primary);
+            border-radius: 8px;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        .filtro-vencimiento select:focus {
+            outline: none;
+            border-color: var(--color-primary-dark);
+        }
+
+        .btn-toggle-alertas {
+            background: var(--color-danger);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-toggle-alertas:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+        
+        /* Scrollbar personalizado para panel de alertas */
+        .alertas-vencimiento::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .alertas-vencimiento::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+        
+        .alertas-vencimiento::-webkit-scrollbar-thumb {
+            background: var(--color-danger);
+            border-radius: 10px;
+        }
+        
+        .alertas-vencimiento::-webkit-scrollbar-thumb:hover {
+            background: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header estilo dashboard -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo"><img src="/static/Imagen/LogoSedhEscudo.png" alt="SEDH Honduras" class="logo-img"></div>
+                <div class="title-section">
+                    <h1>Sistema de Almacén</h1>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar productos..." id="search-global" onkeypress="if(event.key === 'Enter') buscarGlobal()">
+                    <button class="search-btn" onclick="buscarGlobal()">🔍</button>
+                </div>
+                
+                <div class="cart-container">
+                    <button class="cart-btn" onclick="toggleCart()" title="Ver carrito">
+                        🛒
+                        <span class="cart-count" id="cart-count" style="display: none;">0</span>
+                    </button>
+                </div>
+                
+                <div class="user-info">
+                    <div class="user-name" id="userName">Usuario</div>
+                    <div class="user-role" id="userRole">Cargando...</div>
+                </div>
+                <button class="user-btn theme-toggle-btn" onclick="toggleTheme()" title="Cambiar tema">🎨 Tema</button>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="productos-container">
+
+        <nav class="nav-menu">
+            <a href="/dashboard" class="nav-item">🏠 inicio</a>
+            <a href="/categorias" class="nav-item">📚 ver categorías</a>
+            <a href="/productos" class="nav-item active">📦 ver productos</a>
+           <!--   <a href="/agregar-producto" class="nav-item">➕ agregar producto</a>-->
+            <a href="/requisiciones" class="nav-item">📋 requisiciones pendientes</a>
+            <a href="/historial" class="nav-item">📜 historial requisiciones</a>
+            <div class="filtro-vencimiento" style="margin-left: auto;">
+                <select id="filter-vencimiento" onchange="aplicarFiltros()">
+                    <option value="">🔍 Filtrar productos</option>
+                    <optgroup label="Stock">
+                        <option value="stock-agotado">🚫 Stock agotado</option>
+                        <option value="stock-bajo">⚠️ Stock bajo (≤ 5)</option>
+                    </optgroup>
+                    <optgroup label="Vencimiento">
+                        <option value="vencidos">🚨 Ya vencidos</option>
+                        <option value="critico">⚠️ Crítico (≤ 7 días)</option>
+                        <option value="proximo">📅 Próximo (≤ 30 días)</option>
+                        <option value="normal">✅ Normal (> 30 días)</option>
+                        <option value="sin-fecha">❓ Sin fecha</option>
+                    </optgroup>
+                </select>
+                <button class="btn-toggle-alertas" onclick="toggleAlertasPanel()" title="Mostrar/Ocultar Panel de Alertas">
+                    🚨 Alertas
+                </button>
+            </div>
+        </nav>
+        
+        <div id="loading" class="loading">
+            Cargando productos... 🔄
+        </div>
+        
+        <div id="error-container"></div>
+
+        <!-- Panel de Alertas de Vencimiento y Stock -->
+        <div id="alertas-vencimiento" class="alertas-vencimiento" style="display: none;">
+            <div class="alertas-header">
+                <div class="alertas-titulo">
+                    🚨 Alertas de Vencimiento y Stock
+                    <span id="alertas-contador" class="alertas-contador">0</span>
+                </div>
+                <button onclick="toggleAlertasPanel()" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">❌</button>
+            </div>
+            <div id="alertas-lista" class="alertas-lista">
+                <!-- Se llena dinámicamente -->
+            </div>
+        </div>
+        
+        <div id="total-productos" style="background: rgba(255,255,255,0.9); padding: 8px; border-radius: 6px; margin-bottom: 10px; text-align: center; color: #2d5016; font-size: 11px; display: none;"></div>
+        
+        <div id="productos-grid" class="productos-grid" style="display: none;">
+            <!-- Los productos se cargarán aquí dinámicamente -->
+        </div>
+
+        <!-- Footer estilo SEDH -->
+        <div class="footer">
+            <div class="footer-content">
+                <div>© 2025 Todos los derechos reservados Secretaría de Derechos Humanos en Honduras</div>
+                <div class="footer-logo"><img src="/static/Imagen/LogoSedhEscudo.png" alt="Logo SEDH" class="footer-logo-img"></div>
+                <div>HONDURAS</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal del Carrito -->
+    <div id="cart-modal" class="cart-modal" style="display: none;">
+        <div class="cart-modal-content">
+            <div class="cart-header">
+                <h2>🛒 Mi Carrito</h2>
+                <button class="close-cart-btn" onclick="toggleCart()">&times;</button>
+            </div>
+            <div class="cart-body" id="cart-items">
+                <p class="empty-cart">Tu carrito está vacío</p>
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <strong>Total de productos: <span id="cart-total">0</span></strong>
+                </div>
+                <div class="cart-actions">
+                    <button class="btn-continue-shopping" onclick="toggleCart()">➕ Seguir Agregando Productos</button>
+                    <button class="btn-clear-cart" onclick="clearCart()">Vaciar Carrito</button>
+                    <button class="btn-checkout" onclick="checkout()">Procesar Solicitud</button>
+                    <button class="btn-goto-requisiciones" onclick="goToRequisiciones()">📋 Hacer Requisición</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api/v1`;
+        let todosLosProductos = [];
+        
+        // Cargar información del usuario
+        async function cargarUserInfo() {
+            const token = localStorage.getItem("token");
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/accesos/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const userInfo = await response.json();
+                    document.getElementById('userName').textContent = userInfo.nombre || userInfo.email || 'Usuario';
+                    document.getElementById('userRole').textContent = userInfo.rol || 'Empleado';
+                } else {
+                    document.getElementById('userName').textContent = 'Usuario';
+                    document.getElementById('userRole').textContent = 'Empleado';
+                }
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+                document.getElementById('userName').textContent = 'Usuario';
+                document.getElementById('userRole').textContent = 'Empleado';
+            }
+        }
+        
+        // Verificar autenticación y cargar productos
+        document.addEventListener("DOMContentLoaded", async function() {
+            const token = localStorage.getItem("token");
+            
+            if (!token) {
+                window.location.href = "/";
+                return;
+            }
+            
+            await cargarUserInfo();
+            await cargarProductos();
+            configurarFiltros();
+        });
+        
+        async function cargarProductos() {
+            const token = localStorage.getItem("token");
+            const loadingDiv = document.getElementById("loading");
+            const errorContainer = document.getElementById("error-container");
+            const productosGrid = document.getElementById("productos-grid");
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/productos/`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    todosLosProductos = await response.json();
+                    mostrarProductos(todosLosProductos);
+                    actualizarEstadisticas(todosLosProductos);
+                    loadingDiv.style.display = "none";
+                    document.getElementById("total-productos").style.display = "block";
+                    productosGrid.style.display = "grid";
+                } else {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error("Error al cargar productos:", error);
+                loadingDiv.style.display = "none";
+                errorContainer.innerHTML = `
+                    <div class="error-message">
+                        <strong>Error al cargar los productos:</strong><br>
+                        ${error.message}<br>
+                        <small>Verifique que la API esté funcionando en: ${API_BASE_URL}/productos/</small>
+                    </div>
+                `;
+            }
+        }
+        
+        function mostrarProductos(productos) {
+            const productosGrid = document.getElementById("productos-grid");
+            
+            if (productos.length === 0) {
+                productosGrid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                        <h3>📦 No se encontraron productos</h3>
+                        <p>No hay productos que coincidan con los filtros seleccionados.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Mostrar todos los productos individuales
+            productosGrid.innerHTML = productos.map(producto => {
+                const indicadorVencimiento = obtenerIndicadorVencimiento(producto);
+                const stock = parseFloat(producto.canstock || 0);
+                const stockBadge = stock === 0 
+                    ? '<div style="position: absolute; top: 10px; right: 10px; background: #dc3545; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 8px rgba(220,53,69,0.4); z-index: 2;">🚫 AGOTADO</div>'
+                    : stock <= 5 
+                    ? '<div style="position: absolute; top: 10px; right: 10px; background: #ff8c00; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; box-shadow: 0 2px 8px rgba(255,140,0,0.4); z-index: 2;">⚠️ STOCK BAJO</div>'
+                    : '';
+                // Ajustar posición del indicador de vencimiento si hay badge de stock
+                const vencimientoTop = (stock <= 5) ? '50px' : '10px';
+                const vencimientoHtml = indicadorVencimiento.html.replace('top: 10px;', `top: ${vencimientoTop};`);
+                const botonDeshabilitado = (stock === 0) || (indicadorVencimiento.categoria === 'vencido');
+                const botonTexto = botonDeshabilitado
+                    ? (stock === 0 ? '🚫 Sin Stock' : '⛔ Vencido')
+                    : '🛒 Agregar al Carrito';
+                return `
+                <div class="producto-card" style="position: relative;">
+                    ${stockBadge}
+                    ${vencimientoHtml}
+                    <div class="producto-header">
+                        <h3 class="producto-nombre">${producto.nomproducto || 'Sin nombre'}</h3>
+                        <span class="producto-codigo">Código: ${producto.codobjetunico || producto.CodObjetoUnico || 'N/A'}</span>
+                    </div>
+                    <div class="producto-body">
+                        <div class="producto-info">
+                            <p class="producto-categoria">
+                                <strong>Categoría:</strong> ${producto.nomcategoria || 'Sin categoría'}
+                            </p>
+                            <p class="producto-descripcion">
+                                <strong>Descripción:</strong> ${producto.descproducto || 'Sin descripción'}
+                            </p>
+                            <div class="producto-detalles">
+                                <div class="detalle-item">
+                                    <span class="detalle-label">Stock:</span>
+                                    <span class="detalle-valor stock-${
+                                        parseFloat(producto.canstock || 0) === 0 ? 'agotado' : 
+                                        parseFloat(producto.canstock || 0) <= 5 ? 'bajo' : 
+                                        'disponible'
+                                    }">
+                                        ${parseFloat(producto.canstock || 0).toLocaleString('es-HN')} unidades
+                                        ${parseFloat(producto.canstock || 0) > 0 && parseFloat(producto.canstock || 0) <= 5 ? ' ⚠️ Stock bajo' : ''}
+                                        ${parseFloat(producto.canstock || 0) === 0 ? ' 🚫 Agotado' : ''}
+                                    </span>
+                                </div>
+
+                                <div class="detalle-item">
+                                    <span class="detalle-label">Precio Unitario:</span>
+                                    <span class="detalle-valor precio">
+                                        HNL ${parseFloat(producto.gasunitario || 0).toLocaleString('es-HN', {minimumFractionDigits: 2})}
+                                    </span>
+                                </div>
+                                <div class="detalle-item">
+                                    <span class="detalle-label">Valor Total:</span>
+                                    <span class="detalle-valor valor-total">
+                                        HNL ${(parseFloat(producto.canstock || 0) * parseFloat(producto.gasunitario || 0)).toLocaleString('es-HN', {minimumFractionDigits: 2})}
+                                    </span>
+                                </div>
+                                ${producto.fecvencimiento ? `
+                                <div class="detalle-item">
+                                    <span class="detalle-label">Fecha Vencimiento:</span>
+                                    <span class="detalle-valor ${indicadorVencimiento.clase}">
+                                        ${formatearFecha(producto.fecvencimiento)} ${indicadorVencimiento.texto}
+                                    </span>
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="producto-actions">
+                        <button class="btn-agregar-carrito" ${botonDeshabilitado ? 'disabled' : ''} onclick="agregarAlCarrito('${producto.idproducto}', '${(producto.nomproducto || '').replace(/'/g, "\\'")}', '${(producto.nomcategoria || '').replace(/'/g, "\\'")}')">
+                            ${botonTexto}
+                        </button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+            
+            // Actualizar alertas después de renderizar productos
+            actualizarAlertasVencimiento(productos);
+        }
+        
+        function actualizarEstadisticas(productos) {
+            const totalProductos = productos.length;
+            const totalStock = productos.reduce((sum, p) => sum + parseFloat(p.canstock || 0), 0);
+            const valorTotal = productos.reduce((sum, p) => sum + (parseFloat(p.canstock || 0) * parseFloat(p.gasunitario || 0)), 0);
+            
+            document.getElementById("total-productos").innerHTML = `
+                <strong>${totalProductos}</strong> productos | 
+                <strong>${totalStock.toLocaleString('es-HN')}</strong> unidades en stock | 
+                Valor total: <strong>HNL ${valorTotal.toLocaleString('es-HN', {minimumFractionDigits: 2})}</strong>
+            `;
+        }
+        
+        function configurarFiltros() {
+            // Ya no necesitamos configurar filtros adicionales aquí
+            // porque se manejan directamente desde el HTML con onchange
+        }
+        
+        function aplicarFiltros() {
+            const searchTerm = document.getElementById("search-global").value.toLowerCase();
+            const vencimientoFilter = document.getElementById("filter-vencimiento").value;
+            
+            let productosFiltrados = todosLosProductos.filter(producto => {
+                // Filtro de búsqueda
+                const matchBusqueda = !searchTerm || 
+                    (producto.nomproducto && producto.nomproducto.toLowerCase().includes(searchTerm)) ||
+                    (producto.descproducto && producto.descproducto.toLowerCase().includes(searchTerm)) ||
+                    (producto.nomcategoria && producto.nomcategoria.toLowerCase().includes(searchTerm)) ||
+                    (producto.codobjetunico && producto.codobjetunico.toLowerCase().includes(searchTerm)) ||
+                    (producto.CodObjetoUnico && producto.CodObjetoUnico.toLowerCase().includes(searchTerm));
+                
+                // Filtro de vencimiento
+                const matchVencimiento = filtrarPorVencimiento(producto, vencimientoFilter);
+                
+                return matchBusqueda && matchVencimiento;
+            });
+            
+            mostrarProductos(productosFiltrados);
+            actualizarEstadisticas(productosFiltrados);
+        }
+
+        function filtrarPorVencimiento(producto, filtro) {
+            if (!filtro) return true;
+            
+            const indicador = obtenerIndicadorVencimiento(producto);
+            const stock = parseFloat(producto.canstock || 0);
+            
+            switch (filtro) {
+                case 'stock-agotado':
+                    return stock === 0;
+                case 'stock-bajo':
+                    return stock > 0 && stock <= 5;
+                case 'vencidos':
+                    return indicador.categoria === 'vencido';
+                case 'critico':
+                    return indicador.categoria === 'critico';
+                case 'proximo':
+                    return indicador.categoria === 'proximo';
+                case 'normal':
+                    return indicador.categoria === 'normal';
+                case 'sin-fecha':
+                    return !producto.fecvencimiento;
+                default:
+                    return true;
+            }
+        }
+        
+        // Funciones del Carrito con sistema individual
+        function getCart() {
+            if (window.cartManager) {
+                return window.cartManager.getProductCart();
+            }
+            // Fallback al sistema antiguo
+            return JSON.parse(localStorage.getItem('cart')) || [];
+        }
+
+        function updateCartCount() {
+            const cartCount = document.getElementById('cart-count');
+            const cart = getCart();
+            const totalItems = cart.reduce((sum, item) => sum + item.cantidad, 0);
+            cartCount.textContent = totalItems;
+            cartCount.style.display = totalItems > 0 ? 'block' : 'none';
+        }
+
+        function agregarAlCarrito(codigo, nombre, categoria) {
+            // Verificar que tenemos productos cargados
+            if (!todosLosProductos || todosLosProductos.length === 0) {
+                alert('Los productos aún no se han cargado. Por favor espera un momento.');
+                return;
+            }
+            
+            // Buscar el producto en la lista para obtener datos reales (por ID)
+            const producto = todosLosProductos.find(p => p.idproducto === codigo);
+            
+            if (!producto) {
+                console.error('Producto no encontrado con ID:', codigo);
+                alert('Producto no encontrado. Por favor recarga la página e intenta nuevamente.');
+                return;
+            }
+            
+            const stockDisponible = parseFloat(producto?.canstock || 0);
+            const precio = parseFloat(producto?.gasunitario || 0);
+            const codigoVisual = producto?.codobjetunico || producto?.CodObjetoUnico || producto?.idproducto || codigo;
+
+            // Bloquear si está vencido
+            const indicador = obtenerIndicadorVencimiento(producto);
+            if (indicador.categoria === 'vencido') {
+                alert('Este producto está VENCIDO y no se puede solicitar.');
+                return;
+            }
+            
+            if (stockDisponible <= 0) {
+                alert(`Este producto no tiene stock disponible. Stock actual: ${stockDisponible}`);
+                return;
+            }
+
+            // Preguntar cantidad a agregar
+            const cantidadDeseada = prompt(`¿Cuántas unidades deseas agregar?\nStock disponible: ${stockDisponible}`, '1');
+            
+            if (cantidadDeseada === null) return; // Usuario canceló
+            
+            const cantidad = parseInt(cantidadDeseada);
+            if (isNaN(cantidad) || cantidad <= 0) {
+                alert('Por favor ingresa una cantidad válida');
+                return;
+            }
+            
+            if (cantidad > stockDisponible) {
+                alert(`Solo hay ${stockDisponible} unidades disponibles en stock`);
+                return;
+            }
+
+            // Agregar al carrito usando el nuevo sistema
+            const productoCarrito = {
+                // Mostrar siempre el código legible (CodObjetoUnico)
+                codigo: codigoVisual,
+                // Mantener el UUID interno para operaciones de backend
+                idProducto: producto.idproducto,
+                nombre: nombre,
+                categoria: categoria,
+                cantidad: cantidad,
+                precio: precio,
+                stockDisponible: stockDisponible
+            };
+
+            if (window.cartManager) {
+                // Usar el sistema de carrito individual
+                const success = window.cartManager.addProductToCart(productoCarrito);
+                if (!success) {
+                    return; // El CartManager ya muestra el error
+                }
+            } else {
+                // Fallback al sistema antiguo
+                const cart = getCart();
+                const existingItem = cart.find(item => item.codigo === codigoVisual);
+                
+                if (existingItem) {
+                    const nuevaCantidad = existingItem.cantidad + cantidad;
+                    if (nuevaCantidad > stockDisponible) {
+                        alert(`Ya tienes ${existingItem.cantidad} unidades en el carrito. Solo puedes agregar ${stockDisponible - existingItem.cantidad} más.`);
+                        return;
+                    }
+                    existingItem.cantidad = nuevaCantidad;
+                } else {
+                    cart.push(productoCarrito);
+                }
+                localStorage.setItem('cart', JSON.stringify(cart));
+            }
+            updateCartCount();
+            
+            // Mostrar mensaje de confirmación
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = `✅ +${cantidad}`;
+            button.style.background = 'linear-gradient(45deg, #28a745, #20c997)';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                const pd = getComputedStyle(document.body).getPropertyValue('--color-primary-dark').trim();
+                const p = getComputedStyle(document.body).getPropertyValue('--color-primary').trim();
+                button.style.background = `linear-gradient(45deg, ${pd}, ${p})`;
+            }, 2000);
+
+            // Mostrar vista previa del carrito inmediatamente
+            showCartPreview();
+        }
+
+        function addToCart(codigo, nombre, categoria, stockDisponible) {
+            // Verificar estado de vencimiento (si es posible identificar el producto)
+            try {
+                const producto = (todosLosProductos || []).find(p => p.codobjetunico === codigo || p.CodObjetoUnico === codigo || p.nomproducto === nombre);
+                if (producto) {
+                    const indicador = obtenerIndicadorVencimiento(producto);
+                    if (indicador.categoria === 'vencido') {
+                        alert('Este producto está VENCIDO y no se puede solicitar.');
+                        return;
+                    }
+                }
+            } catch (e) {}
+
+            if (stockDisponible <= 0) {
+                alert('Este producto no tiene stock disponible.');
+                return;
+            }
+
+            const quantityInput = document.getElementById(`qty-${codigo}`);
+            const cantidad = parseInt(quantityInput.value) || 1;
+            
+            if (cantidad > stockDisponible) {
+                alert(`Solo hay ${stockDisponible} unidades disponibles en stock`);
+                return;
+            }
+
+            // Verificar si el producto ya está en el carrito
+            const existingItem = cart.find(item => item.codigo === codigo);
+            
+            if (existingItem) {
+                const nuevaCantidad = existingItem.cantidad + cantidad;
+                if (nuevaCantidad > stockDisponible) {
+                    alert(`Ya tienes ${existingItem.cantidad} unidades en el carrito. Solo puedes agregar ${stockDisponible - existingItem.cantidad} más.`);
+                    return;
+                }
+                existingItem.cantidad = nuevaCantidad;
+            } else {
+                cart.push({
+                    codigo: codigo,
+                    nombre: nombre,
+                    categoria: categoria,
+                    cantidad: cantidad,
+                    stockDisponible: stockDisponible
+                });
+            }
+
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            
+            // Resetear la cantidad a 1
+            quantityInput.value = 1;
+            
+            // Mostrar mensaje de confirmación
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✅ Agregado!';
+            button.style.backgroundColor = '#28a745';
+            
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.style.backgroundColor = '#007bff';
+            }, 1500);
+        }
+
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            if (modal.style.display === 'none' || modal.style.display === '') {
+                showCart();
+            } else {
+                modal.style.display = 'none';
+            }
+        }
+
+        function showCart() {
+            const modal = document.getElementById('cart-modal');
+            const cartItems = document.getElementById('cart-items');
+            const cart = getCart(); // Usar la función que obtiene el carrito correcto
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="empty-cart">Tu carrito está vacío</p>';
+            } else {
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.nombre}</div>
+                            <div class="cart-item-details">
+                                <strong>Código:</strong> ${item.codigo}<br>
+                                <strong>Categoría:</strong> ${item.categoria}<br>
+                                <strong>Precio:</strong> HNL ${(item.precio || 0).toLocaleString('es-HN', {minimumFractionDigits: 2})}<br>
+                                <strong>Subtotal:</strong> HNL ${((item.precio || 0) * item.cantidad).toLocaleString('es-HN', {minimumFractionDigits: 2})}<br>
+                                <strong>Stock disponible:</strong> ${item.stockDisponible}
+                            </div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <div class="quantity-controls">
+                                <button class="quantity-btn" onclick="changeQuantity('${item.codigo}', -1)">-</button>
+                                <span class="quantity-display">${item.cantidad}</span>
+                                <button class="quantity-btn" onclick="changeQuantity('${item.codigo}', 1)">+</button>
+                            </div>
+                            <button class="remove-item-btn" onclick="removeFromCart('${item.codigo}')">Eliminar</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const totalItems = cart.reduce((sum, item) => sum + item.cantidad, 0);
+            const totalPrice = cart.reduce((sum, item) => sum + ((item.precio || 0) * item.cantidad), 0);
+            document.getElementById('cart-total').innerHTML = `${totalItems} items - Total: HNL ${totalPrice.toLocaleString('es-HN', {minimumFractionDigits: 2})}`;
+            modal.style.display = 'block';
+        }
+
+        function changeQuantity(codigo, change) {
+            if (window.cartManager) {
+                // Usar el sistema de carrito individual
+                const cart = window.cartManager.getProductCart();
+                const item = cart.find(item => item.codigo === codigo);
+                
+                if (item) {
+                    const newQuantity = item.cantidad + change;
+                    
+                    if (newQuantity <= 0) {
+                        removeFromCart(codigo);
+                    } else if (newQuantity > item.stockDisponible) {
+                        alert(`Solo hay ${item.stockDisponible} unidades disponibles en stock`);
+                    } else {
+                        window.cartManager.updateProductQuantity(codigo, newQuantity);
+                        showCart();
+                    }
+                }
+            } else {
+                // Fallback al sistema antiguo
+                const cart = getCart();
+                const item = cart.find(item => item.codigo === codigo);
+                if (item) {
+                    const newQuantity = item.cantidad + change;
+                    
+                    if (newQuantity <= 0) {
+                        removeFromCart(codigo);
+                    } else if (newQuantity > item.stockDisponible) {
+                        alert(`Solo hay ${item.stockDisponible} unidades disponibles en stock`);
+                    } else {
+                        item.cantidad = newQuantity;
+                        localStorage.setItem('cart', JSON.stringify(cart));
+                        updateCartCount();
+                        showCart();
+                    }
+                }
+            }
+        }
+
+        function removeFromCart(codigo) {
+            if (window.cartManager) {
+                // Usar el sistema de carrito individual
+                window.cartManager.removeProductFromCart(codigo);
+            } else {
+                // Fallback al sistema antiguo
+                const cart = getCart().filter(item => item.codigo !== codigo);
+                localStorage.setItem('cart', JSON.stringify(cart));
+            }
+            updateCartCount();
+            showCart();
+        }
+
+        function clearCart() {
+            if (confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
+                if (window.cartManager) {
+                    // Usar el sistema de carrito individual
+                    window.cartManager.clearProductCart();
+                } else {
+                    // Fallback al sistema antiguo
+                    localStorage.setItem('cart', JSON.stringify([]));
+                }
+                updateCartCount();
+                showCart();
+            }
+        }
+
+        function checkout() {
+            const cart = getCart();
+            
+            if (cart.length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
+            
+            const cartSummary = cart.map(item => 
+                `• ${item.nombre} - Cantidad: ${item.cantidad}`
+            ).join('\n');
+            
+            if (confirm(`¿Deseas crear una requisición con estos productos?\n\n${cartSummary}\n\nTotal de productos: ${cart.reduce((sum, item) => sum + item.cantidad, 0)}\n\nSerás redirigido a la página de requisiciones.`)) {
+                toggleCart(); // Cerrar el modal del carrito
+                window.location.href = '/requisiciones'; // Redirigir a requisiciones
+            }
+        }
+
+        // Función comentada - ya no se usa con el nuevo diseño
+        /*
+        function verProductosCategoria(categoria) {
+            // Filtrar productos por categoría y mostrar en una nueva vista
+            const productosCategoria = todosLosProductos.filter(p => (p.nomcategoria || 'Sin categoría') === categoria);
+            
+            // Crear modal o nueva vista para mostrar productos de la categoría
+            const modal = document.getElementById('categoria-modal') || createCategoriaModal();
+            modal.style.display = 'block';
+            
+            const modalContent = modal.querySelector('.categoria-modal-body');
+            modalContent.innerHTML = `
+                <h2>Productos de ${categoria}</h2>
+                <div class="productos-categoria-grid">
+                    ${productosCategoria.map(producto => `
+                        <div class="producto-item">
+                            <h4>${producto.nomproducto || 'Sin nombre'}</h4>
+                            <p>${producto.descproducto || 'Sin descripción'}</p>
+                            <p><strong>Stock:</strong> ${producto.canstock || '0'} unidades</p>
+                            <p><strong>Precio:</strong> HNL ${parseFloat(producto.gasunitario || 0).toLocaleString('es-MX', {minimumFractionDigits: 2})}</p>
+                            <div class="cantidad-container">
+                                <input type="number" id="qty-${producto.codobjetunico || producto.CodObjetoUnico || producto.nomproducto}" 
+                                       value="1" min="1" max="${producto.canstock || 1}" style="width: 60px; margin-right: 10px;">
+                                <button onclick="addToCart('${producto.codobjetunico || producto.CodObjetoUnico || producto.nomproducto}', '${producto.nomproducto}', '${producto.nomcategoria}', ${producto.canstock || 0})" 
+                                        ${parseFloat(producto.canstock || 0) <= 0 ? 'disabled' : ''}
+                                        style="background: #2d5016; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
+                                    ${parseFloat(producto.canstock || 0) <= 0 ? 'Sin Stock' : 'Agregar al Carrito'}
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        */
+
+        function createCategoriaModal() {
+            const modal = document.createElement('div');
+            modal.id = 'categoria-modal';
+            modal.innerHTML = `
+                <div class="categoria-modal-content">
+                    <div class="categoria-modal-header">
+                        <button onclick="document.getElementById('categoria-modal').style.display='none'" 
+                                style="float: right; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+                    </div>
+                    <div class="categoria-modal-body"></div>
+                </div>
+            `;
+            modal.style.cssText = `
+                display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%;
+                background-color: rgba(0,0,0,0.5);
+            `;
+            modal.querySelector('.categoria-modal-content').style.cssText = `
+                background-color: white; margin: 5% auto; padding: 20px; border-radius: 10px;
+                width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto;
+            `;
+            modal.querySelector('.productos-categoria-grid').style.cssText = `
+                display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;
+            `;
+            document.body.appendChild(modal);
+            return modal;
+        }
+
+        function buscarGlobal() {
+            aplicarFiltros(); // Usar la función de filtros unificada
+        }
+
+        // Función para mostrar vista previa del carrito inmediatamente
+        function showCartPreview() {
+            const cart = getCart();
+            const cartCount = cart.reduce((sum, item) => sum + item.cantidad, 0);
+            
+            if (cartCount > 0) {
+                // Mostrar notificación temporal
+                showCartNotification(cartCount);
+                
+                // Auto-mostrar el carrito después de un breve delay
+                setTimeout(() => {
+                    showCart();
+                }, 1000);
+            }
+        }
+
+        // Función para mostrar notificación del carrito
+        function showCartNotification(count) {
+            // Crear o actualizar notificación
+            let notification = document.getElementById('cart-notification');
+            if (!notification) {
+                notification = document.createElement('div');
+                notification.id = 'cart-notification';
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: linear-gradient(45deg, #28a745, #20c997);
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+                    z-index: 10000;
+                    font-weight: 500;
+                    animation: slideIn 0.3s ease-out;
+                `;
+                
+                // Agregar estilos de animación
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+                document.body.appendChild(notification);
+            }
+            
+            notification.innerHTML = `
+                🛒 Producto agregado al carrito<br>
+                <small>Total: ${count} productos</small>
+            `;
+            
+            // Auto-ocultar después de 3 segundos
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Función para ir a requisiciones con el carrito actual
+        function goToRequisiciones() {
+            const cart = getCart();
+            
+            if (cart.length === 0) {
+                alert('Tu carrito está vacío. Agrega productos antes de hacer una requisición.');
+                return;
+            }
+            
+            const cartCount = cart.reduce((sum, item) => sum + item.cantidad, 0);
+            
+            if (confirm(`¿Deseas ir a hacer la requisición?\n\nTienes ${cartCount} productos en el carrito.\n\nSerás redirigido a la página de requisiciones.`)) {
+                toggleCart(); // Cerrar el modal
+                window.location.href = '/requisiciones';
+            }
+        }
+
+        function logout() {
+            // Limpiar carritos del usuario actual
+            if (window.clearUserCarts) {
+                window.clearUserCarts();
+            }
+            localStorage.removeItem("token");
+            window.location.href = '/login';
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('theme-blue');
+        }
+
+        // ===== SISTEMA DE ALERTAS DE VENCIMIENTO =====
+        
+        function obtenerIndicadorVencimiento(producto) {
+            if (!producto.fecvencimiento) {
+                return {
+                    html: '',
+                    texto: '',
+                    clase: '',
+                    categoria: 'sin-fecha',
+                    diasRestantes: null
+                };
+            }
+
+            const fechaVencimiento = new Date(producto.fecvencimiento);
+            const fechaActual = new Date();
+            
+            // Normalizar las fechas para comparación (solo fecha, sin hora)
+            fechaVencimiento.setHours(0, 0, 0, 0);
+            fechaActual.setHours(0, 0, 0, 0);
+            
+            const diferenciaTiempo = fechaVencimiento.getTime() - fechaActual.getTime();
+            const diasRestantes = Math.ceil(diferenciaTiempo / (1000 * 60 * 60 * 24));
+            
+            let indicador = {
+                diasRestantes: diasRestantes,
+                html: '',
+                texto: '',
+                clase: '',
+                categoria: 'normal'
+            };
+            
+            if (diasRestantes < 0) {
+                // Ya vencido
+                indicador.html = `<div class="producto-vencimiento vencimiento-critico">VENCIDO</div>`;
+                indicador.texto = `(Vencido hace ${Math.abs(diasRestantes)} días)`;
+                indicador.clase = 'dias-criticos';
+                indicador.categoria = 'vencido';
+            } else if (diasRestantes <= 7) {
+                // Crítico - 7 días o menos
+                indicador.html = `<div class="producto-vencimiento vencimiento-critico">${diasRestantes} día${diasRestantes !== 1 ? 's' : ''}</div>`;
+                indicador.texto = `(${diasRestantes} día${diasRestantes !== 1 ? 's' : ''} restantes)`;
+                indicador.clase = 'dias-criticos';
+                indicador.categoria = 'critico';
+            } else if (diasRestantes <= 30) {
+                // Próximo a vencer - 30 días o menos
+                indicador.html = `<div class="producto-vencimiento vencimiento-advertencia">${diasRestantes} días</div>`;
+                indicador.texto = `(${diasRestantes} días restantes)`;
+                indicador.clase = 'dias-advertencia';
+                indicador.categoria = 'proximo';
+            } else {
+                // Normal - más de 30 días
+                indicador.html = `<div class="producto-vencimiento vencimiento-normal">OK</div>`;
+                indicador.texto = `(${diasRestantes} días restantes)`;
+                indicador.clase = 'dias-info';
+                indicador.categoria = 'normal';
+            }
+            
+            return indicador;
+        }
+
+        function formatearFecha(fechaString) {
+            if (!fechaString) return 'Sin fecha';
+            
+            try {
+                const fecha = new Date(fechaString);
+                return fecha.toLocaleDateString('es-HN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                return fechaString;
+            }
+        }
+
+        function actualizarAlertasVencimiento(productos) {
+            const alertasContainer = document.getElementById('alertas-lista');
+            const contadorElement = document.getElementById('alertas-contador');
+            
+            // Filtrar productos con problemas de vencimiento O stock bajo
+            const productosConAlertas = productos.filter(producto => {
+                const indicador = obtenerIndicadorVencimiento(producto);
+                const stock = parseFloat(producto.canstock || 0);
+                return (indicador.categoria === 'vencido' || 
+                       indicador.categoria === 'critico' || 
+                       indicador.categoria === 'proximo') ||
+                       (stock > 0 && stock <= 5);
+            }).sort((a, b) => {
+                // Ordenar por urgencia: agotados primero, stock bajo, luego por vencimiento
+                const stockA = parseFloat(a.canstock || 0);
+                const stockB = parseFloat(b.canstock || 0);
+                
+                // Prioridad 1: Stock agotado
+                if (stockA === 0 && stockB > 0) return -1;
+                if (stockB === 0 && stockA > 0) return 1;
+                
+                // Prioridad 2: Stock bajo
+                if (stockA <= 5 && stockA > 0 && stockB > 5) return -1;
+                if (stockB <= 5 && stockB > 0 && stockA > 5) return 1;
+                
+                // Prioridad 3: Vencimiento
+                const indicadorA = obtenerIndicadorVencimiento(a);
+                const indicadorB = obtenerIndicadorVencimiento(b);
+                
+                if (indicadorA.diasRestantes !== null && indicadorB.diasRestantes !== null) {
+                    return indicadorA.diasRestantes - indicadorB.diasRestantes;
+                }
+                return 0;
+            });
+            
+            contadorElement.textContent = productosConAlertas.length;
+            
+            if (productosConAlertas.length === 0) {
+                alertasContainer.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #28a745;">
+                        ✅ No hay productos con alertas de vencimiento o stock bajo
+                    </div>
+                `;
+            } else {
+                alertasContainer.innerHTML = productosConAlertas.map(producto => {
+                    const indicador = obtenerIndicadorVencimiento(producto);
+                    const stock = parseFloat(producto.canstock || 0);
+                    let claseAlerta, icono, mensaje;
+                    
+                    // Determinar tipo de alerta
+                    if (stock === 0) {
+                        claseAlerta = 'alerta-critica';
+                        icono = '🚫';
+                        mensaje = 'Producto AGOTADO';
+                    } else if (stock <= 5) {
+                        claseAlerta = 'alerta-advertencia';
+                        icono = '⚠️';
+                        mensaje = `STOCK BAJO (${stock} unidades)`;
+                    } else if (indicador.categoria === 'vencido') {
+                        claseAlerta = 'alerta-critica';
+                        icono = '🚨';
+                        mensaje = `Producto VENCIDO hace ${Math.abs(indicador.diasRestantes)} días`;
+                    } else if (indicador.categoria === 'critico') {
+                        claseAlerta = 'alerta-critica';
+                        icono = '⚠️';
+                        mensaje = `Vence en ${indicador.diasRestantes} día${indicador.diasRestantes !== 1 ? 's' : ''}`;
+                    } else {
+                        claseAlerta = 'alerta-advertencia';
+                        icono = '📅';
+                        mensaje = `Vence en ${indicador.diasRestantes} días`;
+                    }
+                    
+                    return `
+                        <div class="alerta-item ${claseAlerta}">
+                            <div class="alerta-icono">${icono}</div>
+                            <div class="alerta-contenido">
+                                <div class="alerta-titulo-item">${producto.nomproducto || 'Sin nombre'}</div>
+                                <div class="alerta-descripcion">
+                                    ${mensaje} • Stock: ${stock} unidades
+                                    <br>Código: ${producto.codobjetunico || producto.CodObjetoUnico || 'N/A'}
+                                </div>
+                            </div>
+                            <div class="alerta-dias ${stock <= 5 ? 'stock-bajo' : indicador.clase}">
+                                ${stock === 0 ? 'AGOTADO' : stock <= 5 ? `${stock} unid.` : indicador.diasRestantes < 0 ? 'VENCIDO' : `${indicador.diasRestantes} días`}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Mostrar automáticamente el panel si hay alertas críticas
+            const alertasCriticas = productosConAlertas.filter(p => {
+                const ind = obtenerIndicadorVencimiento(p);
+                const stock = parseFloat(p.canstock || 0);
+                return stock === 0 || (stock > 0 && stock <= 5) || ind.categoria === 'vencido' || ind.categoria === 'critico';
+            });
+            
+            if (alertasCriticas.length > 0) {
+                // Auto-mostrar panel de alertas si hay productos críticos o vencidos
+                document.getElementById('alertas-vencimiento').style.display = 'block';
+            }
+        }
+
+        function toggleAlertasPanel() {
+            const panel = document.getElementById('alertas-vencimiento');
+            if (panel.style.display === 'none' || !panel.style.display) {
+                panel.style.display = 'block';
+                // Actualizar alertas al mostrar
+                actualizarAlertasVencimiento(todosLosProductos);
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        // Inicializar el contador del carrito al cargar la página
+        document.addEventListener("DOMContentLoaded", function() {
+            updateCartCount();
+        });
+    </script>
+    <script src="/static/cart-manager.js"></script>
+</body>
+</html>

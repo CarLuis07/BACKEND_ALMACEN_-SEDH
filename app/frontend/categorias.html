@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Almacén SEDH - Categorías</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="/static/cart-manager.js"></script>
+    <style>
+        /* Reset y estilos base */
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #0b3f3b 0%, #0f5e59 50%, #0f766e 100%);
+            min-height: 100vh;
+            line-height: 1.4;
+            position: relative;
+        }
+
+        /* Patrón de fondo circular */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .categorias-container {
+            max-width: 1800px;
+            width: 95%;
+            margin: 0 auto;
+            padding: 30px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .categorias-container {
+                margin: 1px;
+                padding: 1px;
+            }
+        }
+
+        /* Header styles */
+        .header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo {
+            width: 45px;
+            height: 45px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #0f766e;
+            font-size: 14px;
+            text-align: center;
+            line-height: 1.2;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            margin: 0;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 400px;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: none;
+            border-radius: 25px;
+            background: white;
+            font-size: 14px;
+            outline: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .user-info {
+            text-align: right;
+            color: white;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            white-space: nowrap;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            gap: 3px;
+            margin-bottom: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-tab {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 3px 6px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-tab:hover, .nav-tab.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        /* Main content */
+        .main-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 4px;
+            padding: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .content-title {
+            color: white;
+            font-size: 11px;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 3px 6px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 8px;
+            font-weight: 500;
+        }
+
+        .add-btn:hover {
+            background-color: #218838;
+        }
+
+        /* Categories grid */
+        .categorias-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+            padding: 0;
+            width: 100%;
+            justify-items: center;
+            justify-content: center;
+        }
+
+        .categoria-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 14px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            width: 100%;
+            max-width: 260px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .categoria-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .categoria-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .categoria-codigo {
+            background: rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .categoria-nombre {
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 8px 0;
+            text-align: center;
+        }
+
+        .categoria-descripcion {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 11px;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            text-align: center;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .categoria-imagen {
+            width: 100%;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .categoria-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+        }
+
+        .btn-small {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            flex: 1;
+            transition: all 0.2s ease;
+        }
+
+        .btn-cart {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-small:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Loading and empty states */
+        .loading {
+            text-align: center;
+            padding: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 15px 10px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .empty-state h3 {
+            color: white;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .categorias-container {
+                max-width: 98vw;
+                padding: 1px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 2px;
+                padding: 3px 5px;
+            }
+            
+            .header h1 {
+                text-align: center;
+                font-size: 10px;
+            }
+
+            .search-container {
+                max-width: none;
+                margin: 0;
+                width: 100%;
+            }
+
+            .content-header {
+                flex-direction: column;
+                gap: 3px;
+                align-items: flex-start;
+            }
+
+            .categorias-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 3px;
+                padding: 0 1px;
+            }
+
+            .categoria-card {
+                padding: 3px;
+                max-width: none;
+            }
+
+            .categoria-nombre {
+                font-size: 8px;
+            }
+
+            .categoria-descripcion {
+                font-size: 6px;
+            }
+
+            .categoria-imagen {
+                height: 25px;
+            }
+        }
+
+        /* Para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .categorias-grid {
+                grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+                gap: 2px;
+            }
+            
+            .categoria-card {
+                padding: 2px;
+            }
+            
+            .categoria-nombre {
+                font-size: 7px;
+            }
+            
+            .categoria-descripcion {
+                font-size: 6px;
+            }
+        }
+
+        /* Estilos del carrito */
+        .cart-container {
+            position: relative;
+        }
+
+        .cart-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 6px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            text-decoration: none;
+            font-size: 16px;
+            width: 35px;
+            height: 35px;
+            transition: all 0.3s ease;
+        }
+
+        .cart-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .cart-count {
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 1px 4px;
+            font-size: 8px;
+            position: absolute;
+            top: -3px;
+            right: -3px;
+            min-width: 15px;
+            height: 15px;
+            text-align: center;
+            line-height: 13px;
+            font-weight: bold;
+            display: none;
+        }
+
+        /* Modal del Carrito */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .cart-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .cart-header {
+            background-color: #14b8a6;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .cart-header h2 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .close-cart-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cart-body {
+            padding: 15px;
+            min-height: 150px;
+        }
+
+        .empty-cart {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            margin: 40px 0;
+            font-size: 14px;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            margin-bottom: 8px;
+            border-radius: 5px;
+        }
+
+        .cart-item-info {
+            flex: 1;
+        }
+
+        .cart-item-name {
+            font-weight: bold;
+            color: #0f766e;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .cart-item-details {
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+        .cart-item-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .remove-item-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .remove-item-btn:hover {
+            background-color: #c82333;
+        }
+
+        .cart-footer {
+            padding: 15px;
+            border-top: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .cart-total {
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #0f766e;
+        }
+
+        .cart-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-clear-cart {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-clear-cart:hover {
+            background-color: #5a6268;
+        }
+
+        .btn-checkout {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-checkout:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="categorias-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">SEDH</div>
+            <h1>Sistema de Almacén - Categorías</h1>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="Buscar categorías...">
+                <button class="search-btn" onclick="buscarCategorias()">🔍</button>
+            </div>
+            
+            <div class="header-right">
+                <div class="cart-container">
+                    <button class="cart-btn" onclick="toggleCart()">
+                        🛒
+                        <span class="cart-count" id="cart-count">0</span>
+                    </button>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="userName">Usuario</div>
+                    <div class="user-role" id="userRole">Cargando...</div>
+                </div>
+                <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="nav-tabs">
+            <a href="/dashboard" class="nav-tab">Inicio</a>
+            <a href="/productos" class="nav-tab">Productos</a>
+            <a href="/categorias" class="nav-tab active">Categorías</a>
+            <a href="/requisiciones" class="nav-tab">Requisiciones</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="content-header">
+                <h2 class="content-title">Gestión de Categorías</h2>
+                <button class="add-btn" onclick="mostrarModalAgregar()">+ Agregar Categoría</button>
+            </div>
+
+            <!-- Categories Grid -->
+            <div id="categoriasContainer">
+                <div class="loading">Cargando categorías...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal del Carrito -->
+    <div id="cart-modal" class="cart-modal" style="display: none;">
+        <div class="cart-modal-content">
+            <div class="cart-header">
+                <h2>🛒 Mi Carrito de Categorías</h2>
+                <button class="close-cart-btn" onclick="toggleCart()">&times;</button>
+            </div>
+            <div class="cart-body" id="cart-items">
+                <p class="empty-cart">Tu carrito está vacío</p>
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <strong>Total de categorías: <span id="cart-total">0</span></strong>
+                </div>
+                <div class="cart-actions">
+                    <button class="btn-clear-cart" onclick="clearCart()">Vaciar Carrito</button>
+                    <button class="btn-checkout" onclick="checkout()">Hacer Requisición</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let categorias = [];
+        let token = localStorage.getItem('token');
+
+        // Verificar autenticación al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            cargarUserInfo();
+            cargarCategorias();
+        });
+
+        // Cargar información del usuario
+        async function cargarUserInfo() {
+            try {
+                const response = await fetch('/api/v1/accesos/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const userInfo = await response.json();
+                    document.getElementById('userName').textContent = userInfo.nombre || userInfo.email || 'Usuario';
+                    document.getElementById('userRole').textContent = userInfo.rol || 'Empleado';
+                } else {
+                    document.getElementById('userRole').textContent = 'Empleado';
+                }
+            } catch (error) {
+                console.error('Error al cargar información del usuario:', error);
+                document.getElementById('userRole').textContent = 'Empleado';
+            }
+        }
+
+        // Cargar categorías
+        async function cargarCategorias() {
+            try {
+                const response = await fetch('/api/v1/productos/categorias', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    categorias = await response.json();
+                    mostrarCategorias(categorias);
+                } else if (response.status === 401) {
+                    // Token expirado
+                    localStorage.removeItem('access_token');
+                    window.location.href = '/login';
+                } else {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+            } catch (error) {
+                console.error('Error al cargar categorías:', error);
+                document.getElementById('categoriasContainer').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Error al cargar categorías</h3>
+                        <p>${error.message}</p>
+                        <button class="add-btn" onclick="cargarCategorias()">Reintentar</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Mostrar categorías en la grid
+        function mostrarCategorias(categoriasData) {
+            const container = document.getElementById('categoriasContainer');
+            
+            if (!categoriasData || categoriasData.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <h3>No hay categorías registradas</h3>
+                        <p>Comienza agregando tu primera categoría</p>
+                        <button class="add-btn" onclick="mostrarModalAgregar()">+ Agregar Categoría</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const categoriasHTML = categoriasData.map(categoria => `
+                <div class="categoria-card">
+                    <div class="categoria-header">
+                        <div class="categoria-codigo">COD: ${categoria.codobjeto || 'N/A'}</div>
+                    </div>
+                    
+                    <div class="categoria-nombre">${categoria.nomcategoria || 'Sin nombre'}</div>
+                    
+                    <div class="categoria-descripcion">
+                        ${categoria.descategoria || 'Sin descripción disponible'}
+                    </div>
+                    
+                    <div class="categoria-imagen">
+                        ${categoria.imagen ? 'Imagen disponible' : 'Sin imagen'}
+                    </div>
+                    
+                    <div class="categoria-actions">
+                        <button class="btn-small btn-cart" onclick="agregarCategoriaAlCarrito('${categoria.codobjeto}', '${(categoria.nomcategoria || '').replace(/'/g, "\\'")}', '${(categoria.descategoria || '').replace(/'/g, "\\'")}')">
+                            🛒 Carrito
+                        </button>
+                        <button class="btn-small btn-edit" onclick="editarCategoria(${categoria.codobjeto})">
+                            ✏️ Editar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = `<div class="categorias-grid">${categoriasHTML}</div>`;
+        }
+
+        // Buscar categorías
+        function buscarCategorias() {
+            const termino = document.getElementById('searchInput').value.toLowerCase().trim();
+            
+            if (!termino) {
+                mostrarCategorias(categorias);
+                return;
+            }
+
+            const categoriasFiltradas = categorias.filter(categoria => 
+                (categoria.nomcategoria && categoria.nomcategoria.toLowerCase().includes(termino)) ||
+                (categoria.descategoria && categoria.descategoria.toLowerCase().includes(termino)) ||
+                (categoria.codobjeto && categoria.codobjeto.toString().includes(termino))
+            );
+
+            mostrarCategorias(categoriasFiltradas);
+        }
+
+        // Event listener para búsqueda en tiempo real
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', buscarCategorias);
+            }
+        });
+
+        // Funciones de CRUD (por implementar)
+        function mostrarModalAgregar() {
+            alert('Funcionalidad de agregar categoría en desarrollo');
+        }
+
+        function editarCategoria(codobjeto) {
+            alert(`Editar categoría ${codobjeto} - Funcionalidad en desarrollo`);
+        }
+
+        function eliminarCategoria(codobjeto) {
+            if (confirm(`¿Estás seguro de eliminar la categoría ${codobjeto}?`)) {
+                alert('Funcionalidad de eliminar en desarrollo');
+            }
+        }
+
+        // Funciones del Carrito Individual
+        function updateCartCount() {
+            // Usar el CartManager global si está disponible
+            if (window.cartManager) {
+                window.cartManager.updateCartCountDisplay();
+            }
+        }
+
+        function agregarCategoriaAlCarrito(codigo, nombre, descripcion) {
+            if (!window.cartManager) {
+                alert('Sistema de carrito no disponible');
+                return;
+            }
+
+            const categoria = {
+                codigo: codigo,
+                nombre: nombre,
+                descripcion: descripcion
+            };
+
+            const success = window.cartManager.addCategoryToCart(categoria);
+            if (!success) {
+                return; // El CartManager ya muestra el mensaje de error
+            }
+
+            // Mostrar confirmación visual
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '✅ Agregado';
+            button.style.backgroundColor = '#28a745';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.style.backgroundColor = '#28a745';
+            }, 2000);
+        }
+
+        function toggleCart() {
+            const modal = document.getElementById('cart-modal');
+            if (modal.style.display === 'none' || modal.style.display === '') {
+                showCart();
+            } else {
+                modal.style.display = 'none';
+            }
+        }
+
+        function showCart() {
+            if (!window.cartManager) {
+                alert('Sistema de carrito no disponible');
+                return;
+            }
+
+            const cart = window.cartManager.getCategoryCart();
+            const modal = document.getElementById('cart-modal');
+            const cartItems = document.getElementById('cart-items');
+            
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p class="empty-cart">Tu carrito está vacío</p>';
+            } else {
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.nombre}</div>
+                            <div class="cart-item-details">
+                                <strong>Código:</strong> ${item.codigo}<br>
+                                <strong>Descripción:</strong> ${item.descripcion || 'Sin descripción'}<br>
+                                <strong>Tipo:</strong> Categoría
+                            </div>
+                        </div>
+                        <div class="cart-item-actions">
+                            <button class="remove-item-btn" onclick="removeFromCart('${item.codigo}')">Eliminar</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const totalItems = cart.length;
+            document.getElementById('cart-total').innerHTML = `${totalItems} categorías seleccionadas`;
+            modal.style.display = 'block';
+        }
+
+        function removeFromCart(codigo) {
+            if (window.cartManager) {
+                window.cartManager.removeCategoryFromCart(codigo);
+                showCart();
+            }
+        }
+
+        function clearCart() {
+            if (confirm('¿Estás seguro de que quieres vaciar el carrito?')) {
+                if (window.cartManager) {
+                    window.cartManager.clearCategoryCart();
+                    showCart();
+                }
+            }
+        }
+
+        function checkout() {
+            if (!window.cartManager) {
+                alert('Sistema de carrito no disponible');
+                return;
+            }
+
+            const cart = window.cartManager.getCategoryCart();
+            if (cart.length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
+            
+            const cartSummary = cart.map(item => 
+                `• ${item.nombre} (Código: ${item.codigo})`
+            ).join('\n');
+            
+            if (confirm(`¿Deseas crear una requisición para estas categorías?\n\n${cartSummary}\n\nTotal: ${cart.length} categorías\n\nSerás redirigido a la página de requisiciones.`)) {
+                // Guardar las categorías seleccionadas para la requisición (manteniendo compatibilidad)
+                const userCartKey = window.cartManager.getUserCartKey('requisicion_categorias');
+                if (userCartKey) {
+                    localStorage.setItem(userCartKey, JSON.stringify(cart));
+                }
+                
+                toggleCart(); // Cerrar el modal del carrito
+                window.location.href = '/requisiciones'; // Redirigir a requisiciones
+            }
+        }
+
+        // Cerrar sesión
+        function logout() {
+            // Limpiar carritos del usuario actual
+            if (window.clearUserCarts) {
+                window.clearUserCarts();
+            }
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }
+
+        // Inicializar el contador del carrito al cargar la página
+        document.addEventListener("DOMContentLoaded", async function() {
+            // Esperar a que el CartManager esté listo
+            setTimeout(async () => {
+                if (window.cartManager) {
+                    await window.cartManager.init();
+                    await window.cartManager.migrateOldCarts();
+                }
+                updateCartCount();
+            }, 100);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agregar Producto - Sistema SEDH</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #0b3f3b 0%, #0f5e59 50%, #0f766e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #0f766e;
+            font-size: 13px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 28px;
+            font-weight: 300;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .form-container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-title {
+            color: #0f766e;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .form-subtitle {
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            color: #0f766e;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group label .required {
+            color: #dc3545;
+            margin-left: 3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .form-group input[type="number"]::-webkit-outer-spin-button,
+        .form-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .helper-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #0f766e 0%, #14b8a6 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(45, 80, 22, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: #0f766e;
+            font-weight: 600;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-container {
+                padding: 25px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <div class="logo">
+                    SEDH<br>Honduras
+                </div>
+                <h1>Agregar Nuevo Producto</h1>
+            </div>
+            <a href="/productos" class="btn-back">← Volver a Productos</a>
+        </div>
+
+        <div class="form-container">
+            <h2 class="form-title">📦 Información del Producto</h2>
+            <p class="form-subtitle">Complete todos los campos requeridos para registrar un nuevo producto en el sistema</p>
+
+            <div id="alert-container"></div>
+            <div id="loading" class="loading">Cargando catálogos</div>
+
+            <form id="form-producto">
+                <div class="form-grid">
+                    <!-- Nombre del Producto -->
+                    <div class="form-group full-width">
+                        <label for="nomproducto">
+                            Nombre del Producto
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="nomproducto" 
+                            name="nomproducto" 
+                            required 
+                            maxlength="100"
+                            placeholder="Ej: Café Molido Premium">
+                        <span class="helper-text">Nombre descriptivo del producto (máx. 100 caracteres)</span>
+                    </div>
+
+                    <!-- Categoría -->
+                    <div class="form-group">
+                        <label for="idcategoria">
+                            Categoría
+                            <span class="required">*</span>
+                        </label>
+                        <select id="idcategoria" name="idcategoria" required>
+                            <option value="">Seleccione una categoría...</option>
+                        </select>
+                    </div>
+
+                    <!-- Unidad de Medida -->
+                    <div class="form-group">
+                        <label for="idunidadmedida">
+                            Unidad de Medida
+                            <span class="required">*</span>
+                        </label>
+                        <select id="idunidadmedida" name="idunidadmedida" required>
+                            <option value="">Seleccione una unidad...</option>
+                        </select>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="form-group full-width">
+                        <label for="descproducto">Descripción</label>
+                        <textarea 
+                            id="descproducto" 
+                            name="descproducto" 
+                            placeholder="Descripción detallada del producto (opcional)"></textarea>
+                    </div>
+
+                    <!-- Proveedor -->
+                    <div class="form-group">
+                        <label for="proveedor">Proveedor</label>
+                        <input 
+                            type="text" 
+                            id="proveedor" 
+                            name="proveedor" 
+                            maxlength="100"
+                            placeholder="Nombre del proveedor">
+                    </div>
+
+                    <!-- Fecha de Ingreso -->
+                    <div class="form-group">
+                        <label for="fecingreso">
+                            Fecha de Ingreso
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="date" 
+                            id="fecingreso" 
+                            name="fecingreso" 
+                            required>
+                    </div>
+
+                    <!-- Fecha de Vencimiento -->
+                    <div class="form-group">
+                        <label for="fecvencimiento">Fecha de Vencimiento</label>
+                        <input 
+                            type="date" 
+                            id="fecvencimiento" 
+                            name="fecvencimiento">
+                        <span class="helper-text">Opcional, solo si aplica</span>
+                    </div>
+
+                    <!-- Stock Inicial -->
+                    <div class="form-group">
+                        <label for="canstock">
+                            Cantidad en Stock
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="canstock" 
+                            name="canstock" 
+                            required 
+                            min="0" 
+                            step="0.01"
+                            placeholder="0.00">
+                        <span class="helper-text">Cantidad inicial del producto</span>
+                    </div>
+
+                    <!-- Límite Stock Bajo -->
+                    <div class="form-group">
+                        <label for="limstockbajo">
+                            Límite de Stock Bajo
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="limstockbajo" 
+                            name="limstockbajo" 
+                            required 
+                            min="0" 
+                            step="0.01"
+                            placeholder="0.00">
+                        <span class="helper-text">Alerta cuando stock esté bajo</span>
+                    </div>
+
+                    <!-- Gasto Unitario -->
+                    <div class="form-group">
+                        <label for="gasunitario">
+                            Precio Unitario (HNL)
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="gasunitario" 
+                            name="gasunitario" 
+                            required 
+                            min="0" 
+                            step="0.01"
+                            placeholder="0.00">
+                    </div>
+
+                    <!-- Gasto Total (calculado) -->
+                    <div class="form-group">
+                        <label for="gastotal">
+                            Valor Total (HNL)
+                            <span class="required">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="gastotal" 
+                            name="gastotal" 
+                            required 
+                            min="0" 
+                            step="0.01"
+                            placeholder="0.00"
+                            readonly>
+                        <span class="helper-text">Se calcula automáticamente</span>
+                    </div>
+
+                    <!-- Facturas -->
+                    <div class="form-group">
+                        <label for="facturas">Número de Factura</label>
+                        <input 
+                            type="text" 
+                            id="facturas" 
+                            name="facturas" 
+                            placeholder="Ej: FAC-2025-001">
+                    </div>
+
+                    <!-- Órdenes de Compra -->
+                    <div class="form-group">
+                        <label for="ordenescompra">Orden de Compra</label>
+                        <input 
+                            type="text" 
+                            id="ordenescompra" 
+                            name="ordenescompra" 
+                            placeholder="Ej: OC-2025-001">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='/productos'">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit">
+                        💾 Guardar Producto
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = `${window.location.protocol}//${window.location.host}/api/v1`;
+
+        // Verificar autenticación
+        const token = localStorage.getItem("token");
+        if (!token) {
+            window.location.href = "/login";
+        }
+
+        // Cargar catálogos al iniciar
+        document.addEventListener("DOMContentLoaded", async function() {
+            await cargarCatalogos();
+            configurarCalculoAutomatico();
+            establecerFechaActual();
+        });
+
+        // Cargar categorías y unidades de medida
+        async function cargarCatalogos() {
+            const loading = document.getElementById("loading");
+            loading.style.display = "block";
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/productos/catalogos`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("Error al cargar catálogos");
+                }
+
+                const data = await response.json();
+                
+                // Llenar select de categorías
+                const selectCategoria = document.getElementById("idcategoria");
+                data.categorias.forEach(cat => {
+                    const option = document.createElement("option");
+                    option.value = cat.idcategoria;
+                    option.textContent = `${cat.codobjeto} - ${cat.nomcategoria}`;
+                    selectCategoria.appendChild(option);
+                });
+
+                // Llenar select de unidades
+                const selectUnidad = document.getElementById("idunidadmedida");
+                data.unidades.forEach(unidad => {
+                    const option = document.createElement("option");
+                    option.value = unidad.idunidadmedida;
+                    option.textContent = unidad.nomunidad;
+                    selectUnidad.appendChild(option);
+                });
+
+                loading.style.display = "none";
+
+            } catch (error) {
+                console.error("Error:", error);
+                loading.style.display = "none";
+                mostrarAlerta("error", "No se pudieron cargar los catálogos. Intente recargar la página.");
+            }
+        }
+
+        // Configurar cálculo automático del gasto total
+        function configurarCalculoAutomatico() {
+            const canstock = document.getElementById("canstock");
+            const gasunitario = document.getElementById("gasunitario");
+            const gastotal = document.getElementById("gastotal");
+
+            function calcularTotal() {
+                const cantidad = parseFloat(canstock.value) || 0;
+                const precio = parseFloat(gasunitario.value) || 0;
+                const total = cantidad * precio;
+                gastotal.value = total.toFixed(2);
+            }
+
+            canstock.addEventListener("input", calcularTotal);
+            gasunitario.addEventListener("input", calcularTotal);
+        }
+
+        // Establecer fecha actual
+        function establecerFechaActual() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById("fecingreso").value = today;
+        }
+
+        // Manejar envío del formulario
+        document.getElementById("form-producto").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const btnSubmit = document.getElementById("btn-submit");
+            btnSubmit.disabled = true;
+            btnSubmit.textContent = "Guardando...";
+
+            const formData = new FormData(e.target);
+            
+            const payload = {
+                idcategoria: formData.get("idcategoria"),
+                fecingreso: formData.get("fecingreso"),
+                nomproducto: formData.get("nomproducto"),
+                descproducto: formData.get("descproducto") || null,
+                canstock: parseFloat(formData.get("canstock")),
+                proveedor: formData.get("proveedor") || null,
+                limstockbajo: parseFloat(formData.get("limstockbajo")),
+                fecvencimiento: formData.get("fecvencimiento") || null,
+                idunidadmedida: formData.get("idunidadmedida"),
+                gasunitario: parseFloat(formData.get("gasunitario")),
+                gastotal: parseFloat(formData.get("gastotal")),
+                facturas: formData.get("facturas") || null,
+                ordenescompra: formData.get("ordenescompra") || null
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/productos/crearProducto`, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    mostrarAlerta("success", `✅ ${result.message || 'Producto creado exitosamente'}`);
+                    
+                    // Resetear formulario
+                    e.target.reset();
+                    establecerFechaActual();
+                    
+                    // Redirigir después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = "/productos";
+                    }, 2000);
+                } else {
+                    throw new Error(result.detail || "Error al crear el producto");
+                }
+
+            } catch (error) {
+                console.error("Error:", error);
+                mostrarAlerta("error", `❌ ${error.message}`);
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "💾 Guardar Producto";
+            }
+        });
+
+        // Mostrar alertas
+        function mostrarAlerta(tipo, mensaje) {
+            const container = document.getElementById("alert-container");
+            const alert = document.createElement("div");
+            alert.className = `alert alert-${tipo}`;
+            alert.textContent = mensaje;
+            alert.style.display = "block";
+            
+            container.innerHTML = "";
+            container.appendChild(alert);
+            
+            // Auto-ocultar después de 5 segundos
+            setTimeout(() => {
+                alert.style.display = "none";
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
+
