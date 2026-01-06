@@ -1523,7 +1523,7 @@
                             <div class="req-info">
                                 <div class="req-info-row">
                                     <span class="req-info-label">Solicitante</span>
-                                    <span class="req-info-value">${getField(req, 'nombreSubordinado', 'nombre_subordinado', 'nombresubordinado', 'solicitante', 'nombreSolicitante')}</span>
+                                    <span class="req-info-value">${getField(req, 'nombreSubordinado', 'nombreEmpleado', 'nombre_subordinado', 'nombre_empleado', 'nombresubordinado', 'nombreempleado', 'solicitante', 'nombreSolicitante')}</span>
                                 </div>
                                 <div class="req-info-row">
                                     <span class="req-info-label">Dependencia</span>
@@ -1580,7 +1580,7 @@
             decisionActual = null;
 
             document.getElementById('modalCodigo').textContent = requisicion.codRequisicion;
-            document.getElementById('modalSolicitante').textContent = requisicion.nombreSubordinado;
+            document.getElementById('modalSolicitante').textContent = requisicion.nombreSubordinado || requisicion.nombreEmpleado || 'No especificado';
             document.getElementById('modalDependencia').textContent = requisicion.dependencia;
             document.getElementById('modalTotal').textContent = 'L. ' + formatMoney(requisicion.gasTotalDelPedido);
 
