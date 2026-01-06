@@ -594,10 +594,28 @@ def requisiciones_pendientes_jefe_materiales(db: Session, email: str) -> List[Re
         productos_list = _parse_productos(_first(d, "productos", "Productos"))
         productos_out = [_map_producto_item(it) for it in productos_list]
 
+        # Intentar múltiples variaciones para el nombre del empleado/solicitante
+        nombre_empleado = _first(d, "nombreEmpleado", "nombreempleado", "nomempleado", "nom_empleado",
+                                 "NomEmpleado", "nombre_empleado", "solicitante", 
+                                 "nombreSolicitante", "nombre_solicitante", "nombreSubordinado")
+        
+        # Si no se encontró el nombre, intentar obtenerlo desde la tabla de requisiciones
+        if not nombre_empleado:
+            id_requisicion = _first(d, "idRequisicion", "idrequisicion", "id_requisicion")
+            if id_requisicion:
+                try:
+                    from app.models.requisiciones.requisicion import Requisicion
+                    req_obj = db.query(Requisicion).filter(Requisicion.IdRequisicion == id_requisicion).first()
+                    if req_obj and req_obj.NomEmpleado:
+                        nombre_empleado = req_obj.NomEmpleado
+                except Exception as e:
+                    print(f"⚠️  No se pudo obtener el nombre del empleado desde la tabla: {e}")
+                    nombre_empleado = "No especificado"
+
         mapeado = {
             "idRequisicion": _first(d, "idRequisicion", "idrequisicion"),
             "codRequisicion": _first(d, "codRequisicion", "codrequisicion"),
-            "nombreEmpleado": _first(d, "nombreEmpleado", "nombreempleado", "nomempleado", "nom_empleado"),
+            "nombreEmpleado": nombre_empleado or "No especificado",
             "dependencia": _first(d, "dependencia"),
             "fecSolicitud": _first(d, "fecSolicitud", "fecsolicitud"),
             "codPrograma": _first(d, "codPrograma", "codprograma"),
