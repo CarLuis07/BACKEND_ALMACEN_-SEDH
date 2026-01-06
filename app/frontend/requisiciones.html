@@ -1620,19 +1620,57 @@
                 </div>
             `;
 
-            // Productos SIN inputs editables (Jefe Inmediato solo aprueba/rechaza, NO modifica)
-            const productosHtml = requisicion.productos.map((p, idx) => `
-                <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--sedh-light-gray); align-items:center;">
-                    <div>
-                        <strong>${p.nombre || 'Producto sin nombre'}</strong>
-                        <br><small style="color:#666;">Precio unitario: L. ${formatMoney(p.gasUnitario || 0)}</small>
-                        <br><small style="color:var(--sedh-primary); font-weight:600;">Cantidad: ${p.cantidad || 0}</small>
-                    </div>
-                    <div style="text-align:right;">
-                        <strong style="color:var(--sedh-primary); font-size:1.1em;">L. ${formatMoney(p.gasTotalProducto || 0)}</strong>
-                    </div>
-                </div>
-            `).join('');
+            // Detectar rol para saber si permitir editar cantidades
+            const decoded = parseJwt(localStorage.getItem('token'));
+            const roles = normalizarRoles(decoded);
+            const esJefeMaterielles = tieneRol(roles, ['jefe de materiales', 'jefe materiales', 'jefsermat', 'jef mat']);
+
+            // Productos con inputs editables SOLO para Jefe de Materiales
+            const productosHtml = requisicion.productos.map((p, idx) => {
+                const cantidadOriginal = p.cantidad || 0;
+                const cantidadId = `cant_${idx}`;
+                
+                if (esJefeMaterielles) {
+                    // Jefe de Materiales: permite editar cantidades
+                    return `
+                        <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--sedh-light-gray); align-items:center; gap:10px;">
+                            <div style="flex:1;">
+                                <strong>${p.nombre || 'Producto sin nombre'}</strong>
+                                <br><small style="color:#666;">Precio unitario: L. ${formatMoney(p.gasUnitario || 0)}</small>
+                                <br><small style="color:#999;">Original: ${cantidadOriginal} unidades</small>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="margin-bottom:5px;">
+                                    <label style="font-size:0.85em; color:#666;">Cantidad:</label>
+                                    <input 
+                                        id="${cantidadId}"
+                                        type="number" 
+                                        value="${cantidadOriginal}" 
+                                        min="0"
+                                        style="width:80px; padding:5px; border:1px solid var(--sedh-light-gray); border-radius:4px; font-weight:600;"
+                                        onchange="actualizarTotalProducto(${idx}, this.value)"
+                                    />
+                                </div>
+                                <strong style="color:var(--sedh-primary); font-size:1.1em;" id="total_${idx}">L. ${formatMoney(p.gasTotalProducto || 0)}</strong>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // Otros roles: solo visualización
+                    return `
+                        <div style="display:flex; justify-content:space-between; padding:10px; border-bottom:1px solid var(--sedh-light-gray); align-items:center;">
+                            <div>
+                                <strong>${p.nombre || 'Producto sin nombre'}</strong>
+                                <br><small style="color:#666;">Precio unitario: L. ${formatMoney(p.gasUnitario || 0)}</small>
+                                <br><small style="color:var(--sedh-primary); font-weight:600;">Cantidad: ${cantidadOriginal}</small>
+                            </div>
+                            <div style="text-align:right;">
+                                <strong style="color:var(--sedh-primary); font-size:1.1em;">L. ${formatMoney(p.gasTotalProducto || 0)}</strong>
+                            </div>
+                        </div>
+                    `;
+                }
+            }).join('');
 
             document.getElementById('modalProductos').innerHTML = `
                 ${programasHtml}
@@ -1648,6 +1686,24 @@
             document.getElementById('btnRechazar').style.background = 'var(--sedh-white)';
             
             document.getElementById('modalAprobacion').style.display = 'flex';
+        }
+
+        function actualizarTotalProducto(idx, nuevaCantidad) {
+            const producto = requisicionActualModal.productos[idx];
+            if (!producto) return;
+            
+            const cantidad = parseFloat(nuevaCantidad) || 0;
+            const unitario = parseFloat(producto.gasUnitario) || 0;
+            const total = cantidad * unitario;
+            
+            // Actualizar el total mostrado
+            const totalEl = document.getElementById(`total_${idx}`);
+            if (totalEl) {
+                totalEl.textContent = `L. ${formatMoney(total)}`;
+            }
+            
+            // Guardar la cantidad modificada en el objeto
+            producto.nuevaCantidad = cantidad;
         }
 
         function cerrarModalAprobacion() {
@@ -1712,20 +1768,22 @@
 
                 if (tieneRol(roles, ['jefe de materiales', 'jefe materiales', 'jefsermat', 'jef mat'])) {
                     endpointResponder = '/requisiciones/responder/jefe-materiales';
-                    // Enviar productos con cantidad actual como nuevaCantidad
+                    // Enviar productos con historial: cantidad original y nueva
                     payload.productos = (requisicionActualModal.productos || []).map(p => ({
                         idProducto: p.idProducto ?? p.id_producto ?? p.id,
-                        nuevaCantidad: (p.nuevaCantidad ?? p.cantidad ?? p.cantidad_solicitada ?? 0)
+                        cantidadSolicitada: p.cantidad ?? p.cantidad_solicitada ?? 0,  // Original
+                        nuevaCantidad: (p.nuevaCantidad ?? p.cantidad ?? p.cantidad_solicitada ?? 0)  // Nueva o sin cambios
                     }));
                 } else if (tieneRol(roles, ['jefe inmediato', 'jefeinmediato', 'jefinmediato'])) {
                     endpointResponder = '/requisiciones/responder/jefe';
                     // Jefe inmediato no envía productos
                 } else if (tieneRol(roles, ['gerente administrativo', 'gerente admin', 'geradmon'])) {
                     endpointResponder = '/requisiciones/responder/gerente';
-                    // Gerente puede enviar productos si fuera necesario
+                    // Gerente puede enviar productos con historial
                     payload.productos = (requisicionActualModal.productos || []).map(p => ({
                         idProducto: p.idProducto ?? p.id_producto ?? p.id,
-                        nuevaCantidad: (p.nuevaCantidad ?? p.cantidad ?? p.cantidad_solicitada ?? 0)
+                        cantidadSolicitada: p.cantidad ?? p.cantidad_solicitada ?? 0,  // Original
+                        nuevaCantidad: (p.nuevaCantidad ?? p.cantidad ?? p.cantidad_solicitada ?? 0)  // Nueva o sin cambios
                     }));
                 } else {
                     alert('⚠️ Tu rol no tiene permisos para responder requisiciones.');

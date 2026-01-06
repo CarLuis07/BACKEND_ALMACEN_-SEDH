@@ -645,6 +645,19 @@ def responder_requisicion_jefe_materiales(
         for p in payload.productos
     ]
 
+    # Guardar historial de cambios de cantidad ANTES de actualizar
+    cambios_cantidad = []
+    for p in payload.productos:
+        cant_original = _json_num(p.cantidadSolicitada if hasattr(p, "cantidadSolicitada") else getattr(p, "cantidad", None))
+        cant_nueva = _json_num(p.nuevaCantidad if hasattr(p, "nuevaCantidad") else getattr(p, "cantidad", None))
+        
+        if cant_original != cant_nueva:
+            cambios_cantidad.append({
+                "idProducto": str(p.idProducto),
+                "cantidadOriginal": cant_original,
+                "cantidadNueva": cant_nueva
+            })
+
     params = {
         "p_id_requisicion": payload.idRequisicion,
         "p_email_jefe": email_jefe,
@@ -675,6 +688,22 @@ def responder_requisicion_jefe_materiales(
         query_req = text("SELECT codrequisicion FROM requisiciones.requisiciones WHERE idrequisicion = CAST(:id AS UUID)")
         cod_req_result = db.execute(query_req, {"id": str(payload.idRequisicion)}).fetchone()
         cod_req = cod_req_result[0] if cod_req_result else None
+        
+        # Registrar cambios de cantidad en auditoría
+        if cambios_cantidad and payload.estado.upper() in ['APROBADO', 'APROBADA']:
+            observaciones_cambios = "Cambios de cantidad: " + "; ".join([
+                f"Producto {c['idProducto']}: {c['cantidadOriginal']} → {c['cantidadNueva']}"
+                for c in cambios_cantidad
+            ])
+            registrar_auditoria_requisicion(
+                db=db,
+                id_requisicion=str(payload.idRequisicion),
+                tipo_accion="CAMBIO_CANTIDAD_JEFE_MATERIALES",
+                id_usuario_accion="",  # Se obtiene del token en el router
+                nombre_usuario_accion=nombre_jefe,
+                descripcion_accion="Cambio de cantidades por Jefe de Materiales",
+                observaciones=observaciones_cambios
+            )
         
         # Enviar notificación al solicitante
         enviar_notificacion_aprobacion(
