@@ -1556,6 +1556,13 @@
         }
 
         function abrirModalAprobacion(requisicion) {
+            // Validar que la requisición esté realmente pendiente
+            if (requisicion.estado && requisicion.estado !== 'PENDIENTE' && requisicion.estado !== 'EN_ESPERA') {
+                alert(`⚠️ Esta requisición ya fue procesada con estado: ${requisicion.estado}\n\nActualizando la lista...`);
+                cargarRequisicionesPendientes();
+                return;
+            }
+            
             requisicionActualModal = requisicion;
             decisionActual = null;
 
@@ -1709,7 +1716,19 @@
 
             } catch (err) {
                 console.error('❌ Error:', err);
-                alert(`❌ Error al procesar:\n\n${err.message}`);
+                let errorMsg = err.message;
+                
+                // Mejorar mensajes de error comunes
+                if (errorMsg.includes('ya respondido')) {
+                    errorMsg = 'Esta requisición ya fue respondida previamente. La lista se actualizará automáticamente.';
+                    // Recargar automáticamente después de 2 segundos
+                    setTimeout(() => {
+                        cerrarModalAprobacion();
+                        cargarRequisicionesPendientes();
+                    }, 2000);
+                }
+                
+                alert(`❌ Error al procesar:\n\n${errorMsg}`);
             } finally {
                 btnConfirmar.disabled = false;
                 btnConfirmar.innerHTML = 'Confirmar';
