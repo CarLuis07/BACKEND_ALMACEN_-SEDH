@@ -1699,15 +1699,40 @@
             btnConfirmar.innerHTML = '<span class="spinner"></span> Procesando...';
 
             try {
-                // JEFE INMEDIATO NO MODIFICA CANTIDADES, solo aprueba/rechaza
-                const payload = {
+                // Elegir endpoint según rol del usuario
+                const decoded = parseJwt(token);
+                const roles = normalizarRoles(decoded);
+
+                let endpointResponder = null;
+                let payload = {
                     idRequisicion: requisicionActualModal.idRequisicion,
-                    estado: decisionActual,  // Campo corregido: 'estado' en lugar de 'estadoAprobacion'
+                    estado: decisionActual,
                     comentario: comentario || null
-                    // NO enviamos 'productos' porque el Jefe Inmediato no modifica cantidades
                 };
 
-                const resp = await fetch(`${API_BASE_URL}/requisiciones/responder/jefe`, {
+                if (tieneRol(roles, ['jefe de materiales', 'jefe materiales', 'jefsermat', 'jef mat'])) {
+                    endpointResponder = '/requisiciones/responder/jefe-materiales';
+                    // Enviar productos con cantidad actual como nuevaCantidad
+                    payload.productos = (requisicionActualModal.productos || []).map(p => ({
+                        idProducto: p.idProducto ?? p.id_producto ?? p.id,
+                        nuevaCantidad: (p.nuevaCantidad ?? p.cantidad ?? p.cantidad_solicitada ?? 0)
+                    }));
+                } else if (tieneRol(roles, ['jefe inmediato', 'jefeinmediato', 'jefinmediato'])) {
+                    endpointResponder = '/requisiciones/responder/jefe';
+                    // Jefe inmediato no envía productos
+                } else if (tieneRol(roles, ['gerente administrativo', 'gerente admin', 'geradmon'])) {
+                    endpointResponder = '/requisiciones/responder/gerente';
+                    // Gerente puede enviar productos si fuera necesario
+                    payload.productos = (requisicionActualModal.productos || []).map(p => ({
+                        idProducto: p.idProducto ?? p.id_producto ?? p.id,
+                        nuevaCantidad: (p.nuevaCantidad ?? p.cantidad ?? p.cantidad_solicitada ?? 0)
+                    }));
+                } else {
+                    alert('⚠️ Tu rol no tiene permisos para responder requisiciones.');
+                    return;
+                }
+
+                const resp = await fetch(`${API_BASE_URL}${endpointResponder}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
