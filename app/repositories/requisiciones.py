@@ -276,10 +276,28 @@ def requisiciones_pendientes_jefe(db: Session, email: str) -> List[RequisicionPe
         productos_list = _parse_productos(productos_raw)
         productos_out = [_map_producto_item(it) for it in productos_list]
 
+        # Intentar múltiples variaciones para el nombre del subordinado/solicitante
+        nombre_subordinado = _first(d, "nombreSubordinado", "nombresubordinado", "nombre_subordinado", 
+                                    "nomempleado", "NomEmpleado", "nombre_empleado", "solicitante",
+                                    "nombreSolicitante", "nombre_solicitante")
+        
+        # Si no se encontró el nombre, intentar obtenerlo desde la tabla de requisiciones
+        if not nombre_subordinado:
+            id_requisicion = _first(d, "idRequisicion", "idrequisicion", "id_requisicion")
+            if id_requisicion:
+                try:
+                    from app.models.requisiciones.requisicion import Requisicion
+                    req_obj = db.query(Requisicion).filter(Requisicion.IdRequisicion == id_requisicion).first()
+                    if req_obj and req_obj.NomEmpleado:
+                        nombre_subordinado = req_obj.NomEmpleado
+                except Exception as e:
+                    print(f"⚠️  No se pudo obtener el nombre del empleado desde la tabla: {e}")
+                    nombre_subordinado = "No especificado"
+
         mapeado: Dict[str, Any] = {
             "idRequisicion": _first(d, "idRequisicion", "idrequisicion", "id_requisicion"),
             "codRequisicion": _first(d, "codRequisicion", "codrequisicion", "cod_requisicion"),
-            "nombreSubordinado": _first(d, "nombreSubordinado", "nombresubordinado", "nombre_subordinado"),
+            "nombreSubordinado": nombre_subordinado or "No especificado",
             "dependencia": _first(d, "dependencia"),
             "fecSolicitud": _first(d, "fecSolicitud", "fecsolicitud", "fec_solicitud"),
             "codPrograma": _first(d, "codPrograma", "codprograma", "cod_programa"),
