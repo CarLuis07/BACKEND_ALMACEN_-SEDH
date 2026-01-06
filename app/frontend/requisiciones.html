@@ -1463,6 +1463,11 @@
 
                 requisicionesPendientes = await resp.json();
 
+                console.log('📋 Requisiciones pendientes recibidas:', requisicionesPendientes);
+                if (requisicionesPendientes.length > 0) {
+                    console.log('📋 Primera requisición (estructura):', requisicionesPendientes[0]);
+                }
+
                 if (requisicionesPendientes.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state" style="grid-column: 1/-1;">
@@ -1491,18 +1496,26 @@
         function renderizarRequisicionesPendientes(requisiciones) {
             const container = document.getElementById('pendientes-container');
             
+            // Función auxiliar para obtener el valor de un campo con variaciones
+            const getField = (obj, ...keys) => {
+                for (const key of keys) {
+                    if (obj[key] !== undefined && obj[key] !== null) return obj[key];
+                }
+                return 'No especificado';
+            };
+            
             const cards = requisiciones.map(req => {
-                const productosHtml = req.productos.map(p => `
+                const productosHtml = (req.productos || []).map(p => `
                     <div style="padding:8px 0; border-bottom:1px solid var(--sedh-light-gray);">
-                        <strong>${p.nombre_producto}</strong>
-                        <br>Cantidad: ${p.cantidad_solicitada} | L. ${formatMoney(p.gas_total_producto)}
+                        <strong>${getField(p, 'nombre', 'nombre_producto', 'nombreProducto')}</strong>
+                        <br>Cantidad: ${getField(p, 'cantidad', 'cantidad_solicitada', 'cantidadSolicitada')} | L. ${formatMoney(getField(p, 'gasTotalProducto', 'gas_total_producto', 'gasTotal') || 0)}
                     </div>
                 `).join('');
 
                 return `
                     <div class="req-card">
                         <div class="req-header">
-                            <div class="req-code">${req.codRequisicion}</div>
+                            <div class="req-code">${getField(req, 'codRequisicion', 'codigo_requisicion', 'cod_requisicion')}</div>
                             <span class="status-badge status-en-espera">⏳ PENDIENTE</span>
                         </div>
 
@@ -1510,19 +1523,19 @@
                             <div class="req-info">
                                 <div class="req-info-row">
                                     <span class="req-info-label">Solicitante</span>
-                                    <span class="req-info-value">${req.nombreSubordinado}</span>
+                                    <span class="req-info-value">${getField(req, 'nombreSubordinado', 'nombre_subordinado', 'nombresubordinado', 'solicitante', 'nombreSolicitante')}</span>
                                 </div>
                                 <div class="req-info-row">
                                     <span class="req-info-label">Dependencia</span>
-                                    <span class="req-info-value">${req.dependencia}</span>
+                                    <span class="req-info-value">${getField(req, 'dependencia', 'nombre_dependencia', 'nombreDependencia')}</span>
                                 </div>
                                 <div class="req-info-row">
                                     <span class="req-info-label">Fecha</span>
-                                    <span class="req-info-value">${formatDate(req.fecSolicitud)}</span>
+                                    <span class="req-info-value">${formatDate(getField(req, 'fecSolicitud', 'fec_solicitud', 'fecha_solicitud', 'fechaSolicitud'))}</span>
                                 </div>
                                 <div class="req-info-row">
                                     <span class="req-info-label">Programa</span>
-                                    <span class="req-info-value">${req.proFinal}</span>
+                                    <span class="req-info-value">${getField(req, 'proFinal', 'pro_final', 'programa_final', 'programaFinal')}</span>
                                 </div>
                             </div>
 
@@ -1531,16 +1544,16 @@
                                 ${productosHtml}
                             </div>
 
-                            ${req.obsEmpleado ? `
+                            ${getField(req, 'obsEmpleado', 'obs_empleado', 'observaciones') !== 'No especificado' ? `
                                 <div style="margin:10px 0; padding:12px; background:var(--sedh-bg); border-radius:8px;">
                                     <strong style="color:var(--sedh-primary);">Observaciones:</strong>
-                                    <p style="margin-top:5px;">${req.obsEmpleado}</p>
+                                    <p style="margin-top:5px;">${getField(req, 'obsEmpleado', 'obs_empleado', 'observaciones')}</p>
                                 </div>
                             ` : ''}
 
                             <div class="req-total">
                                 <div class="req-total-label">Total del Pedido</div>
-                                <div class="req-total-value">L. ${formatMoney(req.gasTotalDelPedido)}</div>
+                                <div class="req-total-value">L. ${formatMoney(getField(req, 'gasTotalDelPedido', 'gas_total_del_pedido', 'gasTotal', 'total') || 0)}</div>
                             </div>
 
                             <button onclick='abrirModalAprobacion(${JSON.stringify(req).replace(/'/g, "\\'")})' 
