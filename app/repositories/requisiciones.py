@@ -272,6 +272,25 @@ def requisiciones_pendientes_jefe(db: Session, email: str) -> List[RequisicionPe
     for r in rows:
         d = dict(r)
 
+        # Excluir requisiciones ya atendidas por Almacén
+        try:
+            id_req = _first(d, "idRequisicion", "idrequisicion", "id_requisicion")
+            if id_req:
+                from app.models.requisiciones.requisicion import Requisicion
+                req_obj = db.query(Requisicion).filter(Requisicion.IdRequisicion == id_req).first()
+                if req_obj:
+                    # Si ya tiene timestamp de aprobación en Almacén, no debe aparecer en pendientes
+                    if getattr(req_obj, "FechaHoraAprobacionAlmacen", None):
+                        continue
+                    # Si el estado general indica que no está en espera/pending para Almacén, omitir
+                    if req_obj.EstGeneral and req_obj.EstGeneral.upper() not in [
+                        "EN ESPERA", "PENDIENTE", "PENDIENTE ALMACEN", "ESPERA ALMACEN"
+                    ]:
+                        continue
+        except Exception:
+            # Si falla la verificación, continuar sin filtrar para no romper flujo
+            pass
+
         productos_raw = _first(d, "productos", "Porductos", "porductos")
         productos_list = _parse_productos(productos_raw)
         productos_out = [_map_producto_item(it) for it in productos_list]

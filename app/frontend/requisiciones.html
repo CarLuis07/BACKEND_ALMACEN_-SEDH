@@ -1772,7 +1772,17 @@
                     comentario: comentario || null
                 };
 
-                if (tieneRol(roles, ['jefe de materiales', 'jefe materiales', 'jefsermat', 'jef mat'])) {
+                // Empleado de Almacén
+                if (tieneRol(roles, ['empleado de almacen', 'empleado de almac', 'almacen', 'almac', 'empalmacen'])) {
+                    endpointResponder = '/requisiciones/responder/almacen';
+                    // Almacén recibe las cantidades aprobadas por JefSerMat (o las originales si no hubo cambios)
+                    payload.productos = (requisicionActualModal.productos || []).map(p => ({
+                        idProducto: p.idProducto ?? p.id_producto ?? p.id,
+                        // Almacén trabaja con la cantidad final aprobada; si no existe, usa la cantidad original
+                        nuevaCantidad: (p.nuevaCantidad ?? p.cantidad ?? p.cantidad_solicitada ?? 0)
+                    }));
+                    console.log('📦 Productos (Almacén) a enviar:', payload.productos);
+                } else if (tieneRol(roles, ['jefe de materiales', 'jefe materiales', 'jefsermat', 'jef mat'])) {
                     endpointResponder = '/requisiciones/responder/jefe-materiales';
                     // Enviar productos con historial: cantidad original y nueva
                     payload.productos = (requisicionActualModal.productos || []).map(p => ({
