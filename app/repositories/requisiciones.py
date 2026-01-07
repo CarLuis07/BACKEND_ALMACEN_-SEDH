@@ -767,6 +767,35 @@ def responder_requisicion_jefe_materiales(
                         "idrequisicion": str(payload.idRequisicion),
                     }
                 )
+
+            # Registrar estado PENDIENTE para el rol EmpAlmacen en la tabla de Aprobaciones
+            try:
+                estado_actual_alm = db.execute(
+                    text(
+                        """
+                        SELECT estadoaprobacion 
+                        FROM requisiciones.aprobaciones 
+                        WHERE idrequisicion = CAST(:id AS UUID) AND rol = 'EmpAlmacen' 
+                        ORDER BY fecaprobacion DESC NULLS LAST 
+                        LIMIT 1
+                        """
+                    ),
+                    {"id": str(payload.idRequisicion)}
+                ).fetchone()
+
+                if not estado_actual_alm or (str(estado_actual_alm[0] or '').upper() != 'PENDIENTE'):
+                    db.execute(
+                        text(
+                            """
+                            INSERT INTO requisiciones.aprobaciones 
+                            (idrequisicion, emailinstitucional, rol, estadoaprobacion, comentario, fecaprobacion)
+                            VALUES (CAST(:id AS UUID), NULL, 'EmpAlmacen', 'Pendiente', NULL, NULL)
+                            """
+                        ),
+                        {"id": str(payload.idRequisicion)}
+                    )
+            except Exception as ap_e:
+                print(f"⚠️  No se pudo registrar estado pendiente para EmpAlmacen: {ap_e}")
         
         # Commit al final
         db.commit()
