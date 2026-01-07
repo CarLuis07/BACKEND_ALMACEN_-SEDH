@@ -591,6 +591,20 @@ def requisiciones_pendientes_jefe_materiales(db: Session, email: str) -> List[Re
     resultados: List[RequisicionPendienteGerenteOut] = []
     for r in rows:
         d = dict(r)
+        
+        # FILTRO: Verificar que la requisición realmente esté pendiente para Jefe de Materiales
+        id_req = _first(d, "idRequisicion", "idrequisicion", "id_requisicion")
+        if id_req:
+            try:
+                from app.models.requisiciones.requisicion import Requisicion
+                req_obj = db.query(Requisicion).filter(Requisicion.IdRequisicion == id_req).first()
+                # Si el estado es "EN ESPERA" significa que ya fue aprobada por Jefe de Materiales
+                if req_obj and req_obj.EstGeneral and 'ESPERA' in req_obj.EstGeneral.upper():
+                    print(f"⏭️  Requisición {_first(d, 'codRequisicion')} ya fue aprobada (Estado: {req_obj.EstGeneral}), omitiendo...")
+                    continue  # Saltar esta requisición
+            except Exception as e:
+                print(f"⚠️  Error verificando estado: {e}")
+        
         productos_list = _parse_productos(_first(d, "productos", "Productos"))
         productos_out = [_map_producto_item(it) for it in productos_list]
 
