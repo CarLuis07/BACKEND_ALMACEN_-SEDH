@@ -616,11 +616,25 @@ def requisiciones_pendientes_jefe_materiales(db: Session, email: str) -> List[Re
         if id_req:
             try:
                 from app.models.requisiciones.requisicion import Requisicion
+                from app.models.requisiciones.aprobacion import Aprobacion
+                
                 req_obj = db.query(Requisicion).filter(Requisicion.IdRequisicion == id_req).first()
-                # Si el estado es "EN ESPERA" significa que ya fue aprobada por Jefe de Materiales
+                
+                # Verificar si ya existe una aprobación de JefSerMat para esta requisición
+                aprob_jefsermat = db.query(Aprobacion).filter(
+                    Aprobacion.IdRequisicion == id_req,
+                    Aprobacion.Rol == 'JefSerMat'
+                ).order_by(Aprobacion.FecAprobacion.desc()).first()
+                
+                # Si ya tiene aprobación de JefSerMat (Aprobado o Rechazado), omitir
+                if aprob_jefsermat and aprob_jefsermat.EstadoAprobacion and aprob_jefsermat.EstadoAprobacion.upper() in ['APROBADO', 'APROBADA', 'RECHAZADO', 'RECHAZADA']:
+                    print(f"⏭️  Requisición {_first(d, 'codRequisicion')} ya fue procesada por JefSerMat (Estado: {aprob_jefsermat.EstadoAprobacion}), omitiendo...")
+                    continue
+                
+                # Si el estado general es "EN ESPERA" significa que ya fue aprobada por Jefe de Materiales
                 if req_obj and req_obj.EstGeneral and 'ESPERA' in req_obj.EstGeneral.upper():
                     print(f"⏭️  Requisición {_first(d, 'codRequisicion')} ya fue aprobada (Estado: {req_obj.EstGeneral}), omitiendo...")
-                    continue  # Saltar esta requisición
+                    continue
             except Exception as e:
                 print(f"⚠️  Error verificando estado: {e}")
         
