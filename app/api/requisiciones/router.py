@@ -7,6 +7,9 @@ from io import BytesIO
 from io import StringIO
 from datetime import datetime, date
 import csv
+import logging
+
+logger = logging.getLogger(__name__)
 from app.core.database import get_db
 from app.core.security import get_current_user
 
@@ -1565,6 +1568,7 @@ async def api_responder_requisicion_jefe_materiales(
 
     try:
         result = responder_requisicion_jefe_materiales(db, body, email)
+        logger.warning(f"[JefSerMat] Email usado: '{email}' | Requisicion: {body.idRequisicion} | Estado: {body.estado}")
         
         # Registrar en auditor??a si la aprobaci??n fue exitosa
         try:
