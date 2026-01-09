@@ -20,7 +20,7 @@ def obtener_usuarios_por_rol(db: Session, nombre_rol: str) -> list[tuple[str, st
             FROM usuarios.empleados e
             JOIN acceso.empleados_roles er ON er.emailinstitucional = e.emailinstitucional
             JOIN acceso.roles r ON r.idrol = er.idrol
-            WHERE r.nomrol = :rol AND er.activo = TRUE
+            WHERE r.nomrol = :rol AND er.actlaboralmente = TRUE
         """)
         rows = db.execute(query, {"rol": nombre_rol}).fetchall()
         return [(row.emailinstitucional, row.nombre) for row in rows]
@@ -1096,6 +1096,11 @@ def actualizar_timestamp_aprobacion_jefe(db: Session, id_requisicion: str, id_je
 def actualizar_timestamp_aprobacion_almacen(db: Session, id_requisicion: str, id_almacen: str) -> bool:
     """Actualiza el timestamp cuando almacén aprueba"""
     try:
+        # Solo actualizar si tenemos un ID válido
+        if not id_almacen or id_almacen == "":
+            print(f"⚠️  Sin ID de almacén, saltando actualización de timestamp")
+            return True
+        
         query = text("""
             UPDATE requisiciones.requisiciones
             SET fecha_hora_aprobacion_almacen = CURRENT_TIMESTAMP,
