@@ -1288,7 +1288,7 @@
                 if (q) params.set('codigo', q);
                 if (isAdminUser && filter === 'todas') params.set('todas', 'true');
 
-                const response = await fetch(`${API_BASE_URL}/notificaciones?${params.toString()}`, {
+                const response = await fetch(`${API_BASE_URL}/requisiciones/notificaciones?${params.toString()}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -1437,7 +1437,7 @@
             
             // Intentar marcar como leída (solo funcionará si es notificación del usuario actual)
             try {
-                const response = await fetch(`${API_BASE_URL}/notificaciones/${idNotificacion}/marcar-leida`, {
+                const response = await fetch(`${API_BASE_URL}/requisiciones/notificaciones/${idNotificacion}/marcar-leida`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -1478,7 +1478,7 @@
             if (!token) return;
 
             try {
-                const response = await fetch(`${API_BASE_URL}/notificaciones/marcar-todas-leidas`, {
+                const response = await fetch(`${API_BASE_URL}/requisiciones/notificaciones/marcar-todas-leidas`, {
                     method: 'PUT',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -1500,7 +1500,7 @@
             const token = localStorage.getItem("token");
             if (!token) return;
             try {
-                const resp = await fetch(`${API_BASE_URL}/notificaciones/enviar-pendientes`, {
+                const resp = await fetch(`${API_BASE_URL}/requisiciones/notificaciones/enviar-pendientes`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });

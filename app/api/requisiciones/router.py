@@ -2801,3 +2801,187 @@ async def registrar_evento_auditoria(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error registrando auditor??a: {str(e)}")
+
+
+# ========== ENDPOINT PROXY PARA NOTIFICACIONES ==========
+# Workaround temporal: servir notificaciones desde requisiciones.router
+# ya que el router de notificaciones tiene problemas de carga en FastAPI
+
+@router.get("/notificaciones", summary="Lista las notificaciones del usuario (endpoint proxy)")
+async def api_listar_notificaciones(
+    solo_no_leidas: bool = False,
+    codigo: str = None,
+    todas: bool = False,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Endpoint proxy que devuelve notificaciones.
+    Filtrada por usuario actual a menos que sea admin y pida 'todas=true'
+    """
+    email = (current_user or {}).get("sub") or (current_user or {}).get("email")
+    if not email:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    
+    # Verificar si es admin
+    is_admin = "admin" in str((current_user or {}).get("rol") or "").lower()
+    
+    filtros = []
+    params = {}
+    
+    # Filtrar por email del usuario actual, a menos que sea admin pidiendo todas
+    if not (todas and is_admin):
+        filtros.append("LOWER(n.emailusuario) = LOWER(:email)")
+        params["email"] = email
+    
+    # Filtrar por no leídas si aplica
+    if solo_no_leidas:
+        filtros.append("COALESCE(n.leida, FALSE) = FALSE")
+    
+    # Filtrar por código de requisición si se proporciona
+    if codigo:
+        filtros.append("LOWER(r.codrequisicion) LIKE LOWER(:codigo)")
+        params["codigo"] = f"%{codigo}%"
+    
+    query = (
+        "SELECT n.idnotificacion, n.tipo, n.mensaje, n.leida, n.fechacreacion, "
+        "n.emailusuario, n.estado_envio, n.medio, n.enviado_en, n.error_envio, "
+        "n.idrequisicion, COALESCE(r.codrequisicion, '') AS codrequisicion "
+        "FROM requisiciones.notificaciones n "
+        "LEFT JOIN requisiciones.requisiciones r ON r.idrequisicion = n.idrequisicion "
+    )
+    
+    if filtros:
+        query += " WHERE " + " AND ".join(filtros)
+    
+    query += " ORDER BY n.fechacreacion DESC LIMIT 200"
+    
+    rows = db.execute(text(query), params).mappings().all()
+    data = [dict(row) for row in rows]
+    total = len(data)
+    no_leidas = sum(1 for r in data if not r.get("leida"))
+    
+    return {"notificaciones": data, "total": total, "noLeidas": no_leidas}
+
+
+@router.put("/notificaciones/{id_notificacion}/marcar-leida", summary="Marca una notificación como leída")
+async def api_marcar_notif_leida(
+    id_notificacion: str,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """Marca una notificación como leída"""
+    email = (current_user or {}).get("sub") or (current_user or {}).get("email")
+    is_admin = "admin" in str((current_user or {}).get("rol") or "").lower()
+    
+    if not email and not is_admin:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    
+    res = db.execute(
+        text(
+            """
+            UPDATE requisiciones.notificaciones
+            SET leida = TRUE
+            WHERE idnotificacion = CAST(:id AS UUID)
+              AND (LOWER(emailusuario) = LOWER(:email) OR :es_admin)
+            RETURNING idnotificacion
+            """
+        ),
+        {"id": id_notificacion, "email": email or "", "es_admin": is_admin},
+    ).fetchone()
+    
+    db.commit()
+    
+    if not res:
+        raise HTTPException(status_code=404, detail="Notificación no encontrada")
+    
+    return {"status": "ok"}
+
+
+@router.put("/notificaciones/marcar-todas-leidas", summary="Marca todas las notificaciones como leídas")
+async def api_marcar_todas_leidas(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """Marca todas las notificaciones del usuario como leídas"""
+    email = (current_user or {}).get("sub") or (current_user or {}).get("email")
+    if not email:
+        raise HTTPException(status_code=401, detail="No autenticado")
+    
+    db.execute(
+        text(
+            """
+            UPDATE requisiciones.notificaciones
+            SET leida = TRUE
+            WHERE LOWER(emailusuario) = LOWER(:email)
+            """
+        ),
+        {"email": email},
+    )
+    db.commit()
+    return {"status": "ok"}
+
+
+@router.post("/notificaciones/enviar-pendientes", summary="Envía notificaciones pendientes (endpoint proxy)")
+async def api_enviar_notificaciones_pendientes(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """Endpoint proxy para enviar notificaciones pendientes"""
+    try:
+        # Obtener notificaciones pendientes de envío
+        pendientes = db.execute(
+            text(
+                """
+                SELECT idnotificacion, emailusuario, tipo, mensaje
+                FROM requisiciones.notificaciones
+                WHERE estado_envio IN ('PENDIENTE', 'ERROR')
+                LIMIT 50
+                """
+            )
+        ).fetchall()
+        
+        enviadas = 0
+        errores = 0
+        
+        for notif in pendientes:
+            try:
+                from app.core.mail import send_email
+                
+                # Enviar email
+                await send_email(
+                    to=notif.emailusuario,
+                    subject=f"Notificación: {notif.tipo}",
+                    body=notif.mensaje
+                )
+                
+                # Marcar como enviada
+                db.execute(
+                    text(
+                        """
+                        UPDATE requisiciones.notificaciones
+                        SET estado_envio = 'ENVIADO', enviado_en = NOW()
+                        WHERE idnotificacion = :id
+                        """
+                    ),
+                    {"id": str(notif.idnotificacion)}
+                )
+                enviadas += 1
+            except Exception as e:
+                errores += 1
+                db.execute(
+                    text(
+                        """
+                        UPDATE requisiciones.notificaciones
+                        SET estado_envio = 'ERROR', error_envio = :error
+                        WHERE idnotificacion = :id
+                        """
+                    ),
+                    {"id": str(notif.idnotificacion), "error": str(e)[:500]}
+                )
+        
+        db.commit()
+        return {"status": "ok", "enviadas": enviadas, "errores": errores}
+    except Exception as e:
+        return {"status": "error", "detail": str(e)}
+
