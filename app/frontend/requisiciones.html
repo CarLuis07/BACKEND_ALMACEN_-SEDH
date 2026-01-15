@@ -598,13 +598,13 @@
 
         <!-- NAVEGACIÓN -->
         <div class="nav-container">
-            <button class="nav-tab active" onclick="showTab('mis-requisiciones')">
+            <button class="nav-tab active" id="tabMisRequisiciones" onclick="showTab('mis-requisiciones')">
                 📝 Mis Requisiciones
             </button>
-            <button class="nav-tab" onclick="showTab('nueva-requisicion')">
+            <button class="nav-tab" id="tabNuevaRequisicion" onclick="showTab('nueva-requisicion')">
                 ➕ Nueva Requisición
             </button>
-            <button class="nav-tab" onclick="showTab('pendientes-aprobacion')">
+            <button class="nav-tab" id="tabPendientes" onclick="showTab('pendientes-aprobacion')">
                 ⏳ Pendientes de Aprobación
             </button>
         </div>
@@ -875,6 +875,40 @@
             }
             if (tabName === 'pendientes-aprobacion') {
                 cargarRequisicionesPendientes();
+            }
+        }
+
+        // Configurar visibilidad de tabs según el rol del usuario
+        function configurarTabsPorRol() {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            try {
+                const payload = parseJwt(token);
+                const roles = normalizarRoles(payload);
+                
+                const esEmpleadoAlmacen = roles.some(r => 
+                    ['empleado de almacen', 'empleado de almac', 'almacen', 'almac', 'empalmacen'].some(alias => r === alias || r.includes(alias))
+                );
+
+                // Empleado de almacén: solo ve "Pendientes de Aprobación"
+                if (esEmpleadoAlmacen) {
+                    document.getElementById('tabMisRequisiciones').style.display = 'none';
+                    document.getElementById('tabNuevaRequisicion').style.display = 'none';
+                    document.getElementById('mis-requisiciones').style.display = 'none';
+                    document.getElementById('nueva-requisicion').style.display = 'none';
+                    
+                    // Cambiar a tab de pendientes
+                    showTab('pendientes-aprobacion');
+                } else {
+                    // Otros roles ven todos los tabs
+                    document.getElementById('tabMisRequisiciones').style.display = '';
+                    document.getElementById('tabNuevaRequisicion').style.display = '';
+                    document.getElementById('mis-requisiciones').style.display = '';
+                    document.getElementById('nueva-requisicion').style.display = '';
+                }
+            } catch (e) {
+                console.error('Error configurando tabs:', e);
             }
         }
 
@@ -2001,6 +2035,7 @@
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
+            configurarTabsPorRol();
             cargarMisRequisiciones();
             cargarProgramasIntermedio();
             renderResumenCarrito();
