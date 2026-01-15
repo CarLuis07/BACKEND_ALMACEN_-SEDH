@@ -1813,85 +1813,177 @@
         function generarPDFRequisicion(req, descargar = false) {
             try {
                 const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF();
+                const pdf = new jsPDF('p', 'mm', 'letter'); // Papel carta
                 
-                // Colores SEDH
-                const sedhGreen = [16, 185, 129];
-                const sedhDarkGray = [75, 85, 99];
+                // ========== ENCABEZADO OFICIAL SEDH ==========
+                const pageWidth = pdf.internal.pageSize.getWidth();
                 
-                // Cabecera
-                pdf.setFillColor(...sedhGreen);
-                pdf.rect(0, 0, 210, 35, 'F');
+                // Línea decorativa superior
+                pdf.setDrawColor(16, 185, 129);
+                pdf.setLineWidth(2);
+                pdf.line(10, 10, pageWidth - 10, 10);
                 
-                pdf.setTextColor(255, 255, 255);
-                pdf.setFontSize(18);
-                pdf.text('REQUISICIÓN DE PEDIDO', 15, 15);
+                // Título principal
+                pdf.setFontSize(14);
+                pdf.setFont(undefined, 'bold');
+                pdf.setTextColor(0, 0, 0);
+                pdf.text('REQUISICIÓN DE BIENES DE CONSUMO', pageWidth / 2, 20, { align: 'center' });
+                
+                // Subtítulo
                 pdf.setFontSize(10);
-                pdf.text('Sistema de Almacén - SEDH', 15, 22);
+                pdf.setFont(undefined, 'normal');
+                pdf.setTextColor(100, 100, 100);
+                pdf.text('HONDURAS - SEDH', pageWidth / 2, 27, { align: 'center' });
                 
-                // Información general
-                let yPos = 45;
-                pdf.setTextColor(...sedhDarkGray);
+                // ========== NÚMERO DE REQUISICIÓN Y FECHA ==========
+                let yPos = 35;
                 pdf.setFontSize(11);
                 pdf.setFont(undefined, 'bold');
+                pdf.setTextColor(0, 0, 0);
                 
                 const codReq = req.CodRequisicion || req.codRequisicion || 'SIN CÓDIGO';
+                const fechaSolicitud = formatDate(req.FechaHoraCreacion || req.fechaCreacion || new Date());
+                
+                pdf.text(`No. ${codReq}`, 170, yPos);
+                
+                // ========== INFORMACIÓN GENERAL ==========
+                yPos += 10;
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                
                 const solicitante = req.NomEmpleado || req.nombreEmpleado || 'No especificado';
                 const dependencia = req.NomDependencia || req.nombreDependencia || 'No especificado';
-                const estado = (req.EstGeneral || 'PENDIENTE').toUpperCase();
-                const total = req.GasTotalDelPedido || req.gasTotalDelPedido || 0;
+                const proIntermedio = req.ProIntermedio || req.proIntermedio || 'No especificado';
                 
-                pdf.text(`Código: ${codReq}`, 15, yPos);
-                yPos += 8;
-                pdf.text(`Solicitante: ${solicitante}`, 15, yPos);
-                yPos += 8;
-                pdf.text(`Dependencia: ${dependencia}`, 15, yPos);
-                yPos += 8;
-                pdf.text(`Estado: ${estado}`, 15, yPos);
-                yPos += 8;
-                pdf.text(`Fecha: ${formatDate(req.FechaHoraCreacion || req.fechaCreacion)}`, 15, yPos);
-                yPos += 15;
+                // Fila 1: Fecha solicitud
+                pdf.text('Fecha solicitud:', 15, yPos);
+                pdf.text(fechaSolicitud, 50, yPos);
                 
-                // Productos
+                // Fila 2: Nombre solicitante
+                yPos += 7;
+                pdf.text('Nombre solicitante:', 15, yPos);
+                pdf.text(solicitante, 50, yPos);
+                
+                // Fila 3: Dependencia
+                yPos += 7;
+                pdf.text('Unidad ó Dependencia:', 15, yPos);
+                pdf.text(dependencia, 50, yPos);
+                
+                // Fila 4: Programa Intermedio
+                yPos += 7;
+                pdf.text('Programa Intermedio:', 15, yPos);
+                pdf.text(String(proIntermedio), 50, yPos);
+                
+                // ========== TABLA DE PRODUCTOS ==========
+                yPos += 12;
+                
+                // Encabezados de tabla
+                const colWidths = [20, 75, 35, 35];
+                const tableTop = yPos;
+                const rowHeight = 7;
+                
                 pdf.setFont(undefined, 'bold');
-                pdf.text('PRODUCTOS:', 15, yPos);
-                yPos += 8;
-                
-                pdf.setFont(undefined, 'normal');
                 pdf.setFontSize(9);
+                pdf.setFillColor(16, 185, 129);
+                pdf.setTextColor(255, 255, 255);
                 
+                // Dibujar encabezados
+                let xPos = 15;
+                const headers = ['Cantidad', 'Artículo', 'Objeto del gasto', 'Entregado'];
+                headers.forEach((header, i) => {
+                    pdf.rect(xPos, tableTop, colWidths[i], rowHeight, 'F');
+                    pdf.text(header, xPos + 2, tableTop + 5);
+                    xPos += colWidths[i];
+                });
+                
+                // Filas de productos
+                pdf.setFont(undefined, 'normal');
+                pdf.setFontSize(8);
+                pdf.setTextColor(0, 0, 0);
+                
+                yPos += rowHeight;
                 const productos = req.productos || [];
-                if (productos.length === 0) {
-                    pdf.text('No hay productos registrados', 15, yPos);
-                    yPos += 5;
-                } else {
-                    productos.forEach(p => {
-                        const nombre = p.nombre || p.nombre_producto || 'Producto sin nombre';
-                        const cantidad = p.cantidad || p.cantidad_solicitada || 0;
-                        const precio = p.gasUnitario || p.gas_unitario || 0;
-                        const subtotal = p.gasTotalProducto || p.gas_total_producto || 0;
-                        
-                        pdf.text(`• ${nombre}`, 18, yPos);
-                        pdf.text(`  Cantidad: ${cantidad} | Unitario: L. ${formatMoney(precio)} | Total: L. ${formatMoney(subtotal)}`, 18, yPos + 4);
-                        yPos += 10;
-                    });
+                const maxRows = 15; // Máximo de filas en tabla
+                
+                for (let i = 0; i < Math.min(productos.length, maxRows); i++) {
+                    const p = productos[i];
+                    const cantidad = p.cantidad || p.cantidad_solicitada || 0;
+                    const nombre = p.nombre || p.nombre_producto || '';
+                    const subtotal = p.gasTotalProducto || p.gas_total_producto || 0;
+                    
+                    // Dibujar fila
+                    xPos = 15;
+                    pdf.rect(xPos, yPos, colWidths[0], rowHeight);
+                    pdf.text(String(cantidad), xPos + 2, yPos + 4);
+                    
+                    xPos += colWidths[0];
+                    pdf.rect(xPos, yPos, colWidths[1], rowHeight);
+                    pdf.text(nombre.substring(0, 30), xPos + 2, yPos + 4);
+                    
+                    xPos += colWidths[1];
+                    pdf.rect(xPos, yPos, colWidths[2], rowHeight);
+                    pdf.text(`L. ${formatMoney(subtotal)}`, xPos + 2, yPos + 4);
+                    
+                    xPos += colWidths[2];
+                    pdf.rect(xPos, yPos, colWidths[3], rowHeight);
+                    // Espacio para "Entregado" - vacío para que llenen a mano
+                    
+                    yPos += rowHeight;
                 }
                 
-                // Total
-                yPos += 5;
-                pdf.setFillColor(245, 245, 245);
-                pdf.rect(15, yPos, 180, 12, 'F');
+                // Llenar filas vacías hasta maxRows
+                for (let i = productos.length; i < maxRows; i++) {
+                    xPos = 15;
+                    for (let j = 0; j < colWidths.length; j++) {
+                        pdf.rect(xPos, yPos, colWidths[j], rowHeight);
+                        xPos += colWidths[j];
+                    }
+                    yPos += rowHeight;
+                }
+                
+                // ========== TOTAL ==========
+                yPos += 2;
                 pdf.setFont(undefined, 'bold');
-                pdf.setFontSize(12);
-                pdf.text(`TOTAL: L. ${formatMoney(total)}`, 15, yPos + 8);
+                pdf.setFontSize(10);
+                const total = req.GasTotalDelPedido || req.gasTotalDelPedido || 0;
+                pdf.text(`TOTAL: L. ${formatMoney(total)}`, pageWidth - 60, yPos);
                 
-                // Pie de página
+                // ========== FIRMAS Y SELLOS ==========
+                yPos += 15;
+                pdf.setFontSize(9);
+                pdf.setFont(undefined, 'bold');
+                pdf.setTextColor(0, 0, 0);
+                
+                // Línea 1: Autorización Subgerencia
+                pdf.text('Autorización Subgerencia de Recursos Materiales', 20, yPos);
+                pdf.line(20, yPos + 10, 60, yPos + 10); // Espacio para firma
+                
+                // Línea 2: Observaciones
+                pdf.text('Observaciones', 80, yPos);
+                pdf.rect(80, yPos + 2, 80, 12); // Espacio para observaciones
+                
+                // Línea 3: Entregado por / Recibido por
+                yPos += 20;
+                pdf.setFont(undefined, 'bold');
+                pdf.text('Entregado por:', 20, yPos);
+                pdf.line(20, yPos + 8, 60, yPos + 8); // Espacio para firma
+                
+                pdf.text('Recibido por:', 80, yPos);
+                pdf.line(80, yPos + 8, 120, yPos + 8); // Espacio para firma
+                
+                // Línea 4: Fecha y hora
+                yPos += 15;
+                pdf.setFont(undefined, 'normal');
+                pdf.text(`Fecha y hora: ${new Date().toLocaleDateString('es-HN')}`, 20, yPos);
+                
+                // ========== PIE DE PÁGINA ==========
                 const pageHeight = pdf.internal.pageSize.getHeight();
-                pdf.setFontSize(8);
+                pdf.setFontSize(7);
                 pdf.setTextColor(150, 150, 150);
-                pdf.text(`Generado: ${new Date().toLocaleString('es-HN')}`, 15, pageHeight - 10);
+                pdf.text(`Generado por Sistema de Almacén SEDH - ${new Date().toLocaleTimeString('es-HN')}`, 
+                        pageWidth / 2, pageHeight - 5, { align: 'center' });
                 
-                // Descargar o imprimir
+                // ========== GUARDAR O IMPRIMIR ==========
                 const nombreArchivo = `Requisicion_${codReq}_${new Date().getTime()}.pdf`;
                 
                 if (descargar) {
