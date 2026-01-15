@@ -1,0 +1,14 @@
+-- ERRORES ENCONTRADOS EN responder_requisicion_almacen (comentado):
+-- 1. Línea comentada: "--*UPDATE productos.Productos" impide que se actualice stock
+-- 2. Sin esto, no se descuenta el stock al entregar
+
+-- COMPARATIVA CORREGIDA:
+
+-- VERSIÓN NUEVA (actual - actualiza stock desde iniciales):
+-- CanStock = CantStockInicial - SUM(CantEntregada)
+-- GasTotal = GasTotalInicial - SUM(GasTotalProducto)
+
+-- VERSIÓN ANTIGUA (comentada - solo descuenta):
+-- CanStock = CanStock - v_cant_entregada  <-- ESTA LINEA ESTÁ COMENTADA
+
+-- Solución: Descomenta la línea y valida cuál lógica necesitas.

@@ -2985,3 +2985,372 @@ async def api_enviar_notificaciones_pendientes(
     except Exception as e:
         return {"status": "error", "detail": str(e)}
 
+
+# ====================================
+# ENDPOINT PARA FINALIZAR REQUISICIÓN
+# ====================================
+
+@router.post("/{id_requisicion}/finalizar", summary="Finalizar requisición (EmpAlmacen)")
+async def api_finalizar_requisicion(
+    id_requisicion: str,
+    observaciones: str = None,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Endpoint para que EmpAlmacen finalice una requisición completa.
+    
+    Acciones realizadas:
+    1. Marca la requisición como COMPLETADO
+    2. Registra al empleado de almacén que finalizó
+    3. Genera PDF del proceso
+    4. Envía notificación al solicitante
+    5. Envía correo al solicitante con PDF adjunto
+    6. Registra en auditoría
+    
+    Respuesta: {status, numero_historial, pdf_url, notificacion_enviada}
+    """
+    email = (str(current_user.get("email") or current_user.get("sub") or "")).strip()
+    if not email:
+        raise HTTPException(status_code=401, detail="No se encontró email del usuario autenticado")
+    
+    try:
+        # Validar que el usuario sea EmpAlmacen
+        role_check = text("""
+            SELECT COUNT(*) as cant FROM acceso.empleados_roles er
+            JOIN acceso.roles r ON r.idrol = er.idrol
+            WHERE LOWER(er.emailinstitucional) = LOWER(:email) 
+            AND LOWER(r.nomrol) = 'empalm acen'
+            AND COALESCE(er.actlaboralmente, TRUE) = TRUE
+        """)
+        
+        role_result = db.execute(role_check, {"email": email}).fetchone()
+        
+        if not role_result or role_result[0] == 0:
+            # Permitir también si es admin para testing
+            is_admin = text("""
+                SELECT COUNT(*) as cant FROM acceso.empleados_roles er
+                JOIN acceso.roles r ON r.idrol = er.idrol
+                WHERE LOWER(er.emailinstitucional) = LOWER(:email)
+                AND LOWER(r.nomrol) IN ('admin', 'superadmin')
+            """)
+            admin_result = db.execute(is_admin, {"email": email}).fetchone()
+            if not admin_result or admin_result[0] == 0:
+                raise HTTPException(status_code=403, detail="Usuario no autorizado: solo EmpAlmacen puede finalizar")
+        
+        # Obtener información de la requisición
+        q_req = text("""
+            SELECT 
+                r.idrequisicion,
+                r.codrequisicion,
+                r.nomempleado,
+                r.creadopor,
+                r.gastotaldelpedido,
+                d.nomdependencia,
+                e.emailinstitucional,
+                e.nombre
+            FROM requisiciones.requisiciones r
+            LEFT JOIN usuarios.dependencias d ON r.iddependencia = d.iddependencia
+            LEFT JOIN usuarios.empleados e ON LOWER(e.emailinstitucional) = LOWER(r.creadopor)
+            WHERE r.idrequisicion = CAST(:id AS UUID)
+        """)
+        
+        req_row = db.execute(q_req, {"id": id_requisicion}).fetchone()
+        
+        if not req_row:
+            raise HTTPException(status_code=404, detail="Requisición no encontrada")
+        
+        id_req, cod_req, nom_empleado, email_solicitante, gasto_total, dep_nombre, _, nombre_solicitante = req_row
+        
+        # Obtener productos de la requisición
+        q_prods = text("""
+            SELECT p.nomproducto, dr.cantsolicitada, dr.gasunitario, dr.gastotalproducto,
+                   p.codobjetounico, um.nomun
+            FROM requisiciones.detalle_requisicion dr
+            JOIN productos.productos p ON dr.idproducto = p.idproducto
+            LEFT JOIN productos.unidades_medida um ON p.idunidadmedida = um.idunidadmedida
+            WHERE dr.idrequisicion = CAST(:id AS UUID)
+            ORDER BY p.nomproducto
+        """)
+        
+        productos_result = db.execute(q_prods, {"id": id_requisicion}).fetchall()
+        
+        # Preparar datos para PDF
+        productos_pdf = []
+        for p in productos_result:
+            productos_pdf.append({
+                "descripcion": p[0],
+                "cantidad": int(p[1]) if p[1] else 0,
+                "unidad": p[5] or "Unidad",
+                "precio_unitario": float(p[2]) if p[2] else 0,
+                "total": float(p[3]) if p[3] else 0
+            })
+        
+        # Obtener información de aprobadores para el PDF
+        q_aprob = text("""
+            SELECT DISTINCT 
+                CASE WHEN rol = 'JefInmediato' THEN (SELECT nombre FROM usuarios.empleados e WHERE LOWER(e.emailinstitucional) = LOWER(a.emailinstitucional) LIMIT 1) END as jefe_nombre,
+                CASE WHEN rol = 'JefSerMat' THEN (SELECT nombre FROM usuarios.empleados e WHERE LOWER(e.emailinstitucional) = LOWER(a.emailinstitucional) LIMIT 1) END as jefe_mat_nombre,
+                CASE WHEN rol = 'EmpAlmacen' THEN (SELECT nombre FROM usuarios.empleados e WHERE LOWER(e.emailinstitucional) = LOWER(a.emailinstitucional) LIMIT 1) END as almacen_nombre
+            FROM requisiciones.aprobaciones a
+            WHERE a.idrequisicion = CAST(:id AS UUID)
+        """)
+        
+        aprob_rows = db.execute(q_aprob, {"id": id_requisicion}).fetchall()
+        jefe_aprobador = None
+        jefe_materiales = None
+        almacen_aprobador = None
+        
+        for row in aprob_rows:
+            if row[0]:
+                jefe_aprobador = row[0]
+            if row[1]:
+                jefe_materiales = row[1]
+            if row[2]:
+                almacen_aprobador = row[2]
+        
+        # Generar PDF
+        from app.utils.pdf import generar_pdf_requisicion
+        import os
+        
+        pdf_bytes = generar_pdf_requisicion(
+            cod_requisicion=cod_req or "N/A",
+            solicitante=nombre_solicitante or nom_empleado or "Desconocido",
+            fecha_solicitud=str(datetime.now().date()),
+            dependencia=dep_nombre or "Sin Dependencia",
+            productos=productos_pdf,
+            observaciones_empleado=observaciones,
+            jefe_aprobador=jefe_aprobador,
+            almacen_aprobador=current_user.get("nombre", email),
+            numero_historial=cod_req,
+            fecha_entrega=str(datetime.now().strftime("%d/%m/%Y %H:%M")),
+            estado="COMPLETADO"
+        )
+        
+        # Crear número de historial único
+        numero_historial = f"{cod_req}-COMPLETO-{datetime.now().strftime('%d%m%Y')}"
+        
+        # Actualizar requisición como finalizada
+        db.execute(
+            text("""
+                UPDATE requisiciones.requisiciones
+                SET estgeneral = 'COMPLETADO',
+                    reqentregadopor = :almacen_nombre,
+                    obsalmacen = :observaciones,
+                    actualizadopor = :email,
+                    actualizadoen = CURRENT_DATE,
+                    fecha_hora_entrega = CURRENT_TIMESTAMP AT TIME ZONE 'America/Tegucigalpa'
+                WHERE idrequisicion = CAST(:id AS UUID)
+            """),
+            {
+                "almacen_nombre": current_user.get("nombre", email),
+                "observaciones": observaciones or "Requisición finalizada",
+                "email": email,
+                "id": id_requisicion
+            }
+        )
+        
+        # Registrar en auditoría
+        registrar_auditoria_requisicion(
+            db=db,
+            id_requisicion=id_requisicion,
+            tipo_accion="FINALIZADA",
+            id_usuario_accion=str(current_user.get("id", "")),
+            nombre_usuario_accion=current_user.get("nombre", email),
+            descripcion_accion="Requisición finalizada por Empleado de Almacén",
+            observaciones=f"Número de historial: {numero_historial}. {observaciones or ''}"
+        )
+        
+        # Crear notificación en BD
+        db.execute(
+            text("""
+                INSERT INTO requisiciones.notificaciones 
+                (emailusuario, tipo, mensaje, idrequisicion, leida, fechacreacion, estado_envio, medio)
+                VALUES 
+                (:email, 'requisicion_completada', :mensaje, CAST(:id_req AS UUID), FALSE, 
+                 CURRENT_TIMESTAMP, 'PENDIENTE', 'EMAIL_Y_SISTEMA')
+            """),
+            {
+                "email": email_solicitante,
+                "mensaje": f"✓ Tu requisición {cod_req} ha sido COMPLETADA. Número de proceso: {numero_historial}",
+                "id_req": id_requisicion
+            }
+        )
+        
+        # Enviar correo al solicitante con PDF adjunto
+        estado_correo = "enviado"
+        error_correo = None
+        
+        try:
+            from app.core.mail import send_email
+            from io import BytesIO
+            
+            # Cargar logo para email
+            inline_images = {}
+            try:
+                logo_path = os.path.abspath(os.path.join(
+                    os.path.dirname(__file__), "..", "frontend", "Imagen", "LogoSedhEscudo.png"
+                ))
+                with open(logo_path, "rb") as f:
+                    inline_images["logo_sedh"] = f.read()
+            except Exception:
+                pass
+            
+            asunto = f"Requisición Completada: {cod_req}"
+            
+            cuerpo_text = f"""
+SEDH Sistema de Almacén
+
+Estimado/a {nombre_solicitante},
+
+Tu requisición {cod_req} ha sido completada exitosamente.
+
+Detalles:
+- Código: {cod_req}
+- Número de Proceso: {numero_historial}
+- Total: Bs. {float(gasto_total or 0):.2f}
+- Productos: {len(productos_pdf)}
+- Fecha de Finalización: {datetime.now().strftime('%d/%m/%Y %H:%M')}
+- Completado por: {current_user.get("nombre", email)}
+
+Observaciones: {observaciones or "Sin observaciones"}
+
+El documento PDF con todos los detalles se encuentra adjunto a este correo.
+
+Para ver más detalles, accede a: http://192.168.180.164:8081/historial?cod={cod_req}&tab=aprobaciones
+
+---
+Este correo se generó automáticamente. No responder.
+Sistema de Almacén SEDH
+            """
+            
+            cuerpo_html = f"""
+<div style='font-family:Segoe UI, Tahoma, sans-serif; color:#103b37;'>
+  <div style='display:flex;align-items:center;gap:12px;margin-bottom:16px;'>
+    <img src="cid:logo_sedh" alt="SEDH" style="height:60px;">
+    <div>
+      <div style='font-weight:600;font-size:18px;'>Secretaría de Derechos Humanos - Sistema de Almacén</div>
+      <div style='font-size:12px;opacity:0.8;'>Notificación de Requisición Completada</div>
+    </div>
+  </div>
+  
+  <div style='background:#f8f9fa;border:1px solid #e0e0e0;border-radius:8px;padding:16px;margin-bottom:16px;'>
+    <div style='font-size:16px;margin-bottom:12px;color:#155e75;font-weight:600;'>Requisición Completada</div>
+    
+    <div style='margin-bottom:12px;'>
+      <strong>Estimado/a {nombre_solicitante},</strong>
+    </div>
+    
+    <div style='background:white;border-left:4px solid #0f766e;padding:12px;margin-bottom:12px;'>
+      <p style='margin:0;'>Tu requisición ha sido <strong>completada exitosamente</strong>.</p>
+      <p style='margin:8px 0 0 0;'>Todos los productos fueron procesados y entregados.</p>
+    </div>
+    
+    <div style='background:white;border:1px solid #e5e7eb;border-radius:6px;padding:12px;margin-bottom:12px;'>
+      <table style='width:100%;font-size:14px;'>
+        <tr style='border-bottom:1px solid #f3f4f6;'>
+          <td style='padding:8px 0;'><strong>Código Requisición:</strong></td>
+          <td style='padding:8px 0;color:#0f766e;'>{cod_req}</td>
+        </tr>
+        <tr style='border-bottom:1px solid #f3f4f6;'>
+          <td style='padding:8px 0;'><strong>Número de Proceso:</strong></td>
+          <td style='padding:8px 0;color:#0f766e;'>{numero_historial}</td>
+        </tr>
+        <tr style='border-bottom:1px solid #f3f4f6;'>
+          <td style='padding:8px 0;'><strong>Total del Pedido:</strong></td>
+          <td style='padding:8px 0;'>Bs. {float(gasto_total or 0):.2f}</td>
+        </tr>
+        <tr style='border-bottom:1px solid #f3f4f6;'>
+          <td style='padding:8px 0;'><strong>Cantidad de Productos:</strong></td>
+          <td style='padding:8px 0;'>{len(productos_pdf)} artículos</td>
+        </tr>
+        <tr style='border-bottom:1px solid #f3f4f6;'>
+          <td style='padding:8px 0;'><strong>Fecha de Finalización:</strong></td>
+          <td style='padding:8px 0;'>{datetime.now().strftime('%d/%m/%Y %H:%M')}</td>
+        </tr>
+        <tr>
+          <td style='padding:8px 0;'><strong>Completado por:</strong></td>
+          <td style='padding:8px 0;'>{current_user.get("nombre", email)}</td>
+        </tr>
+      </table>
+    </div>
+    
+    {f'<div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;padding:12px;margin-bottom:12px;"><strong>Observaciones:</strong><br>{observaciones}</div>' if observaciones else ''}
+    
+    <div style='margin-bottom:12px;'>
+      <a href="http://192.168.180.164:8081/historial?cod={cod_req}&tab=aprobaciones" 
+         style='display:inline-block;background:#0f766e;color:white;text-decoration:none;padding:10px 16px;border-radius:6px;'>
+        Ver Detalles Completos
+      </a>
+    </div>
+  </div>
+  
+  <div style='font-size:12px;color:#6c757d;'>
+    <p>El documento PDF con todos los detalles de la requisición se encuentra adjunto.</p>
+    <p>Generado el {datetime.now().strftime('%d/%m/%Y a las %H:%M')} - Sistema de Almacén SEDH</p>
+    <p>Este correo se generó automáticamente. No responder.</p>
+  </div>
+</div>
+            """
+            
+            # Adjuntar PDF
+            attachments = [(f"Requisicion_{cod_req}_Completada.pdf", pdf_bytes, "application/pdf")]
+            
+            estado_correo, error_correo = send_email(
+                email_solicitante or email,
+                asunto,
+                cuerpo_text,
+                body_html=cuerpo_html,
+                attachments=attachments,
+                inline_images=inline_images
+            )
+            
+            # Registrar en log de correos
+            registrar_email_log(
+                email_solicitante or email,
+                asunto,
+                cuerpo_text,
+                estado_correo,
+                error_correo,
+                id_requisicion,
+                db
+            )
+            
+            print(f"Correo de finalización enviado a {email_solicitante or email}: {estado_correo}")
+        
+        except Exception as e:
+            estado_correo = "error"
+            error_correo = str(e)
+            print(f"ERROR al enviar correo de finalización: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        # Confirmar cambios
+        db.commit()
+        
+        return {
+            "status": "success",
+            "message": "Requisición finalizada exitosamente",
+            "codigo": cod_req,
+            "numero_historial": numero_historial,
+            "total": float(gasto_total or 0),
+            "productos": len(productos_pdf),
+            "notificacion_enviada": True,
+            "correo_enviado": estado_correo == "enviado",
+            "correo_destino": email_solicitante or email,
+            "error_correo": error_correo,
+            "fecha_finalizacion": datetime.now().isoformat(),
+            "finalizado_por": current_user.get("nombre", email),
+            "observaciones": observaciones or ""
+        }
+    
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
+        print(f"ERROR al finalizar requisición: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error al finalizar requisición: {str(e)}")
+

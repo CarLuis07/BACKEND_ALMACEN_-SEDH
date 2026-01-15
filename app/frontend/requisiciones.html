@@ -797,6 +797,40 @@
         </div>
     </div>
 
+    <!-- MODAL PARA FINALIZAR REQUISICIÓN -->
+    <div id="modalFinalizarReq" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:var(--sedh-white); border-radius:16px; padding:30px; max-width:600px; width:90%; max-height:80vh; overflow-y:auto;">
+            <h2 style="color:#10b981; margin-bottom:20px;">Finalizar Requisición</h2>
+            
+            <div style="background:#f0fdf4; border-left:4px solid #10b981; padding:15px; margin-bottom:20px; border-radius:8px;">
+                <p style="margin:0; color:#166534;"><strong>⚠️ IMPORTANTE:</strong> Esta acción marcará la requisición como COMPLETADA.</p>
+                <p style="margin:8px 0 0 0; color:#166534; font-size:0.9em;">Se generará un PDF, se notificará al solicitante y se registrará en auditoría.</p>
+            </div>
+            
+            <div id="modalFinDetalleReq" style="background:var(--sedh-bg); padding:20px; border-radius:8px; margin-bottom:20px;">
+                <p><strong>Código:</strong> <span id="modalFinCodigo"></span></p>
+                <p><strong>Solicitante:</strong> <span id="modalFinSolicitante"></span></p>
+                <p><strong>Dependencia:</strong> <span id="modalFinDependencia"></span></p>
+                <p><strong>Productos:</strong> <span id="modalFinProductos"></span></p>
+                <p><strong>Total:</strong> L. <span id="modalFinTotal"></span></p>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="display:block; font-weight:600; color:var(--sedh-dark-gray); margin-bottom:8px;">Observaciones (opcional):</label>
+                <textarea id="observacionesFinalizar" placeholder="Ej: Entregado en perfecto estado, cliente satisfecho..." style="width:100%; padding:12px; border:2px solid var(--sedh-light-gray); border-radius:8px; font-size:0.95rem; resize:vertical; min-height:100px;"></textarea>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button onclick="cerrarModalFinalizar()" style="flex:1; padding:12px; border:2px solid var(--sedh-gray); border-radius:8px; background:var(--sedh-white); color:var(--sedh-gray); font-weight:600; cursor:pointer;">
+                    Cancelar
+                </button>
+                <button onclick="confirmarFinalizarRequisicion()" id="btnConfirmarFinalizar" style="flex:1; padding:12px; border:none; border-radius:8px; background:linear-gradient(135deg, #10b981, #059669); color:var(--sedh-white); font-weight:600; cursor:pointer;">
+                    ✓ Finalizar Requisición
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // VERSION: 2026-01-05-v2 - Modal de aprobación con cantidades editables
         // CONFIGURACIÓN
@@ -1556,10 +1590,16 @@
                                 <div class="req-total-value">L. ${formatMoney(getField(req, 'gasTotalDelPedido', 'gas_total_del_pedido', 'gasTotal', 'total') || 0)}</div>
                             </div>
 
-                            <button onclick='abrirModalAprobacion(${JSON.stringify(req).replace(/'/g, "\\'")})' 
-                                    style="width:100%; margin-top:15px; padding:12px; border:none; border-radius:8px; background:linear-gradient(135deg, var(--sedh-primary), var(--sedh-light)); color:var(--sedh-white); font-weight:600; cursor:pointer;">
-                                📋 Revisar y Responder
-                            </button>
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+                                <button onclick='abrirModalAprobacion(${JSON.stringify(req).replace(/'/g, "\\'")})' 
+                                        style="padding:12px; border:none; border-radius:8px; background:linear-gradient(135deg, var(--sedh-primary), var(--sedh-light)); color:var(--sedh-white); font-weight:600; cursor:pointer;">
+                                    📋 Revisar
+                                </button>
+                                <button onclick='abrirModalFinalizarRequisicion(${JSON.stringify(req).replace(/'/g, "\\'")})' 
+                                        style="padding:12px; border:none; border-radius:8px; background:linear-gradient(135deg, #10b981, #059669); color:var(--sedh-white); font-weight:600; cursor:pointer; display:${req.EstGeneral === 'APROBADO' ? 'block' : 'none'};">
+                                    ✓ Finalizar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1852,6 +1892,110 @@
             } finally {
                 btnConfirmar.disabled = false;
                 btnConfirmar.innerHTML = 'Confirmar';
+            }
+        }
+
+        // ========== FUNCIONES PARA FINALIZAR REQUISICIÓN ==========
+        
+        let requisicionFinalizarModal = null;
+
+        function abrirModalFinalizarRequisicion(requisicion) {
+            // Validar que la requisición esté aprobada
+            if (requisicion.EstGeneral !== 'APROBADO' && requisicion.EstGeneral !== 'APROBADA') {
+                alert('⚠️ Solo se pueden finalizar requisiciones APROBADAS. Estado actual: ' + requisicion.EstGeneral);
+                return;
+            }
+            
+            requisicionFinalizarModal = requisicion;
+            
+            // Llenar modal con datos
+            document.getElementById('modalFinCodigo').textContent = requisicion.CodRequisicion || '—';
+            document.getElementById('modalFinSolicitante').textContent = requisicion.NomEmpleado || '—';
+            document.getElementById('modalFinDependencia').textContent = requisicion.NomDependencia || '—';
+            document.getElementById('modalFinTotal').textContent = formatMoney(requisicion.GasTotalDelPedido || 0);
+            
+            // Contar productos
+            let cantProductos = 0;
+            if (requisicion.Productos && Array.isArray(requisicion.Productos)) {
+                cantProductos = requisicion.Productos.length;
+            } else if (requisicion.TotalProductos) {
+                cantProductos = requisicion.TotalProductos;
+            }
+            document.getElementById('modalFinProductos').textContent = cantProductos + ' artículos';
+            
+            // Limpiar observaciones
+            document.getElementById('observacionesFinalizar').value = '';
+            
+            // Mostrar modal
+            document.getElementById('modalFinalizarReq').style.display = 'flex';
+        }
+
+        function cerrarModalFinalizar() {
+            document.getElementById('modalFinalizarReq').style.display = 'none';
+            requisicionFinalizarModal = null;
+        }
+
+        async function confirmarFinalizarRequisicion() {
+            if (!requisicionFinalizarModal) {
+                alert('❌ No hay requisición seleccionada');
+                return;
+            }
+            
+            const btnConfirmar = document.getElementById('btnConfirmarFinalizar');
+            const observaciones = document.getElementById('observacionesFinalizar').value.trim();
+            
+            try {
+                btnConfirmar.disabled = true;
+                btnConfirmar.innerHTML = '⏳ Finalizando...';
+                
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    throw new Error('No hay sesión activa. Por favor, inicia sesión de nuevo.');
+                }
+                
+                const idRequisicion = requisicionFinalizarModal.IdRequisicion || requisicionFinalizarModal.idrequisicion;
+                
+                if (!idRequisicion) {
+                    throw new Error('ID de requisición no disponible');
+                }
+                
+                const payload = {
+                    observaciones: observaciones || null
+                };
+                
+                console.log('📤 Finalizando requisición:', idRequisicion);
+                console.log('📝 Observaciones:', observaciones);
+                
+                const endpoint = `/api/v1/requisiciones/${idRequisicion}/finalizar`;
+                const resp = await fetch(`${API_BASE_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!resp.ok) {
+                    const error = await resp.json();
+                    throw new Error(error.detail || `Error ${resp.status}`);
+                }
+                
+                const result = await resp.json();
+                
+                alert(`✓ REQUISICIÓN FINALIZADA\n\nCódigo: ${result.codigo}\nNúmero de Proceso: ${result.numero_historial}\nTotal: L. ${formatMoney(result.total)}\n\nNotificación enviada al solicitante.`);
+                
+                // Cerrar modal y recargar
+                cerrarModalFinalizar();
+                cargarMisRequisiciones(); // Recargar lista
+                
+            } catch (error) {
+                console.error('❌ Error finalizando:', error);
+                let errorMsg = error.message || 'Error desconocido';
+                alert(`❌ Error al finalizar:\n\n${errorMsg}`);
+            } finally {
+                btnConfirmar.disabled = false;
+                btnConfirmar.innerHTML = '✓ Finalizar Requisición';
             }
         }
 

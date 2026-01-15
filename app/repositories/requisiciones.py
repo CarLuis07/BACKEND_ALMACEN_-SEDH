@@ -10,6 +10,9 @@ from app.schemas.requisiciones.schemas import ResponderRequisicionIn, ResponderR
 from app.schemas.requisiciones.schemas import RequisicionPendienteGerenteOut
 from app.schemas.requisiciones.schemas import ResponderRequisicionGerenteIn
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def obtener_usuarios_por_rol(db: Session, nombre_rol: str) -> list[tuple[str, str]]:
@@ -154,7 +157,7 @@ SELECT requisiciones.responder_requisicion_jefe_materiales(
     :p_email_jefe,
     :p_estado_aprob,
     :p_comentario,
-    :p_productos
+    CAST(:p_productos AS jsonb)
 ) AS mensaje
 """
 
@@ -218,14 +221,19 @@ def crear_requisicion(db: Session, payload: CrearRequisicionIn) -> CrearRequisic
         db.rollback()
         raise
 
-    # El resultado es un JSON, extraer los campos
-    resultado = row["resultado"]
+    # La función SQL devuelve solo el UUID (resultado)
+    id_requisicion = row["resultado"]
+    
+    # Obtener el código de requisición que se generó automáticamente
+    query = text("SELECT codrequisicion FROM requisiciones.requisiciones WHERE idrequisicion = :id")
+    req_detail = db.execute(query, {"id": id_requisicion}).first()
+    cod_requisicion = req_detail[0] if req_detail else "DESCONOCIDO"
     
     return CrearRequisicionOut(
-        idrequisicion=resultado["idRequisicion"],
-        codrequisicion=resultado["codRequisicion"],
-        nombrejefeInmediato=resultado["nombreJefeInmediato"],
-        emailjefeInmediato=resultado["emailJefeInmediato"]
+        idrequisicion=id_requisicion,
+        codrequisicion=cod_requisicion,
+        nombrejefeInmediato="Pendiente de aprobación",
+        emailjefeInmediato="sistema@sedh.gob.hn"
     )
 
 def requisiciones_pendientes_jefe(db: Session, email: str) -> List[RequisicionPendienteOut]:
@@ -671,6 +679,9 @@ def responder_requisicion_jefe_materiales(
         }
         for p in payload.productos
     ]
+    
+    # DEBUG: Log productos JSON
+    logger.warning(f"[JefSerMat] productos_json: {json.dumps(productos_json, default=str)}")
 
     # Guardar historial de cambios de cantidad ANTES de actualizar
     cambios_cantidad = []
@@ -698,19 +709,38 @@ def responder_requisicion_jefe_materiales(
         bindparam("p_email_jefe"),
         bindparam("p_estado_aprob"),
         bindparam("p_comentario"),
-        bindparam("p_productos", type_=PGJSON),
+        bindparam("p_productos", type_=PGJSON),  # Será convertido a JSONB por PostgreSQL
     )
+    
+    logger.warning(f"[JefSerMat] *** ANTES de ejecutar SQL ***")
+    logger.warning(f"[JefSerMat] SQL_TEXT: {SQL_RESPONDER_REQUISICION_JEFE_MATERIALES}")
+    logger.warning(f"[JefSerMat] PARAMS: {params}")
 
     try:
+        logger.warning(f"[JefSerMat] *** EJECUTANDO SQL ***")
         row = db.execute(stmt, params).mappings().one()
+        logger.warning(f"[JefSerMat] *** DESPUÉS de ejecutar SQL - ROW recibido ***")
+        logger.warning(f"[JefSerMat] ROW content: {dict(row) if row else 'NULL'}")
         
+        resultado = row.mensaje if row and hasattr(row, 'mensaje') else str(row)
+        logger.warning(f"[JefSerMat] Resultado SQL: {resultado}")
+        
+        # Verificar si la función devolvió un error
+        if resultado.startswith('ERROR:'):
+            logger.error(f"[JefSerMat] Error de función SQL: {resultado}")
+            raise ValueError(resultado)
+
+        # *** COMMIT INMEDIATO para asegurar que el INSERT de aprobación se persista ***
+        logger.warning(f"[JefSerMat] *** COMMIT INMEDIATO POST-FUNCIÓN SQL ***")
+        db.commit()
+        logger.warning(f"[JefSerMat] *** COMMIT EXITOSO - Aprobación JefSerMat persistida ***")
+
         # Obtener nombre del jefe de materiales y código ANTES del commit
         query_jefe = text("""
             SELECT nombre FROM usuarios.empleados WHERE emailinstitucional = :email
         """)
         row_jefe = db.execute(query_jefe, {"email": email_jefe}).fetchone()
         nombre_jefe = row_jefe.nombre if row_jefe else email_jefe
-        
         # Obtener código de requisición
         query_req = text("SELECT codrequisicion FROM requisiciones.requisiciones WHERE idrequisicion = CAST(:id AS UUID)")
         cod_req_result = db.execute(query_req, {"id": str(payload.idRequisicion)}).fetchone()
@@ -790,17 +820,24 @@ def responder_requisicion_jefe_materiales(
                     )
             except Exception as ap_e:
                 print(f"⚠️  No se pudo registrar estado pendiente para EmpAlmacen: {ap_e}")
-        
-        # Commit al final
-        db.commit()
-        
+
+        # Commit de auditoría y notificaciones
+        try:
+            db.commit()
+            logger.warning(f"[JefSerMat] *** COMMIT final (auditoría/notificaciones) exitoso ***")
+        except Exception as commit_e:
+            logger.error(f"[JefSerMat] Error en commit final: {commit_e}")
+            # No hacer rollback aquí porque la aprobación ya está commiteada
+
     except Exception as e:
+        logger.error(f"[JefSerMat] *** EXCEPCIÓN en función: {e} ***")
         db.rollback()
         print(f"❌ Error en responder_requisicion_jefe_materiales: {e}")
         import traceback
         traceback.print_exc()
         raise
 
+    logger.warning(f"[JefSerMat] *** RETORNANDO RESULTADO: {row['mensaje']} ***")
     return ResponderRequisicionOut(mensaje=row["mensaje"])
 
 # EMPLEADOS ALMACEN
