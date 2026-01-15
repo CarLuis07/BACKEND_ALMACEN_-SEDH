@@ -968,6 +968,8 @@ def responder_requisicion_almacen(
         traceback.print_exc()
         raise
 
+    return ResponderRequisicionOut(mensaje=row["mensaje"])
+
 
 # ===== FUNCIONES DE AUDITORÍA Y TIMESTAMPS =====
 
