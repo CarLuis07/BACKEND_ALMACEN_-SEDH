@@ -607,6 +607,9 @@
             <button class="nav-tab" id="tabPendientes" onclick="showTab('pendientes-aprobacion')">
                 ⏳ Pendientes de Aprobación
             </button>
+            <button class="nav-tab" id="tabHistorial" onclick="showTab('historial-requisiciones')">
+                📋 Historial
+            </button>
         </div>
 
         <!-- TAB: MIS REQUISICIONES -->
@@ -753,6 +756,20 @@
             </div>
             <div id="pendientes-container" class="requisicions-container"></div>
         </div>
+
+        <!-- TAB: HISTORIAL DE REQUISICIONES APROBADAS -->
+        <div id="historial-requisiciones" class="tab-content">
+            <div style="background: var(--sedh-white); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                <h2 style="color: var(--sedh-primary); margin-bottom: 10px; font-size: 1.3rem;">📋 Historial de Requisiciones</h2>
+                <p style="color: var(--sedh-gray); margin-bottom: 15px;">Ver requisiciones aprobadas y descargar PDFs para imprimir.</p>
+            </div>
+
+            <div id="loading-historial" class="loading" style="display:none;">
+                <div class="spinner"></div>
+                <p>Cargando historial...</p>
+            </div>
+            <div id="historial-container" class="requisicions-container"></div>
+        </div>
     </div>
 
     <!-- MODAL PARA APROBAR/RECHAZAR -->
@@ -876,6 +893,9 @@
             if (tabName === 'pendientes-aprobacion') {
                 cargarRequisicionesPendientes();
             }
+            if (tabName === 'historial-requisiciones') {
+                cargarHistorialRequisiciones();
+            }
         }
 
         // Configurar visibilidad de tabs según el rol del usuario
@@ -891,14 +911,20 @@
                     ['empleado de almacen', 'empleado de almac', 'almacen', 'almac', 'empalmacen'].some(alias => r === alias || r.includes(alias))
                 );
 
-                // Empleado de almacén: solo ve "Pendientes de Aprobación"
+                // Empleado de almacén: ve solo sus tabs específicos
                 if (esEmpleadoAlmacen) {
                     document.getElementById('tabMisRequisiciones').style.display = 'none';
                     document.getElementById('tabNuevaRequisicion').style.display = 'none';
                     document.getElementById('mis-requisiciones').style.display = 'none';
                     document.getElementById('nueva-requisicion').style.display = 'none';
                     
-                    // Cambiar a tab de pendientes
+                    // Mostrar tabs de almacén
+                    document.getElementById('tabPendientes').style.display = '';
+                    document.getElementById('tabHistorial').style.display = '';
+                    document.getElementById('pendientes-aprobacion').style.display = '';
+                    document.getElementById('historial-requisiciones').style.display = '';
+                    
+                    // Cambiar a tab de pendientes como default
                     showTab('pendientes-aprobacion');
                 } else {
                     // Otros roles ven todos los tabs
@@ -906,6 +932,7 @@
                     document.getElementById('tabNuevaRequisicion').style.display = '';
                     document.getElementById('mis-requisiciones').style.display = '';
                     document.getElementById('nueva-requisicion').style.display = '';
+                    document.getElementById('tabHistorial').style.display = '';
                 }
             } catch (e) {
                 console.error('Error configurando tabs:', e);
@@ -1640,6 +1667,249 @@
             }).join('');
 
             container.innerHTML = cards;
+        }
+
+        // CARGAR HISTORIAL DE REQUISICIONES APROBADAS
+        async function cargarHistorialRequisiciones() {
+            const container = document.getElementById('historial-container');
+            const loading = document.getElementById('loading-historial');
+            const token = localStorage.getItem('token');
+
+            if (!token) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔐</div>
+                        <h3>No autenticado</h3>
+                        <p>Por favor, inicia sesión primero</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = '';
+            loading.style.display = 'block';
+
+            try {
+                // Obtener todas las requisiciones (aprobadas, entregadas, rechazadas)
+                const resp = await fetch(`${API_BASE_URL}/requisiciones/todas`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!resp.ok) {
+                    throw new Error(`Error ${resp.status}`);
+                }
+
+                let todasReq = await resp.json() || [];
+
+                // Filtrar solo aprobadas, entregadas o rechazadas
+                const historial = todasReq.filter(req => {
+                    const estado = (req.EstGeneral || '').toUpperCase();
+                    return ['APROBADO', 'ENTREGADO', 'RECHAZADO'].includes(estado);
+                });
+
+                if (historial.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <div class="empty-state-icon">📋</div>
+                            <h3>No hay requisiciones procesadas</h3>
+                            <p>Las requisiciones aprobadas o finalizadas aparecerán aquí</p>
+                        </div>
+                    `;
+                } else {
+                    renderizarHistorialRequisiciones(historial);
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                container.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <div class="empty-state-icon">⚠️</div>
+                        <h3>Error al cargar</h3>
+                        <p>${err.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function renderizarHistorialRequisiciones(requisiciones) {
+            const container = document.getElementById('historial-container');
+            
+            const getField = (obj, ...keys) => {
+                for (const key of keys) {
+                    if (obj[key] !== undefined && obj[key] !== null) return obj[key];
+                }
+                return 'No especificado';
+            };
+
+            const cards = requisiciones.map(req => {
+                const estado = (req.EstGeneral || 'PENDIENTE').toUpperCase();
+                const statusClass = estado === 'APROBADO' ? 'status-aprobado' :
+                                   estado === 'RECHAZADO' ? 'status-rechazado' :
+                                   estado === 'ENTREGADO' ? 'status-aprobado' : 'status-en-espera';
+
+                return `
+                    <div class="req-card ${statusClass}">
+                        <div class="req-header">
+                            <div class="req-code">${getField(req, 'CodRequisicion', 'codRequisicion', 'codigo_requisicion')}</div>
+                            <span class="status-badge ${statusClass.replace('status-', 'status-')}">
+                                ${getStatusIcon(estado)} ${estado}
+                            </span>
+                        </div>
+
+                        <div class="req-body">
+                            <div class="req-info">
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Solicitante</span>
+                                    <span class="req-info-value">${getField(req, 'NomEmpleado', 'nombreEmpleado', 'nombre_empleado')}</span>
+                                </div>
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Dependencia</span>
+                                    <span class="req-info-value">${getField(req, 'NomDependencia', 'nombreDependencia', 'dependencia')}</span>
+                                </div>
+                                <div class="req-info-row">
+                                    <span class="req-info-label">Fecha</span>
+                                    <span class="req-info-value">${formatDate(getField(req, 'FechaHoraCreacion', 'fechaCreacion', 'fecha_creacion'))}</span>
+                                </div>
+                            </div>
+
+                            <div class="req-total">
+                                <div class="req-total-label">Total</div>
+                                <div class="req-total-value">L. ${formatMoney(getField(req, 'GasTotalDelPedido', 'gasTotalDelPedido', 'total') || 0)}</div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:15px;">
+                                <button onclick='descargarPDFRequisicion(${JSON.stringify(req).replace(/'/g, "\\'")})' 
+                                        style="padding:12px; border:none; border-radius:8px; background:linear-gradient(135deg, #3b82f6, #2563eb); color:white; font-weight:600; cursor:pointer;">
+                                    📥 Descargar PDF
+                                </button>
+                                <button onclick='imprimirRequisicion(${JSON.stringify(req).replace(/'/g, "\\'")})' 
+                                        style="padding:12px; border:none; border-radius:8px; background:linear-gradient(135deg, #8b5cf6, #7c3aed); color:white; font-weight:600; cursor:pointer;">
+                                    🖨️ Imprimir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = cards;
+        }
+
+        function descargarPDFRequisicion(req) {
+            console.log('📥 Descargando PDF de:', req.CodRequisicion || req.codRequisicion);
+            generarPDFRequisicion(req, true); // true = descargar
+        }
+
+        function imprimirRequisicion(req) {
+            console.log('🖨️ Imprimiendo:', req.CodRequisicion || req.codRequisicion);
+            generarPDFRequisicion(req, false); // false = imprimir
+        }
+
+        function generarPDFRequisicion(req, descargar = false) {
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF();
+                
+                // Colores SEDH
+                const sedhGreen = [16, 185, 129];
+                const sedhDarkGray = [75, 85, 99];
+                
+                // Cabecera
+                pdf.setFillColor(...sedhGreen);
+                pdf.rect(0, 0, 210, 35, 'F');
+                
+                pdf.setTextColor(255, 255, 255);
+                pdf.setFontSize(18);
+                pdf.text('REQUISICIÓN DE PEDIDO', 15, 15);
+                pdf.setFontSize(10);
+                pdf.text('Sistema de Almacén - SEDH', 15, 22);
+                
+                // Información general
+                let yPos = 45;
+                pdf.setTextColor(...sedhDarkGray);
+                pdf.setFontSize(11);
+                pdf.setFont(undefined, 'bold');
+                
+                const codReq = req.CodRequisicion || req.codRequisicion || 'SIN CÓDIGO';
+                const solicitante = req.NomEmpleado || req.nombreEmpleado || 'No especificado';
+                const dependencia = req.NomDependencia || req.nombreDependencia || 'No especificado';
+                const estado = (req.EstGeneral || 'PENDIENTE').toUpperCase();
+                const total = req.GasTotalDelPedido || req.gasTotalDelPedido || 0;
+                
+                pdf.text(`Código: ${codReq}`, 15, yPos);
+                yPos += 8;
+                pdf.text(`Solicitante: ${solicitante}`, 15, yPos);
+                yPos += 8;
+                pdf.text(`Dependencia: ${dependencia}`, 15, yPos);
+                yPos += 8;
+                pdf.text(`Estado: ${estado}`, 15, yPos);
+                yPos += 8;
+                pdf.text(`Fecha: ${formatDate(req.FechaHoraCreacion || req.fechaCreacion)}`, 15, yPos);
+                yPos += 15;
+                
+                // Productos
+                pdf.setFont(undefined, 'bold');
+                pdf.text('PRODUCTOS:', 15, yPos);
+                yPos += 8;
+                
+                pdf.setFont(undefined, 'normal');
+                pdf.setFontSize(9);
+                
+                const productos = req.productos || [];
+                if (productos.length === 0) {
+                    pdf.text('No hay productos registrados', 15, yPos);
+                    yPos += 5;
+                } else {
+                    productos.forEach(p => {
+                        const nombre = p.nombre || p.nombre_producto || 'Producto sin nombre';
+                        const cantidad = p.cantidad || p.cantidad_solicitada || 0;
+                        const precio = p.gasUnitario || p.gas_unitario || 0;
+                        const subtotal = p.gasTotalProducto || p.gas_total_producto || 0;
+                        
+                        pdf.text(`• ${nombre}`, 18, yPos);
+                        pdf.text(`  Cantidad: ${cantidad} | Unitario: L. ${formatMoney(precio)} | Total: L. ${formatMoney(subtotal)}`, 18, yPos + 4);
+                        yPos += 10;
+                    });
+                }
+                
+                // Total
+                yPos += 5;
+                pdf.setFillColor(245, 245, 245);
+                pdf.rect(15, yPos, 180, 12, 'F');
+                pdf.setFont(undefined, 'bold');
+                pdf.setFontSize(12);
+                pdf.text(`TOTAL: L. ${formatMoney(total)}`, 15, yPos + 8);
+                
+                // Pie de página
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                pdf.setFontSize(8);
+                pdf.setTextColor(150, 150, 150);
+                pdf.text(`Generado: ${new Date().toLocaleString('es-HN')}`, 15, pageHeight - 10);
+                
+                // Descargar o imprimir
+                const nombreArchivo = `Requisicion_${codReq}_${new Date().getTime()}.pdf`;
+                
+                if (descargar) {
+                    pdf.save(nombreArchivo);
+                    console.log('✅ PDF descargado:', nombreArchivo);
+                } else {
+                    pdf.autoPrint();
+                    const iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
+                    iframe.src = pdf.output('bloburi');
+                    iframe.onload = () => {
+                        setTimeout(() => {
+                            iframe.contentWindow.print();
+                        }, 100);
+                    };
+                    console.log('✅ Enviado a imprimir');
+                }
+            } catch (err) {
+                console.error('❌ Error generando PDF:', err);
+                alert('Error al generar PDF: ' + err.message);
+            }
         }
 
         function abrirModalAprobacion(requisicion) {
